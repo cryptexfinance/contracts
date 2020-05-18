@@ -1,0 +1,41 @@
+{
+  "name": "cryptex-contract",
+  "version": "0.0.1",
+  "description": "TCAP.x Token Contracts",
+  "main": "index.js",
+  "repository": "https://github.com/crisgarner/tcap.x",
+  "author": "@crisgarner",
+  "scripts": {
+    "build": "npm run typechain",
+    "test": "npx buidler test",
+    "typechain": "npx buidler compile && typechain --outDir typechain --target ethers 'artifacts/*.json'"
+  },
+  "dependencies": {
+    "@typechain/ethers-v4": "^1.0.0",
+    "buidler-deploy": "^0.3.4",
+    "eslint": "^7.0.0",
+    "eslint-config-airbnb": "^18.1.0",
+    "eslint-plugin-flowtype": "^5.1.0",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-prettier": "^3.1.3",
+    "eslint-plugin-react": "^7.20.0",
+    "eslint-plugin-react-hooks": "^4.0.2"
+  },
+  "devDependencies": {
+    "@nomiclabs/buidler": "^1.3.3",
+    "@nomiclabs/buidler-ethers": "^1.3.3",
+    "@nomiclabs/buidler-etherscan": "^1.3.3",
+    "@nomiclabs/buidler-waffle": "^1.3.3",
+    "chai": "^4.2.0",
+    "dotenv": "^8.2.0",
+    "ethereum-waffle": "^2.5.0",
+    "ethers": "^4.0.47",
+    "prettier": "^2.0.5",
+    "pretty-quick": "^2.0.1",
+    "ts-generator": "^0.0.8",
+    "ts-node": "^8.10.1",
+    "typechain": "^2.0.0",
+    "typechain-target-ethers": "^1.0.4",
+    "typescript": "^3.9.2"
+  }
+}

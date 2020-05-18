@@ -1,0 +1,10 @@
+build/
+bin/
+artifacts
+.secret
+package-lock.json
+.env
+
+node_modules/
+cache/
+typechain/
