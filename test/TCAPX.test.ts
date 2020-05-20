@@ -12,6 +12,7 @@ describe("TCAP.x Token", async function () {
 		undefined,
 	];
 	let accounts: string[] = [];
+	let handler: string = "0xC257274276a4E539741Ca11b590B9447B26A8051"; //TODO: this should be the handler contract
 	before("Set Accounts", async () => {
 		let [acc0, acc1] = await ethers.getSigners();
 		owner = acc0;
@@ -31,6 +32,8 @@ describe("TCAP.x Token", async function () {
 		const symbol = await tcapInstance.symbol();
 		const name = await tcapInstance.name();
 		const decimals = await tcapInstance.decimals();
+		const defaultOwner = await tcapInstance.owner();
+		expect(defaultOwner).to.eq(accounts[0]);
 		expect(symbol).to.eq("TCAPX", "Symbol should equal TCAPX");
 		expect(name).to.eq("TCAP.X");
 		expect(decimals).to.eq(18, "Decimals should be 18");
@@ -49,10 +52,33 @@ describe("TCAP.x Token", async function () {
 		const allowance = await tcapInstance.allowance(accounts[0], accounts[1]);
 		expect(allowance).to.eq(amount);
 	});
-	xit("...should allow users to transfer", async () => {});
-	xit("...shouldn't allow users to burn", async () => {});
-	xit("...shouldn't allow users to mint", async () => {});
-	xit("...should allow owner to set Handler", async () => {});
+	it("...shouldn't allow users to mint", async () => {
+		const amount = ethersProvider.utils.parseEther("1000000");
+		await expect(tcapInstance.mint(accounts[0], amount)).to.be.revertedWith(
+			"Caller is not the handler"
+		);
+	});
+	it("...shouldn't allow users to burn", async () => {
+		const amount = ethersProvider.utils.parseEther("1000000");
+		await expect(tcapInstance.burn(accounts[1], amount)).to.be.revertedWith(
+			"Caller is not the handler"
+		);
+	});
+	it("...should allow owner to set Handler", async () => {
+		await expect(
+			tcapInstance
+				.connect(addr1 as ethersProvider.providers.JsonRpcSigner)
+				.setTokenHandler(accounts[1])
+		).to.be.revertedWith("Ownable: caller is not the owner");
+		await expect(
+			tcapInstance.connect(owner as ethersProvider.providers.JsonRpcSigner).setTokenHandler(handler)
+		)
+			.to.emit(tcapInstance, "LogSetTokenHandler")
+			.withArgs(accounts[0], handler);
+		let currentHandler = await tcapInstance.tokenHandler();
+		expect(currentHandler).to.eq(handler);
+	});
 	xit("...should allow Handler to mint tokens", async () => {});
 	xit("...should allow Handler to burn tokens", async () => {});
+	xit("...should allow users to transfer", async () => {});
 });
