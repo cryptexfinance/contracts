@@ -18,4 +18,14 @@ describe("TCAP.x Token Handler", async function () {
 			accounts.push(await addr2.getAddress());
 		}
 	});
+	xit("...should deploy the contract", async () => {});
+	xit("...should set the token contract", async () => {});
+	xit("...should set the oracle contract", async () => {});
+	xit("...should set the stablecoin contract", async () => {});
+	xit("...should return the token price", async () => {});
+	xit("...should allow investor to create collateral position", async () => {});
+	xit("...should allow investor to add collateral", async () => {});
+	xit("...should allow investor to retrieve unused collateral", async () => {});
+	xit("...should allow users to liquidate investors", async () => {});
+	xit("LIQUIDATION CONFIGURATION TESTS", async () => {});
 });
