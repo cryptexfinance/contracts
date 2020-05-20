@@ -3,7 +3,7 @@ var ethersProvider = require("ethers");
 
 describe("TCAP.x Token", async function () {
 	let tcapInstance;
-	let [owner, addr1, handler] = [undefined, undefined];
+	let [owner, addr1, handler] = [];
 	let accounts = [];
 	let handlerAddress = "";
 
