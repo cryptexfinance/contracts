@@ -12,7 +12,7 @@ describe("TCAP.x Token Handler", async function () {
 		owner = acc0;
 		addr1 = acc1;
 		addr2 = acc3;
-		if (owner && addr1 && handler) {
+		if (owner && addr1) {
 			accounts.push(await owner.getAddress());
 			accounts.push(await addr1.getAddress());
 			accounts.push(await addr2.getAddress());
