@@ -1,0 +1,37 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+
+    - name: Codecov
+      uses: codecov/codecov-action@v1.0.7
+      with:
+        # Repository upload token - get it from codecov.io. Required only for private repositories
+        token: db5eaf41-aa04-4e48-8513-bd9708ba150f
+        # Path to coverage file to upload
+        # file: # optional
+        # Flag upload to group coverage metrics (e.g. unittests | integration | ui,chrome)
+        # flags: # optional
+        # Environment variables to tag the upload with (e.g. PYTHON | OS,PYTHON)
+        #env_vars: # optional
+        # Specify whether or not CI build should fail if Codecov runs into an error during upload
+        #fail_ci_if_error: # optional
