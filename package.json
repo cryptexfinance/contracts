@@ -8,6 +8,7 @@
 	"scripts": {
 		"build": "npm run typechain",
 		"test": "npx buidler test",
+		"coverage": "npx buidler coverage",
 		"typechain": "npx buidler compile && typechain --outDir typechain --target ethers 'artifacts/*.json'"
 	},
 	"dependencies": {
@@ -38,6 +39,7 @@
 		"prettier": "^2.0.5",
 		"prettier-plugin-solidity": "^1.0.0-alpha.51",
 		"pretty-quick": "^2.0.1",
+		"solidity-coverage": "^0.7.5",
 		"source-map-support": "^0.5.19",
 		"ts-generator": "^0.0.8",
 		"ts-node": "^8.10.1",

@@ -12,6 +12,7 @@ describe("TCAP.x Token", async function () {
 		owner = acc0;
 		addr1 = acc1;
 		handler = acc3;
+		console.log("handler", handler);
 		if (owner && addr1 && handler) {
 			accounts.push(await owner.getAddress());
 			accounts.push(await addr1.getAddress());
