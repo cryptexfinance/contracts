@@ -2,11 +2,9 @@ var expect = require("chai").expect;
 var ethersProvider = require("ethers");
 
 describe("TCAP.x Token Handler", async function () {
-	let tokenHandlerInstance, tcapInstance;
+	let tokenHandlerInstance, tcapInstance, stablecoinInstance, oracleInstance;
 	let [owner, addr1, addr2] = [];
 	let accounts = [];
-	let oracleAddress = "0xC257274276a4E539741Ca11b590B9447B26A8051";
-	let daiAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 
 	before("Set Accounts", async () => {
 		let [acc0, acc1, acc3] = await ethers.getSigners();
@@ -27,6 +25,13 @@ describe("TCAP.x Token Handler", async function () {
 		tokenHandlerInstance = await TCAPXHandler.deploy();
 		await tokenHandlerInstance.deployed();
 		expect(tokenHandlerInstance.address).properAddress;
+		const oracle = await ethers.getContractFactory("Oracle");
+		const amount = ethersProvider.utils.parseEther("20");
+		oracleInstance = await oracle.deploy(amount);
+		await oracleInstance.deployed();
+		const stablecoin = await ethers.getContractFactory("Stablecoin");
+		stablecoinInstance = await stablecoin.deploy();
+		await stablecoinInstance.deployed();
 	});
 
 	it("...should set the token contract", async () => {
@@ -44,22 +49,22 @@ describe("TCAP.x Token Handler", async function () {
 		await expect(tokenHandlerInstance.connect(addr1).setOracle(accounts[1])).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(tokenHandlerInstance.connect(owner).setOracle(oracleAddress))
+		await expect(tokenHandlerInstance.connect(owner).setOracle(oracleInstance.address))
 			.to.emit(tokenHandlerInstance, "LogSetOracle")
-			.withArgs(accounts[0], oracleAddress);
+			.withArgs(accounts[0], oracleInstance.address);
 		let currentOracle = await tokenHandlerInstance.oracle();
-		expect(currentOracle).to.eq(oracleAddress);
+		expect(currentOracle).to.eq(oracleInstance.address);
 	});
 
 	it("...should set the stablecoin contract", async () => {
 		await expect(tokenHandlerInstance.connect(addr1).setStablecoin(accounts[1])).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(tokenHandlerInstance.connect(owner).setStablecoin(daiAddress))
+		await expect(tokenHandlerInstance.connect(owner).setStablecoin(stablecoinInstance.address))
 			.to.emit(tokenHandlerInstance, "LogSetStablecoin")
-			.withArgs(accounts[0], daiAddress);
+			.withArgs(accounts[0], stablecoinInstance.address);
 		let currentStablecoin = await tokenHandlerInstance.stablecoin();
-		expect(currentStablecoin).to.eq(daiAddress);
+		expect(currentStablecoin).to.eq(stablecoinInstance.address);
 	});
 
 	xit("...should return the token price", async () => {});

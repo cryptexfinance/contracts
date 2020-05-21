@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for contracts/TCAPX.sol</title>
+    <title>Code coverage report for contracts/TokenHandler.sol</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -16,23 +16,23 @@
 <div class='wrapper'>
   <div class='pad1'>
     <h1>
-      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> TCAPX.sol
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> TokenHandler.sol
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>5/5</span>
+        <span class='fraction'>6/6</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>2/2</span>
+        <span class='fraction'>0/0</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>5/5</span>
+        <span class='fraction'>3/3</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
@@ -94,16 +94,7 @@
 49
 50
 51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+52</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -122,15 +113,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">10×</span>
-<span class="cline-any cline-yes">8×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -149,7 +131,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -159,68 +141,59 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.6.8;
 &nbsp;
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 &nbsp;
 &nbsp;
 /**
- * @title TCAP.X
+ * @title TCAP.X Token Handler
  * @author Cristian Espinoza
- * @notice ERC20 token on the Ethereum Blockchain that provides total exposure to the cryptocurrency sector
+ * @notice Contract in charge of handling the TCAP.X Token and stake
  */
-contract TCAPX is ERC20, Ownable {
+contract TokenHandler is Ownable {
   /** @dev Logs all the calls of the functions. */
-  event LogSetTokenHandler(address indexed _owner, address _tokenHandler);
+  event LogSetTCAPX(address indexed _owner, address _token);
+  event LogSetOracle(address indexed _owner, address _oracle);
+  event LogSetStablecoin(address indexed _owner, address _stablecoin);
 &nbsp;
-  address public tokenHandler;
-&nbsp;
-  constructor(
-    string memory _name,
-    string memory _symbol,
-    uint256 _decimals
-  ) public ERC20(_name, _symbol) {}
-&nbsp;
-  /** @notice Throws if called by any account other than the handler. */
-  modifier onlyHandler() {
-    require(tokenHandler == msg.sender, "Caller is not the handler");
-    _;
-  }
+  address public TCAPX;
+  address public oracle;
+  address public stablecoin;
 &nbsp;
   /**
-   * @notice Sets the address of the handler contract
-   * @param _handler address of the receiver of tokens
+   * @notice Sets the address of the TCAPX ERC20 contract
+   * @param _TCAPX address
    * @dev Only owner can call it
    */
-  function setTokenHandler(address _handler) public onlyOwner {
-    tokenHandler = _handler;
-    emit LogSetTokenHandler(msg.sender, _handler);
+  function setTCAPX(address _TCAPX) public onlyOwner {
+    TCAPX = _TCAPX;
+    emit LogSetTCAPX(msg.sender, _TCAPX);
   }
 &nbsp;
   /**
-   * @notice Mints TCAPX Tokens
-   * @param _account address of the receiver of tokens
-   * @param _amount uint of tokens to mint
-   * @dev Only handler can call it
+   * @notice Sets the address of the oracle contract for the price feed
+   * @param _oracle address
+   * @dev Only owner can call it
    */
-  function mint(address _account, uint256 _amount) public onlyHandler {
-    _mint(_account, _amount);
+  function setOracle(address _oracle) public onlyOwner {
+    oracle = _oracle;
+    emit LogSetOracle(msg.sender, _oracle);
   }
 &nbsp;
   /**
-   * @notice Burns TCAPX Tokens
-   * @param _account address of the receiver of tokens
-   * @param _amount uint of tokens to burn
-   * @dev Only handler can call it
+   * @notice Sets the address of the stablecoin contract
+   * @param _stablecoin address
+   * @dev Only owner can call it
    */
-  function burn(address _account, uint256 _amount) public onlyHandler {
-    _burn(_account, _amount);
+  function setStablecoin(address _stablecoin) public onlyOwner {
+    stablecoin = _stablecoin;
+    emit LogSetStablecoin(msg.sender, _stablecoin);
   }
 }
 &nbsp;</pre></td></tr>
