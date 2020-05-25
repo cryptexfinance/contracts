@@ -5,6 +5,7 @@ describe("TCAP.x Token Handler", async function () {
 	let tokenHandlerInstance, tcapInstance, stablecoinInstance, oracleInstance;
 	let [owner, addr1, addr2] = [];
 	let accounts = [];
+	let divisor = "10000000000";
 
 	before("Set Accounts", async () => {
 		let [acc0, acc1, acc3] = await ethers.getSigners();
@@ -17,6 +18,7 @@ describe("TCAP.x Token Handler", async function () {
 			accounts.push(await addr2.getAddress());
 		}
 	});
+
 	it("...should deploy the contract", async () => {
 		const TCAPX = await ethers.getContractFactory("TCAPX");
 		tcapInstance = await TCAPX.deploy("TCAP.X", "TCAPX", 11);
@@ -26,8 +28,8 @@ describe("TCAP.x Token Handler", async function () {
 		await tokenHandlerInstance.deployed();
 		expect(tokenHandlerInstance.address).properAddress;
 		const oracle = await ethers.getContractFactory("Oracle");
-		const amount = ethersProvider.utils.parseEther("20");
-		oracleInstance = await oracle.deploy(amount);
+		const totalMarketCap = ethersProvider.utils.parseEther("251300189107");
+		oracleInstance = await oracle.deploy(totalMarketCap);
 		await oracleInstance.deployed();
 		const stablecoin = await ethers.getContractFactory("Stablecoin");
 		stablecoinInstance = await stablecoin.deploy();
@@ -67,8 +69,49 @@ describe("TCAP.x Token Handler", async function () {
 		expect(currentStablecoin).to.eq(stablecoinInstance.address);
 	});
 
-	xit("...should return the token price", async () => {});
-	xit("...should allow investor to create collateral position", async () => {});
+	it("...should set the divisor value", async () => {
+		await expect(tokenHandlerInstance.connect(addr1).setDivisor(1)).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(tokenHandlerInstance.connect(owner).setDivisor(divisor))
+			.to.emit(tokenHandlerInstance, "LogSetDivisor")
+			.withArgs(accounts[0], divisor);
+		let currentDivisor = await tokenHandlerInstance.divisor();
+		expect(currentDivisor).to.eq(divisor);
+	});
+
+	it("...should return the token price", async () => {
+		let tcapxPrice = await tokenHandlerInstance.TCAPXPrice();
+		let totalMarketCap = await oracleInstance.price();
+		let result = totalMarketCap.div(divisor);
+		expect(tcapxPrice).to.eq(result);
+	});
+
+	xit("...should allow owner to add to whitelist", async () => {});
+
+	xit("...should allow owner to add to remove from whitelist", async () => {});
+
+	it("...should allow investor to create a vault", async () => {
+		let vault = await tokenHandlerInstance.vaults(accounts[1]);
+		expect(vault).eq(0);
+		await expect(tokenHandlerInstance.connect(addr1).createVault())
+			.to.emit(tokenHandlerInstance, "LogCreateVault")
+			.withArgs(accounts[1], 1);
+		vault = await tokenHandlerInstance.vaults(accounts[1]);
+		expect(vault).eq(1);
+		await expect(
+			tokenHandlerInstance
+				.connect(addr2)
+				.createVault()
+				.to.be.revertedWith("Non whitelisted account")
+		);
+		vault = await tokenHandlerInstance.vaults(accounts[2]);
+		expect(vault).eq(0);
+		await expect(
+			tokenHandlerInstance.connect(addr1).createVault().to.be.revertedWith("Vault already created")
+		);
+	});
+
 	xit("...should allow investor to add collateral", async () => {});
 	xit("...should allow investor to retrieve unused collateral", async () => {});
 	xit("...should allow users to liquidate investors", async () => {});

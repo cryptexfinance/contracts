@@ -2,6 +2,8 @@
 pragma solidity ^0.6.8;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+import "./mocks/Oracle.sol";
 
 
 /**
@@ -12,12 +14,17 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract TokenHandler is Ownable {
   /** @dev Logs all the calls of the functions. */
   event LogSetTCAPX(address indexed _owner, address _token);
-  event LogSetOracle(address indexed _owner, address _oracle);
+  event LogSetOracle(address indexed _owner, Oracle _oracle);
   event LogSetStablecoin(address indexed _owner, address _stablecoin);
+  event LogSetDivisor(address indexed _owner, uint256 _divisor);
+
+  using SafeMath for uint256;
 
   address public TCAPX;
-  address public oracle;
+  Oracle public oracle;
   address public stablecoin;
+  uint256 public divisor;
+  mapping(address => uint256) public vaults;
 
   /**
    * @notice Sets the address of the TCAPX ERC20 contract
@@ -34,7 +41,7 @@ contract TokenHandler is Ownable {
    * @param _oracle address
    * @dev Only owner can call it
    */
-  function setOracle(address _oracle) public onlyOwner {
+  function setOracle(Oracle _oracle) public onlyOwner {
     oracle = _oracle;
     emit LogSetOracle(msg.sender, _oracle);
   }
@@ -47,5 +54,31 @@ contract TokenHandler is Ownable {
   function setStablecoin(address _stablecoin) public onlyOwner {
     stablecoin = _stablecoin;
     emit LogSetStablecoin(msg.sender, _stablecoin);
+  }
+
+  /**
+   * @notice Sets the divisor amount for token price calculation
+   * @param _divisor uint
+   * @dev Only owner can call it
+   */
+  function setDivisor(uint256 _divisor) public onlyOwner {
+    divisor = _divisor;
+    emit LogSetDivisor(msg.sender, _divisor);
+  }
+
+  /**
+   * @notice Creates a Vault
+   * @dev Only whitelisted can call it
+   */
+  function createVault() public {}
+
+  /**
+   * @notice Returns the price of the TCAPX token
+   * @dev TCAPX token is 18 decimals
+   * @return price of the TCAPX Token
+   */
+  function TCAPXPrice() public view returns (uint256 price) {
+    uint256 totalMarketPrice = oracle.price();
+    price = totalMarketPrice.div(divisor);
   }
 }
