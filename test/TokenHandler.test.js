@@ -128,16 +128,13 @@ describe("TCAP.x Token Handler", async function () {
 			.withArgs(accounts[1], 1);
 		vault = await tokenHandlerInstance.vaults(accounts[1]);
 		expect(vault).eq(1);
-		await expect(
-			tokenHandlerInstance
-				.connect(addr2)
-				.createVault()
-				.to.be.revertedWith("Non whitelisted account")
+		await expect(tokenHandlerInstance.connect(addr2).createVault()).to.be.revertedWith(
+			"Caller is not investor"
 		);
 		vault = await tokenHandlerInstance.vaults(accounts[2]);
 		expect(vault).eq(0);
-		await expect(
-			tokenHandlerInstance.connect(addr1).createVault().to.be.revertedWith("Vault already created")
+		await expect(tokenHandlerInstance.connect(addr1).createVault()).to.be.revertedWith(
+			"Vault already created"
 		);
 	});
 

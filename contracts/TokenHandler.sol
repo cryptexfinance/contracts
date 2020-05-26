@@ -18,17 +18,26 @@ contract TokenHandler is Ownable, AccessControl {
   event LogSetOracle(address indexed _owner, Oracle _oracle);
   event LogSetStablecoin(address indexed _owner, address _stablecoin);
   event LogSetDivisor(address indexed _owner, uint256 _divisor);
+  event LogCreateVault(address indexed _owner, uint256 indexed _id);
 
   using SafeMath for uint256;
   bytes32 public constant INVESTOR_ROLE = keccak256("INVESTOR_ROLE");
 
+  uint256 private counter;
   address public TCAPX;
   Oracle public oracle;
   address public stablecoin;
   uint256 public divisor;
   mapping(address => uint256) public vaults;
 
+  /** @notice Throws if called by any account other than the investor. */
+  modifier onlyInvestor() {
+    require(hasRole(INVESTOR_ROLE, msg.sender), "Caller is not investor");
+    _;
+  }
+
   constructor() public {
+    counter = 1;
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
   }
 
@@ -94,7 +103,13 @@ contract TokenHandler is Ownable, AccessControl {
    * @notice Creates a Vault
    * @dev Only whitelisted can call it
    */
-  function createVault() public {}
+  function createVault() public onlyInvestor {
+    require(vaults[msg.sender] == 0, "Vault already created");
+    uint256 id = counter;
+    vaults[msg.sender] = id;
+    counter++;
+    emit LogCreateVault(msg.sender, id);
+  }
 
   /**
    * @notice Returns the price of the TCAPX token
