@@ -2,6 +2,7 @@
 pragma solidity ^0.6.8;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./mocks/Oracle.sol";
 
@@ -11,7 +12,7 @@ import "./mocks/Oracle.sol";
  * @author Cristian Espinoza
  * @notice Contract in charge of handling the TCAP.X Token and stake
  */
-contract TokenHandler is Ownable {
+contract TokenHandler is Ownable, AccessControl {
   /** @dev Logs all the calls of the functions. */
   event LogSetTCAPX(address indexed _owner, address _token);
   event LogSetOracle(address indexed _owner, Oracle _oracle);
@@ -19,12 +20,17 @@ contract TokenHandler is Ownable {
   event LogSetDivisor(address indexed _owner, uint256 _divisor);
 
   using SafeMath for uint256;
+  bytes32 public constant INVESTOR_ROLE = keccak256("INVESTOR_ROLE");
 
   address public TCAPX;
   Oracle public oracle;
   address public stablecoin;
   uint256 public divisor;
   mapping(address => uint256) public vaults;
+
+  constructor() public {
+    _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+  }
 
   /**
    * @notice Sets the address of the TCAPX ERC20 contract
@@ -64,6 +70,24 @@ contract TokenHandler is Ownable {
   function setDivisor(uint256 _divisor) public onlyOwner {
     divisor = _divisor;
     emit LogSetDivisor(msg.sender, _divisor);
+  }
+
+  /**
+   * @notice Add the investor role to an address
+   * @param _investor address
+   * @dev Only owner can call it
+   */
+  function addInvestor(address _investor) public onlyOwner {
+    grantRole(INVESTOR_ROLE, _investor);
+  }
+
+  /**
+   * @notice Remove the investor role from an address
+   * @param _investor address
+   * @dev Only owner can call it
+   */
+  function removeInvestor(address _investor) public onlyOwner {
+    revokeRole(INVESTOR_ROLE, _investor);
   }
 
   /**

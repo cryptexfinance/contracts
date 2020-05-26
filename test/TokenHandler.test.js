@@ -87,9 +87,38 @@ describe("TCAP.x Token Handler", async function () {
 		expect(tcapxPrice).to.eq(result);
 	});
 
-	xit("...should allow owner to add to whitelist", async () => {});
+	it("...should allow owner to add investor to whitelist", async () => {
+		await expect(tokenHandlerInstance.connect(addr1).addInvestor(accounts[1])).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(tokenHandlerInstance.connect(owner).addInvestor(accounts[1]))
+			.to.emit(tokenHandlerInstance, "RoleGranted")
+			.withArgs(
+				ethersProvider.utils.keccak256(ethersProvider.utils.toUtf8Bytes("INVESTOR_ROLE")),
+				accounts[1],
+				accounts[0]
+			);
+		await expect(tokenHandlerInstance.connect(owner).addInvestor(accounts[2]))
+			.to.emit(tokenHandlerInstance, "RoleGranted")
+			.withArgs(
+				ethersProvider.utils.keccak256(ethersProvider.utils.toUtf8Bytes("INVESTOR_ROLE")),
+				accounts[2],
+				accounts[0]
+			);
+	});
 
-	xit("...should allow owner to add to remove from whitelist", async () => {});
+	it("...should allow owner to remove investor from whitelist", async () => {
+		await expect(
+			tokenHandlerInstance.connect(addr1).removeInvestor(accounts[0])
+		).to.be.revertedWith("Ownable: caller is not the owner");
+		await expect(tokenHandlerInstance.connect(owner).removeInvestor(accounts[2]))
+			.to.emit(tokenHandlerInstance, "RoleRevoked")
+			.withArgs(
+				ethersProvider.utils.keccak256(ethersProvider.utils.toUtf8Bytes("INVESTOR_ROLE")),
+				accounts[2],
+				accounts[0]
+			);
+	});
 
 	it("...should allow investor to create a vault", async () => {
 		let vault = await tokenHandlerInstance.vaults(accounts[1]);
