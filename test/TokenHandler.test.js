@@ -121,24 +121,62 @@ describe("TCAP.x Token Handler", async function () {
 	});
 
 	it("...should allow investor to create a vault", async () => {
-		let vault = await tokenHandlerInstance.vaults(accounts[1]);
-		expect(vault).eq(0);
+		let vaultId = await tokenHandlerInstance.vaultToUser(accounts[1]);
+		expect(vaultId).eq(0);
 		await expect(tokenHandlerInstance.connect(addr1).createVault())
 			.to.emit(tokenHandlerInstance, "LogCreateVault")
 			.withArgs(accounts[1], 1);
-		vault = await tokenHandlerInstance.vaults(accounts[1]);
-		expect(vault).eq(1);
+		vaultId = await tokenHandlerInstance.vaultToUser(accounts[1]);
+		expect(vaultId).eq(1);
 		await expect(tokenHandlerInstance.connect(addr2).createVault()).to.be.revertedWith(
 			"Caller is not investor"
 		);
-		vault = await tokenHandlerInstance.vaults(accounts[2]);
-		expect(vault).eq(0);
+		vaultId = await tokenHandlerInstance.vaultToUser(accounts[2]);
+		expect(vaultId).eq(0);
 		await expect(tokenHandlerInstance.connect(addr1).createVault()).to.be.revertedWith(
 			"Vault already created"
 		);
 	});
 
-	xit("...should allow investor to add collateral", async () => {});
+	it("...should get vault by id", async () => {
+		let vault = await tokenHandlerInstance.getVault(1);
+		expect(vault[0]).to.eq(1);
+		expect(vault[1]).to.eq(0);
+		expect(vault[2]).to.eq(accounts[1]);
+		vault = await tokenHandlerInstance.getVault(100);
+		expect(vault[0]).to.eq(0);
+		expect(vault[1]).to.eq(0);
+		expect(vault[2]).to.eq(ethersProvider.constants.AddressZero);
+	});
+
+	it("...should allow investor to add collateral", async () => {
+		const amount = ethersProvider.utils.parseEther("375");
+		await expect(tokenHandlerInstance.connect(addr1).addCollateral(amount)).to.be.revertedWith(
+			"ERC20: transfer amount exceeds balance"
+		);
+		await stablecoinInstance.mint(accounts[1], amount);
+		await expect(tokenHandlerInstance.connect(addr1).addCollateral(amount)).to.be.revertedWith(
+			"ERC20: transfer amount exceeds allowance"
+		);
+		await stablecoinInstance.connect(addr1).approve(tokenHandlerInstance.address, amount);
+		await expect(tokenHandlerInstance.connect(addr1).addCollateral(amount))
+			.to.emit(tokenHandlerInstance, "LogAddCollateral")
+			.withArgs(accounts[1], 1, amount);
+		let vault = await tokenHandlerInstance.getVault(1);
+		expect(vault[0]).to.eq(1);
+		expect(vault[1]).to.eq(amount);
+		expect(vault[2]).to.eq(accounts[1]);
+		await stablecoinInstance.mint(accounts[1], amount);
+		await stablecoinInstance.connect(addr1).approve(tokenHandlerInstance.address, amount);
+		await expect(tokenHandlerInstance.connect(addr1).addCollateral(amount))
+			.to.emit(tokenHandlerInstance, "LogAddCollateral")
+			.withArgs(accounts[1], 1, amount);
+		vault = await tokenHandlerInstance.getVault(1);
+		expect(vault[0]).to.eq(1);
+		expect(vault[1]).to.eq(amount.add(amount));
+		expect(vault[2]).to.eq(accounts[1]);
+	});
+
 	xit("...should allow investor to retrieve unused collateral", async () => {});
 	xit("...should allow users to liquidate investors", async () => {});
 	xit("LIQUIDATION CONFIGURATION TESTS", async () => {});
