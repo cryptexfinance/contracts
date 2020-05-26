@@ -8,6 +8,8 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./mocks/Oracle.sol";
 
 
+//TODO: Add mutex
+
 /**
  * @title TCAP.X Token Handler
  * @author Cristian Espinoza
@@ -21,6 +23,11 @@ contract TokenHandler is Ownable, AccessControl {
   event LogSetDivisor(address indexed _owner, uint256 _divisor);
   event LogCreateVault(address indexed _owner, uint256 indexed _id);
   event LogAddCollateral(
+    address indexed _owner,
+    uint256 indexed _id,
+    uint256 _amount
+  );
+  event LogRemoveCollateral(
     address indexed _owner,
     uint256 indexed _id,
     uint256 _amount
@@ -127,14 +134,30 @@ contract TokenHandler is Ownable, AccessControl {
   }
 
   /**
-   * @notice Creates a Vault
+   * @notice Adds Stablecoin to vault
    * @dev Only whitelisted can call it
+   * @param _amount of stablecoin to add
    */
   function addCollateral(uint256 _amount) public onlyInvestor {
     stablecoin.transferFrom(msg.sender, address(this), _amount);
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     vault.Collateral = vault.Collateral.add(_amount);
     emit LogAddCollateral(msg.sender, vault.Id, _amount);
+  }
+
+  /**
+   * @notice Removes not used stablecoin from collateral
+   * @param _amount of stablecoin to add
+   */
+  function removeCollateral(uint256 _amount) public {
+    Vault storage vault = vaults[vaultToUser[msg.sender]];
+    require(
+      vault.Collateral >= _amount,
+      "Transaction reverted with Retrieve amount higher than collateral"
+    );
+    vault.Collateral = vault.Collateral.sub(_amount);
+    stablecoin.transfer(msg.sender, _amount);
+    emit LogRemoveCollateral(msg.sender, vault.Id, _amount);
   }
 
   /**
