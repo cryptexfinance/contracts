@@ -221,6 +221,8 @@ describe("TCAP.x Token Handler", async function () {
 		expect(balance).to.eq(0);
 	});
 
+	xit("...should allow investors to mint tokens", async () => {});
+	xit("...should allow investors to burn tokens", async () => {});
 	xit("...should allow users to liquidate investors", async () => {});
 	xit("LIQUIDATION CONFIGURATION TESTS", async () => {});
 });

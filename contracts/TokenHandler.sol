@@ -5,17 +5,17 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 import "./mocks/Oracle.sol";
 
-
-//TODO: Add mutex
 
 /**
  * @title TCAP.X Token Handler
  * @author Cristian Espinoza
  * @notice Contract in charge of handling the TCAP.X Token and stake
  */
-contract TokenHandler is Ownable, AccessControl {
+contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
   /** @dev Logs all the calls of the functions. */
   event LogSetTCAPX(address indexed _owner, ERC20 _token);
   event LogSetOracle(address indexed _owner, Oracle _oracle);
@@ -34,6 +34,10 @@ contract TokenHandler is Ownable, AccessControl {
   );
 
   using SafeMath for uint256;
+  using Counters for Counters.Counter;
+
+  Counters.Counter counter;
+
   bytes32 public constant INVESTOR_ROLE = keccak256("INVESTOR_ROLE");
 
   struct Vault {
@@ -42,7 +46,6 @@ contract TokenHandler is Ownable, AccessControl {
     address Owner;
   }
 
-  uint256 private counter;
   ERC20 public TCAPX;
   Oracle public oracle;
   ERC20 public stablecoin;
@@ -56,8 +59,9 @@ contract TokenHandler is Ownable, AccessControl {
     _;
   }
 
+  /** @dev counter starts in one as 0 is reserved for empty objects */
   constructor() public {
-    counter = 1;
+    counter.increment();
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
   }
 
@@ -125,11 +129,11 @@ contract TokenHandler is Ownable, AccessControl {
    */
   function createVault() public onlyInvestor {
     require(vaultToUser[msg.sender] == 0, "Vault already created");
-    uint256 id = counter;
+    uint256 id = counter.current();
     vaultToUser[msg.sender] = id;
     Vault memory vault = Vault(id, 0, msg.sender);
     vaults[id] = vault;
-    counter++;
+    counter.increment();
     emit LogCreateVault(msg.sender, id);
   }
 
@@ -138,7 +142,7 @@ contract TokenHandler is Ownable, AccessControl {
    * @dev Only whitelisted can call it
    * @param _amount of stablecoin to add
    */
-  function addCollateral(uint256 _amount) public onlyInvestor {
+  function addCollateral(uint256 _amount) public onlyInvestor nonReentrant {
     stablecoin.transferFrom(msg.sender, address(this), _amount);
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     vault.Collateral = vault.Collateral.add(_amount);
@@ -149,7 +153,7 @@ contract TokenHandler is Ownable, AccessControl {
    * @notice Removes not used stablecoin from collateral
    * @param _amount of stablecoin to add
    */
-  function removeCollateral(uint256 _amount) public {
+  function removeCollateral(uint256 _amount) public nonReentrant {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     require(
       vault.Collateral >= _amount,
