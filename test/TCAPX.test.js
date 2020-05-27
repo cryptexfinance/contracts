@@ -22,7 +22,7 @@ describe("TCAP.x Token", async function () {
 
 	it("...should deploy the contract", async () => {
 		const TCAPX = await ethers.getContractFactory("TCAPX");
-		tcapInstance = await TCAPX.deploy("TCAP.X", "TCAPX", 11);
+		tcapInstance = await TCAPX.deploy("TCAP.X", "TCAPX", 18);
 		await tcapInstance.deployed();
 		expect(tcapInstance.address).properAddress;
 	});

@@ -24,7 +24,7 @@ describe("TCAP.x Token Handler", async function () {
 
 	it("...should deploy the contract", async () => {
 		const TCAPX = await ethers.getContractFactory("TCAPX");
-		tcapInstance = await TCAPX.deploy("TCAP.X", "TCAPX", 11);
+		tcapInstance = await TCAPX.deploy("TCAP.X", "TCAPX", 18);
 		await tcapInstance.deployed();
 		const TCAPXHandler = await ethers.getContractFactory("TokenHandler");
 		tokenHandlerInstance = await TCAPXHandler.deploy();
@@ -37,6 +37,7 @@ describe("TCAP.x Token Handler", async function () {
 		const stablecoin = await ethers.getContractFactory("Stablecoin");
 		stablecoinInstance = await stablecoin.deploy();
 		await stablecoinInstance.deployed();
+		await tcapInstance.setTokenHandler(tokenHandlerInstance.address);
 	});
 
 	it("...should set the token contract", async () => {
@@ -46,7 +47,7 @@ describe("TCAP.x Token Handler", async function () {
 		await expect(tokenHandlerInstance.connect(owner).setTCAPX(tcapInstance.address))
 			.to.emit(tokenHandlerInstance, "LogSetTCAPX")
 			.withArgs(accounts[0], tcapInstance.address);
-		let currentTCAPX = await tokenHandlerInstance.TCAPX();
+		let currentTCAPX = await tokenHandlerInstance.TCAPXToken();
 		expect(currentTCAPX).to.eq(tcapInstance.address);
 	});
 
@@ -164,10 +165,12 @@ describe("TCAP.x Token Handler", async function () {
 		expect(vault[0]).to.eq(1);
 		expect(vault[1]).to.eq(0);
 		expect(vault[2]).to.eq(accounts[1]);
+		expect(vault[3]).to.eq(0);
 		vault = await tokenHandlerInstance.getVault(100);
 		expect(vault[0]).to.eq(0);
 		expect(vault[1]).to.eq(0);
 		expect(vault[2]).to.eq(ethersProvider.constants.AddressZero);
+		expect(vault[3]).to.eq(0);
 	});
 
 	it("...should allow investor to add collateral", async () => {
@@ -194,6 +197,7 @@ describe("TCAP.x Token Handler", async function () {
 		expect(vault[0]).to.eq(1);
 		expect(vault[1]).to.eq(amount);
 		expect(vault[2]).to.eq(accounts[1]);
+		expect(vault[3]).to.eq(0);
 		balance = await stablecoinInstance.balanceOf(accounts[1]);
 		expect(balance).to.eq(0);
 		balance = await stablecoinInstance.balanceOf(tokenHandlerInstance.address);
@@ -205,6 +209,7 @@ describe("TCAP.x Token Handler", async function () {
 		expect(vault[0]).to.eq(1);
 		expect(vault[1]).to.eq(amount.add(amount));
 		expect(vault[2]).to.eq(accounts[1]);
+		expect(vault[3]).to.eq(0);
 		balance = await stablecoinInstance.balanceOf(tokenHandlerInstance.address);
 		expect(balance).to.eq(amount.add(amount));
 	});
@@ -227,6 +232,7 @@ describe("TCAP.x Token Handler", async function () {
 		expect(vault[0]).to.eq(1);
 		expect(vault[1]).to.eq(amount);
 		expect(vault[2]).to.eq(accounts[1]);
+		expect(vault[3]).to.eq(0);
 		balance = await stablecoinInstance.balanceOf(accounts[1]);
 		expect(balance).to.eq(amount);
 		balance = await stablecoinInstance.balanceOf(tokenHandlerInstance.address);
@@ -236,6 +242,7 @@ describe("TCAP.x Token Handler", async function () {
 		expect(vault[0]).to.eq(1);
 		expect(vault[1]).to.eq(0);
 		expect(vault[2]).to.eq(accounts[1]);
+		expect(vault[3]).to.eq(0);
 		balance = await stablecoinInstance.balanceOf(accounts[1]);
 		expect(balance).to.eq(amount.add(amount));
 		balance = await stablecoinInstance.balanceOf(tokenHandlerInstance.address);
@@ -245,23 +252,31 @@ describe("TCAP.x Token Handler", async function () {
 	it("...should allow investors to mint tokens", async () => {
 		const amount = ethersProvider.utils.parseEther("10");
 		const bigAmount = ethersProvider.utils.parseEther("100");
-		let tcapxBalance = tcapInstance.balanceOf(accounts[1]);
-		expect(tcapxBalance).to.eq(0);
-		await tokenHandlerInstance.connect(addr1).addCollateral(ethersProvider.utils.parseEther("375"));
+		const reqAmount = await tokenHandlerInstance.requiredCollateral(amount);
+		await stablecoinInstance.mint(accounts[1], reqAmount);
+		let tcapxBalance = await tcapInstance.balanceOf(accounts[1]);
+		await stablecoinInstance.connect(addr1).approve(tokenHandlerInstance.address, reqAmount);
+		await tokenHandlerInstance.connect(addr1).addCollateral(reqAmount);
 		await expect(tokenHandlerInstance.connect(addr3).mint(amount)).to.be.revertedWith(
-			"Not enought collateral"
+			"Not enough collateral"
 		);
 		await expect(tokenHandlerInstance.connect(addr1).mint(bigAmount)).to.be.revertedWith(
-			"Not enought collateral"
+			"Not enough collateral"
 		);
 		await expect(tokenHandlerInstance.connect(addr1).mint(amount))
 			.to.emit(tokenHandlerInstance, "LogMint")
 			.withArgs(accounts[1], 1, amount);
-		tcapxBalance = tcapInstance.balanceOf(accounts[1]);
+		tcapxBalance = await tcapInstance.balanceOf(accounts[1]);
 		expect(tcapxBalance).to.eq(amount);
+		vault = await tokenHandlerInstance.getVault(1);
+		expect(vault[0]).to.eq(1);
+		expect(vault[1]).to.eq(0);
+		expect(vault[2]).to.eq(accounts[1]);
+		expect(vault[3]).to.eq(reqAmount);
 	});
 
 	xit("...should allow investors to burn tokens", async () => {});
+	xit("...should return the required collateral amount", async () => {});
 	xit("...should allow users to liquidate investors", async () => {});
 	xit("LIQUIDATION CONFIGURATION TESTS", async () => {});
 });

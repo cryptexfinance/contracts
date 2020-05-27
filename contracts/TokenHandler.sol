@@ -8,6 +8,10 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./mocks/Oracle.sol";
+import "./TCAPX.sol";
+
+//Debug
+import "@nomiclabs/buidler/console.sol";
 
 
 /**
@@ -17,7 +21,7 @@ import "./mocks/Oracle.sol";
  */
 contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
   /** @dev Logs all the calls of the functions. */
-  event LogSetTCAPX(address indexed _owner, ERC20 _token);
+  event LogSetTCAPX(address indexed _owner, TCAPX _token);
   event LogSetOracle(address indexed _owner, Oracle _oracle);
   event LogSetStablecoin(address indexed _owner, ERC20 _stablecoin);
   event LogSetDivisor(address indexed _owner, uint256 _divisor);
@@ -33,6 +37,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
     uint256 indexed _id,
     uint256 _amount
   );
+  event LogMint(address indexed _owner, uint256 indexed _id, uint256 _amount);
 
   using SafeMath for uint256;
   using Counters for Counters.Counter;
@@ -45,9 +50,10 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
     uint256 Id;
     uint256 Collateral;
     address Owner;
+    uint256 Stake;
   }
 
-  ERC20 public TCAPX;
+  TCAPX public TCAPXToken;
   Oracle public oracle;
   ERC20 public stablecoin;
   uint256 public divisor;
@@ -69,12 +75,12 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
 
   /**
    * @notice Sets the address of the TCAPX ERC20 contract
-   * @param _TCAPX address
+   * @param _TCAPXToken address
    * @dev Only owner can call it
    */
-  function setTCAPX(ERC20 _TCAPX) public onlyOwner {
-    TCAPX = _TCAPX;
-    emit LogSetTCAPX(msg.sender, _TCAPX);
+  function setTCAPX(TCAPX _TCAPXToken) public onlyOwner {
+    TCAPXToken = _TCAPXToken;
+    emit LogSetTCAPX(msg.sender, _TCAPXToken);
   }
 
   /**
@@ -143,7 +149,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
     require(vaultToUser[msg.sender] == 0, "Vault already created");
     uint256 id = counter.current();
     vaultToUser[msg.sender] = id;
-    Vault memory vault = Vault(id, 0, msg.sender);
+    Vault memory vault = Vault(id, 0, msg.sender, 0);
     vaults[id] = vault;
     counter.increment();
     emit LogCreateVault(msg.sender, id);
@@ -177,6 +183,20 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
   }
 
   /**
+   * @notice Mints TCAP.X Tokens staking the collateral
+   * @param _amount of tokens to mint
+   */
+  function mint(uint256 _amount) public nonReentrant {
+    Vault storage vault = vaults[vaultToUser[msg.sender]];
+    uint256 requiredCollateral = requiredCollateral(_amount);
+    require(vault.Collateral >= requiredCollateral, "Not enough collateral");
+    vault.Collateral = vault.Collateral.sub(requiredCollateral);
+    vault.Stake = vault.Collateral.add(requiredCollateral);
+    TCAPXToken.mint(msg.sender, _amount);
+    emit LogMint(msg.sender, vault.Id, _amount);
+  }
+
+  /**
    * @notice Returns the price of the TCAPX token
    * @dev TCAPX token is 18 decimals
    * @return price of the TCAPX Token
@@ -184,6 +204,21 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
   function TCAPXPrice() public view returns (uint256 price) {
     uint256 totalMarketPrice = oracle.price();
     price = totalMarketPrice.div(divisor);
+  }
+
+  /**
+   * @notice Returns the required collateral to mint TCAPX token
+   * @dev TCAPX token is 18 decimals
+   * @param _amount uint amount to mint
+   * @return collateral of the TCAPX Token
+   */
+  function requiredCollateral(uint256 _amount)
+    public
+    view
+    returns (uint256 collateral)
+  {
+    uint256 price = TCAPXPrice();
+    collateral = (price.mul(_amount).mul(ratio)).div(100);
   }
 
   /**
@@ -199,10 +234,11 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
     returns (
       uint256 id,
       uint256 collateral,
-      address owner
+      address owner,
+      uint256 stake
     )
   {
     Vault memory vault = vaults[_id];
-    return (vault.Id, vault.Collateral, vault.Owner);
+    return (vault.Id, vault.Collateral, vault.Owner, vault.Stake);
   }
 }
