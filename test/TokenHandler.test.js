@@ -3,19 +3,22 @@ var ethersProvider = require("ethers");
 
 describe("TCAP.x Token Handler", async function () {
 	let tokenHandlerInstance, tcapInstance, stablecoinInstance, oracleInstance;
-	let [owner, addr1, addr2] = [];
+	let [owner, addr1, addr2, addr3] = [];
 	let accounts = [];
 	let divisor = "10000000000";
+	let ratio = "150";
 
 	before("Set Accounts", async () => {
-		let [acc0, acc1, acc3] = await ethers.getSigners();
+		let [acc0, acc1, acc3, acc4] = await ethers.getSigners();
 		owner = acc0;
 		addr1 = acc1;
 		addr2 = acc3;
+		addr3 = acc4;
 		if (owner && addr1) {
 			accounts.push(await owner.getAddress());
 			accounts.push(await addr1.getAddress());
 			accounts.push(await addr2.getAddress());
+			accounts.push(await addr3.getAddress());
 		}
 	});
 
@@ -80,6 +83,17 @@ describe("TCAP.x Token Handler", async function () {
 		expect(currentDivisor).to.eq(divisor);
 	});
 
+	it("...should set the collateral ratio", async () => {
+		await expect(tokenHandlerInstance.connect(addr1).setRatio(1)).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(tokenHandlerInstance.connect(owner).setRatio(ratio))
+			.to.emit(tokenHandlerInstance, "LogSetRatio")
+			.withArgs(accounts[0], ratio);
+		let currentRatio = await tokenHandlerInstance.ratio();
+		expect(currentRatio).to.eq(ratio);
+	});
+
 	it("...should return the token price", async () => {
 		let tcapxPrice = await tokenHandlerInstance.TCAPXPrice();
 		let totalMarketCap = await oracleInstance.price();
@@ -103,6 +117,13 @@ describe("TCAP.x Token Handler", async function () {
 			.withArgs(
 				ethersProvider.utils.keccak256(ethersProvider.utils.toUtf8Bytes("INVESTOR_ROLE")),
 				accounts[2],
+				accounts[0]
+			);
+		await expect(tokenHandlerInstance.connect(owner).addInvestor(accounts[3]))
+			.to.emit(tokenHandlerInstance, "RoleGranted")
+			.withArgs(
+				ethersProvider.utils.keccak256(ethersProvider.utils.toUtf8Bytes("INVESTOR_ROLE")),
+				accounts[3],
 				accounts[0]
 			);
 	});
@@ -221,7 +242,25 @@ describe("TCAP.x Token Handler", async function () {
 		expect(balance).to.eq(0);
 	});
 
-	xit("...should allow investors to mint tokens", async () => {});
+	it("...should allow investors to mint tokens", async () => {
+		const amount = ethersProvider.utils.parseEther("10");
+		const bigAmount = ethersProvider.utils.parseEther("100");
+		let tcapxBalance = tcapInstance.balanceOf(accounts[1]);
+		expect(tcapxBalance).to.eq(0);
+		await tokenHandlerInstance.connect(addr1).addCollateral(ethersProvider.utils.parseEther("375"));
+		await expect(tokenHandlerInstance.connect(addr3).mint(amount)).to.be.revertedWith(
+			"Not enought collateral"
+		);
+		await expect(tokenHandlerInstance.connect(addr1).mint(bigAmount)).to.be.revertedWith(
+			"Not enought collateral"
+		);
+		await expect(tokenHandlerInstance.connect(addr1).mint(amount))
+			.to.emit(tokenHandlerInstance, "LogMint")
+			.withArgs(accounts[1], 1, amount);
+		tcapxBalance = tcapInstance.balanceOf(accounts[1]);
+		expect(tcapxBalance).to.eq(amount);
+	});
+
 	xit("...should allow investors to burn tokens", async () => {});
 	xit("...should allow users to liquidate investors", async () => {});
 	xit("LIQUIDATION CONFIGURATION TESTS", async () => {});

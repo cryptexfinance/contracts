@@ -21,6 +21,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
   event LogSetOracle(address indexed _owner, Oracle _oracle);
   event LogSetStablecoin(address indexed _owner, ERC20 _stablecoin);
   event LogSetDivisor(address indexed _owner, uint256 _divisor);
+  event LogSetRatio(address indexed _owner, uint256 _ratio);
   event LogCreateVault(address indexed _owner, uint256 indexed _id);
   event LogAddCollateral(
     address indexed _owner,
@@ -50,6 +51,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
   Oracle public oracle;
   ERC20 public stablecoin;
   uint256 public divisor;
+  uint256 public ratio;
   mapping(address => uint256) public vaultToUser;
   mapping(uint256 => Vault) public vaults;
 
@@ -103,6 +105,16 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
   function setDivisor(uint256 _divisor) public onlyOwner {
     divisor = _divisor;
     emit LogSetDivisor(msg.sender, _divisor);
+  }
+
+  /**
+   * @notice Sets the collateral ratio needed to mint tokens
+   * @param _ratio uint
+   * @dev Only owner can call it
+   */
+  function setRatio(uint256 _ratio) public onlyOwner {
+    ratio = _ratio;
+    emit LogSetRatio(msg.sender, _ratio);
   }
 
   /**
