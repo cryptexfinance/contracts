@@ -38,6 +38,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
     uint256 _amount
   );
   event LogMint(address indexed _owner, uint256 indexed _id, uint256 _amount);
+  event LogBurn(address indexed _owner, uint256 indexed _id, uint256 _amount);
 
   using SafeMath for uint256;
   using Counters for Counters.Counter;
@@ -64,6 +65,12 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
   /** @notice Throws if called by any account other than the investor. */
   modifier onlyInvestor() {
     require(hasRole(INVESTOR_ROLE, msg.sender), "Caller is not investor");
+    _;
+  }
+
+  /** @notice Throws if vault hasn't been created. */
+  modifier vaultExists() {
+    require(vaultToUser[msg.sender] != 0, "No Vault created");
     _;
   }
 
@@ -160,7 +167,12 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @dev Only whitelisted can call it
    * @param _amount of stablecoin to add
    */
-  function addCollateral(uint256 _amount) public onlyInvestor nonReentrant {
+  function addCollateral(uint256 _amount)
+    public
+    onlyInvestor
+    nonReentrant
+    vaultExists
+  {
     stablecoin.transferFrom(msg.sender, address(this), _amount);
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     vault.Collateral = vault.Collateral.add(_amount);
@@ -171,7 +183,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @notice Removes not used stablecoin from collateral
    * @param _amount of stablecoin to add
    */
-  function removeCollateral(uint256 _amount) public nonReentrant {
+  function removeCollateral(uint256 _amount) public nonReentrant vaultExists {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     require(
       vault.Collateral >= _amount,
@@ -186,7 +198,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @notice Mints TCAP.X Tokens staking the collateral
    * @param _amount of tokens to mint
    */
-  function mint(uint256 _amount) public nonReentrant {
+  function mint(uint256 _amount) public nonReentrant vaultExists {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     uint256 requiredCollateral = requiredCollateral(_amount);
     require(vault.Collateral >= requiredCollateral, "Not enough collateral");
@@ -194,6 +206,21 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
     vault.Stake = vault.Collateral.add(requiredCollateral);
     TCAPXToken.mint(msg.sender, _amount);
     emit LogMint(msg.sender, vault.Id, _amount);
+  }
+
+  /**
+   * @notice Burns TCAP.X Tokens freen the staked collateral
+   * @param _amount of tokens to burn
+   */
+  //TODO: check what happens if price changes
+  //TODO: Burn and mint should be done with custom ratio and not minimal
+  function burn(uint256 _amount) public nonReentrant vaultExists {
+    Vault storage vault = vaults[vaultToUser[msg.sender]];
+    uint256 requiredCollateral = requiredCollateral(_amount);
+    vault.Collateral = vault.Collateral.add(requiredCollateral);
+    vault.Stake = vault.Collateral.sub(requiredCollateral);
+    TCAPXToken.burn(msg.sender, _amount);
+    emit LogBurn(msg.sender, vault.Id, _amount);
   }
 
   /**
@@ -212,6 +239,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @param _amount uint amount to mint
    * @return collateral of the TCAPX Token
    */
+  //TODO: this is min required
   function requiredCollateral(uint256 _amount)
     public
     view
