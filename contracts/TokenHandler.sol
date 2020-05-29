@@ -51,7 +51,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
     uint256 Id;
     uint256 Collateral;
     address Owner;
-    uint256 Stake;
+    uint256 Debt;
   }
 
   TCAPX public TCAPXToken;
@@ -200,10 +200,9 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    */
   function mint(uint256 _amount) public nonReentrant vaultExists {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
-    uint256 requiredCollateral = requiredCollateral(_amount);
+    uint256 requiredCollateral = minRequiredCollateral(_amount);
     require(vault.Collateral >= requiredCollateral, "Not enough collateral");
-    vault.Collateral = vault.Collateral.sub(requiredCollateral);
-    vault.Stake = vault.Collateral.add(requiredCollateral);
+    vault.Debt = vault.Debt.add(_amount);
     TCAPXToken.mint(msg.sender, _amount);
     emit LogMint(msg.sender, vault.Id, _amount);
   }
@@ -212,13 +211,10 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @notice Burns TCAP.X Tokens freen the staked collateral
    * @param _amount of tokens to burn
    */
-  //TODO: check what happens if price changes
-  //TODO: Burn and mint should be done with custom ratio and not minimal
   function burn(uint256 _amount) public nonReentrant vaultExists {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
-    uint256 requiredCollateral = requiredCollateral(_amount);
-    vault.Collateral = vault.Collateral.add(requiredCollateral);
-    vault.Stake = vault.Collateral.sub(requiredCollateral);
+    require(vault.Debt >= _amount, "Amount greater than debt");
+    vault.Debt = vault.Debt.sub(_amount);
     TCAPXToken.burn(msg.sender, _amount);
     emit LogBurn(msg.sender, vault.Id, _amount);
   }
@@ -234,13 +230,12 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
   }
 
   /**
-   * @notice Returns the required collateral to mint TCAPX token
+   * @notice Returns the minimal required collateral to mint TCAPX token
    * @dev TCAPX token is 18 decimals
    * @param _amount uint amount to mint
    * @return collateral of the TCAPX Token
    */
-  //TODO: this is min required
-  function requiredCollateral(uint256 _amount)
+  function minRequiredCollateral(uint256 _amount)
     public
     view
     returns (uint256 collateral)
@@ -260,13 +255,33 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
     public
     view
     returns (
-      uint256 id,
-      uint256 collateral,
-      address owner,
-      uint256 stake
+      uint256,
+      uint256,
+      address,
+      uint256
     )
   {
     Vault memory vault = vaults[_id];
-    return (vault.Id, vault.Collateral, vault.Owner, vault.Stake);
+    return (vault.Id, vault.Collateral, vault.Owner, vault.Debt);
+  }
+
+  /**
+   * @notice Returns the current collateralization ratio
+   * @param _vaultId uint of the vault
+   * @return currentRatio
+   */
+  function getVaultRatio(uint256 _vaultId)
+    public
+    view
+    returns (uint256 currentRatio)
+  {
+    Vault memory vault = vaults[_vaultId];
+    if (vault.Id == 0 || vault.Debt == 0) {
+      currentRatio = 0;
+    } else {
+      currentRatio = ((vault.Collateral.mul(TCAPXPrice())).div(vault.Debt)).mul(
+        100
+      );
+    }
   }
 }
