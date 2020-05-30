@@ -203,6 +203,10 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
     uint256 requiredCollateral = minRequiredCollateral(_amount);
     require(vault.Collateral >= requiredCollateral, "Not enough collateral");
     vault.Debt = vault.Debt.add(_amount);
+    require(
+      getVaultRatio(vault.Id) >= ratio,
+      "Collateral below min required ratio"
+    );
     TCAPXToken.mint(msg.sender, _amount);
     emit LogMint(msg.sender, vault.Id, _amount);
   }
@@ -241,7 +245,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
     returns (uint256 collateral)
   {
     uint256 price = TCAPXPrice();
-    collateral = (price.mul(_amount).mul(ratio)).div(100);
+    collateral = (price.mul(_amount).mul(ratio)).div(100 ether);
   }
 
   /**
@@ -279,8 +283,8 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
     if (vault.Id == 0 || vault.Debt == 0) {
       currentRatio = 0;
     } else {
-      currentRatio = ((vault.Collateral.mul(TCAPXPrice())).div(vault.Debt)).mul(
-        100
+      currentRatio = (
+        (vault.Collateral.mul(100 ether)).div(vault.Debt.mul(TCAPXPrice()))
       );
     }
   }

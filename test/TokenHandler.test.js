@@ -238,6 +238,7 @@ describe("TCAP.x Token Handler", async function () {
 		expect(vault[0]).to.eq(1);
 		expect(vault[1]).to.eq(amount);
 		expect(vault[2]).to.eq(accounts[1]);
+		expect(vault[3]).to.eq(0);
 		balance = await stablecoinInstance.balanceOf(accounts[1]);
 		expect(balance).to.eq(amount);
 		balance = await stablecoinInstance.balanceOf(tokenHandlerInstance.address);
@@ -247,6 +248,7 @@ describe("TCAP.x Token Handler", async function () {
 		expect(vault[0]).to.eq(1);
 		expect(vault[1]).to.eq(0);
 		expect(vault[2]).to.eq(accounts[1]);
+		expect(vault[3]).to.eq(0);
 		balance = await stablecoinInstance.balanceOf(accounts[1]);
 		expect(balance).to.eq(amount.add(amount));
 		balance = await stablecoinInstance.balanceOf(tokenHandlerInstance.address);
@@ -255,6 +257,7 @@ describe("TCAP.x Token Handler", async function () {
 
 	it("...should allow investors to mint tokens", async () => {
 		const amount = ethersProvider.utils.parseEther("10");
+		const lowAmount = ethersProvider.utils.parseEther("1");
 		const bigAmount = ethersProvider.utils.parseEther("100");
 		const reqAmount = await tokenHandlerInstance.minRequiredCollateral(amount);
 		await stablecoinInstance.mint(accounts[1], reqAmount);
@@ -278,11 +281,16 @@ describe("TCAP.x Token Handler", async function () {
 		expect(vault[1]).to.eq(reqAmount);
 		expect(vault[2]).to.eq(accounts[1]);
 		expect(vault[3]).to.eq(amount);
+		await expect(tokenHandlerInstance.connect(addr1).mint(lowAmount)).to.be.revertedWith(
+			"Collateral below min required ratio"
+		);
 	});
 
 	it("...should allow users to get collateral ratio", async () => {
-		const ratio = await tokenHandlerInstance.getVaultRatio(2);
+		let ratio = await tokenHandlerInstance.getVaultRatio(2);
 		expect(ratio).to.eq(0);
+		ratio = await tokenHandlerInstance.getVaultRatio(1);
+		expect(ratio).to.eq(150);
 	});
 
 	it("...should allow investors to burn tokens", async () => {
@@ -307,7 +315,8 @@ describe("TCAP.x Token Handler", async function () {
 		expect(vault[2]).to.eq(accounts[1]);
 		expect(vault[3]).to.eq(0);
 	});
-	xit("...should return the required collateral amount", async () => {});
+
+	xit("...should update change the collateral ratio", async () => {});
 	xit("...should allow users to liquidate investors", async () => {});
 	xit("LIQUIDATION CONFIGURATION TESTS", async () => {});
 });
