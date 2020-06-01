@@ -316,7 +316,10 @@ describe("TCAP.x Token Handler", async function () {
 		expect(vault[3]).to.eq(0);
 	});
 
-	xit("...should update change the collateral ratio", async () => {});
+	it("...should update change the collateral ratio", async () => {
+		ratio = await tokenHandlerInstance.getVaultRatio(1);
+		expect(ratio).to.eq(0);
+	});
 	xit("...should allow users to liquidate investors", async () => {});
 	xit("LIQUIDATION CONFIGURATION TESTS", async () => {});
 });
