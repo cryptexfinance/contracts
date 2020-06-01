@@ -3,7 +3,7 @@ var ethersProvider = require("ethers");
 
 describe("TCAP.x Token Handler", async function () {
 	let tokenHandlerInstance, tcapInstance, stablecoinInstance, oracleInstance;
-	let [owner, addr1, addr2, addr3, addr4] = [];
+	let [owner, addr1, addr2, addr3] = [];
 	let accounts = [];
 	let divisor = "10000000000";
 	let ratio = "150";
