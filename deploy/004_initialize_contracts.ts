@@ -4,43 +4,54 @@ import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
 import {Tcapx} from "../typechain/Tcapx";
 import {TokenHandler} from "../typechain/TokenHandler";
 require("dotenv").config();
-//TODO: complete
+
 module.exports = async ({deployments}: any) => {
 	console.log("	buidlerArguments.network", buidlerArguments.network);
 	let TcapxDeployment = await deployments.get("TCAPX");
 	let tokenHandlerContractDeployment = await deployments.get("TokenHandler");
-
+	let oracleContract = "";
+	let stablecoinContract = "";
+	if (buidlerArguments.network === "ganache" || buidlerArguments.network === "buidlerevm") {
+		let oracle = await deployments.get("Oracle");
+		oracleContract = oracle.address;
+		let stablecoin = await deployments.get("Stablecoin");
+		stablecoinContract = await stablecoin.address;
+	} else {
+		oracleContract = process.env.ORACLE_ADDRESS as string;
+		stablecoinContract = process.env.STABLECOIN_ADDRESS as string;
+	}
 	if (TcapxDeployment && tokenHandlerContractDeployment) {
 		let TcapxContract = await ethersBuidler.getContract("TCAPX");
 		let tcapxAbi = TcapxContract.interface;
-		let meta = new ethers.Contract(
+		let tcapx = new ethers.Contract(
 			TcapxDeployment.address,
 			tcapxAbi,
 			TcapxContract.signer
 		) as Tcapx;
 		console.log("setting token Handler", tokenHandlerContractDeployment.address);
-		await meta.setHandlerAddress(tokenHandlerContractDeployment.address);
+		await tcapx.setTokenHandler(tokenHandlerContractDeployment.address);
 
 		let handlerContract = await ethersBuidler.getContract("TokenHandler");
-		let subsAbi = handlerContract.interface;
-		let subs = new ethers.Contract(
+		let handlerAbi = handlerContract.interface;
+		let handler = new ethers.Contract(
 			tokenHandlerContractDeployment.address,
-			subsAbi,
+			handlerAbi,
 			handlerContract.signer
 		) as TokenHandler;
 
-		let stakingPrice = utils.parseEther(process.env.STAKING_PRICE as string);
-		let minBurn = process.env.MIN_BURN as string;
+		let divisor = process.env.DIVISOR as string;
+		let ratio = process.env.RATIO as string;
+
 		console.log("setting token address", TcapxDeployment.address);
-		await subs.setTokenAddress(TcapxDeployment.address);
-		console.log("setting staking address", process.env.DAI_TOKEN);
-		await subs.setStakingTokenAddress(process.env.DAI_TOKEN as string);
-		console.log("setting setInterestTokenAddress", process.env.RDAI_TOKEN);
-		await subs.setInterestTokenAddress(process.env.RDAI_TOKEN as string);
-		console.log("setting setStakingPrice", stakingPrice);
-		await subs.setStakingPrice(stakingPrice);
-		console.log("setting setMinBurn", minBurn);
-		await subs.setMinBurn(minBurn);
+		await handler.setTCAPX(TcapxDeployment.address);
+		console.log("setting stablecoin address", stablecoinContract);
+		await handler.setStablecoin(stablecoinContract);
+		console.log("setting oracle address", oracleContract);
+		await handler.setOracle(oracleContract);
+		console.log("setting the divisor", divisor);
+		await handler.setDivisor(divisor);
+		console.log("setting ratio", ratio);
+		await handler.setRatio(ratio);
 	}
 };
 module.exports.tags = ["Initialize"];
