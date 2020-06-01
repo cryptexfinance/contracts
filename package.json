@@ -9,7 +9,8 @@
 		"build": "npm run typechain",
 		"test": "npx buidler test",
 		"coverage": "npx buidler coverage",
-		"typechain": "npx buidler compile && typechain --outDir typechain --target ethers 'artifacts/*.json'"
+		"typechain": "npx buidler compile && typechain --outDir typechain --target ethers 'artifacts/*.json'",
+		"deploy": "npx buidler deploy"
 	},
 	"dependencies": {
 		"@openzeppelin/contracts": "^3.0.1",

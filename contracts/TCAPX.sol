@@ -28,7 +28,8 @@ contract TCAPX is ERC20, Ownable {
     _;
   }
 
-  /** @notice Sets the address of the handler contract
+  /**
+   * @notice Sets the address of the handler contract
    * @param _handler address of the receiver of tokens
    * @dev Only owner can call it
    */
@@ -37,7 +38,8 @@ contract TCAPX is ERC20, Ownable {
     emit LogSetTokenHandler(msg.sender, _handler);
   }
 
-  /** @notice Mints TCAPX Tokens
+  /**
+   * @notice Mints TCAPX Tokens
    * @param _account address of the receiver of tokens
    * @param _amount uint of tokens to mint
    * @dev Only handler can call it
@@ -46,7 +48,8 @@ contract TCAPX is ERC20, Ownable {
     _mint(_account, _amount);
   }
 
-  /** @notice Burns TCAPX Tokens
+  /**
+   * @notice Burns TCAPX Tokens
    * @param _account address of the receiver of tokens
    * @param _amount uint of tokens to burn
    * @dev Only handler can call it
