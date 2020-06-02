@@ -67,14 +67,14 @@ describe("TCAP.x Token", async function () {
 	});
 
 	it("...should allow owner to set Handler", async () => {
-		await expect(tcapInstance.connect(addr1).setTokenHandler(accounts[1])).to.be.revertedWith(
+		await expect(tcapInstance.connect(addr1).addTokenHandler(accounts[1])).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(tcapInstance.connect(owner).setTokenHandler(handlerAddress))
-			.to.emit(tcapInstance, "LogSetTokenHandler")
+		await expect(tcapInstance.connect(owner).addTokenHandler(handlerAddress))
+			.to.emit(tcapInstance, "LogAddTokenHandler")
 			.withArgs(accounts[0], handlerAddress);
-		let currentHandler = await tcapInstance.tokenHandler();
-		expect(currentHandler).to.eq(handlerAddress);
+		let currentHandler = await tcapInstance.tokenHandlers(handlerAddress);
+		expect(currentHandler).to.eq(true);
 	});
 
 	it("...should allow Handler to mint tokens", async () => {
