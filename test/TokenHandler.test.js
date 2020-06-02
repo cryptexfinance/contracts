@@ -72,7 +72,7 @@ describe("TCAP.x Token Handler", async function () {
 		)
 			.to.emit(tokenHandlerInstance, "LogSetCollateralContract")
 			.withArgs(accounts[0], stablecoinInstance.address);
-		let currentCollateral = await tokenHandlerInstance.collateral();
+		let currentCollateral = await tokenHandlerInstance.collateralContract();
 		expect(currentCollateral).to.eq(stablecoinInstance.address);
 	});
 

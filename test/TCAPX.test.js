@@ -3,20 +3,21 @@ var ethersProvider = require("ethers");
 
 describe("TCAP.x Token", async function () {
 	let tcapInstance;
-	let [owner, addr1, handler] = [];
+	let [owner, addr1, handler, handler2] = [];
 	let accounts = [];
-	let handlerAddress = "";
 
 	before("Set Accounts", async () => {
-		let [acc0, acc1, acc3] = await ethers.getSigners();
+		let [acc0, acc1, acc3, acc4, acc5] = await ethers.getSigners();
 		owner = acc0;
 		addr1 = acc1;
 		handler = acc3;
+		handler2 = acc4;
 		if (owner && addr1 && handler) {
 			accounts.push(await owner.getAddress());
 			accounts.push(await addr1.getAddress());
 			accounts.push(await handler.getAddress());
-			handlerAddress = await handler.getAddress();
+			accounts.push(await handler2.getAddress());
+			accounts.push(await acc5.getAddress());
 		}
 	});
 
@@ -66,14 +67,20 @@ describe("TCAP.x Token", async function () {
 		);
 	});
 
-	it("...should allow owner to set Handler", async () => {
+	it("...should allow owner to add Handlers", async () => {
 		await expect(tcapInstance.connect(addr1).addTokenHandler(accounts[1])).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(tcapInstance.connect(owner).addTokenHandler(handlerAddress))
+		await expect(tcapInstance.connect(owner).addTokenHandler(accounts[2]))
 			.to.emit(tcapInstance, "LogAddTokenHandler")
-			.withArgs(accounts[0], handlerAddress);
-		let currentHandler = await tcapInstance.tokenHandlers(handlerAddress);
+			.withArgs(accounts[0], accounts[2]);
+		let currentHandler = await tcapInstance.tokenHandlers(accounts[2]);
+		expect(currentHandler).to.eq(true);
+		console.log("accounts[3]", accounts[3]);
+		await expect(tcapInstance.connect(owner).addTokenHandler(accounts[3]))
+			.to.emit(tcapInstance, "LogAddTokenHandler")
+			.withArgs(accounts[0], accounts[3]);
+		currentHandler = await tcapInstance.tokenHandlers(accounts[3]);
 		expect(currentHandler).to.eq(true);
 	});
 
@@ -82,10 +89,17 @@ describe("TCAP.x Token", async function () {
 		await expect(tcapInstance.connect(handler).mint(accounts[1], amount))
 			.to.emit(tcapInstance, "Transfer")
 			.withArgs(ethersProvider.constants.AddressZero, accounts[1], amount);
-		const balance = await tcapInstance.balanceOf(accounts[1]);
+		let balance = await tcapInstance.balanceOf(accounts[1]);
 		expect(balance).to.eq(amount);
-		const totalSupply = await tcapInstance.totalSupply();
+		let totalSupply = await tcapInstance.totalSupply();
 		expect(totalSupply).to.eq(amount);
+		await expect(tcapInstance.connect(handler2).mint(accounts[4], amount))
+			.to.emit(tcapInstance, "Transfer")
+			.withArgs(ethersProvider.constants.AddressZero, accounts[4], amount);
+		balance = await tcapInstance.balanceOf(accounts[4]);
+		expect(balance).to.eq(amount);
+		totalSupply = await tcapInstance.totalSupply();
+		expect(totalSupply).to.eq(amount.add(amount));
 	});
 
 	it("...should allow users to transfer", async () => {
@@ -118,7 +132,12 @@ describe("TCAP.x Token", async function () {
 		await expect(tcapInstance.connect(handler).burn(accounts[0], amount))
 			.to.emit(tcapInstance, "Transfer")
 			.withArgs(accounts[0], ethersProvider.constants.AddressZero, amount);
-		const balance = await tcapInstance.balanceOf(accounts[0]);
+		let balance = await tcapInstance.balanceOf(accounts[0]);
+		expect(balance).to.eq(0);
+		await expect(tcapInstance.connect(handler2).burn(accounts[4], amount))
+			.to.emit(tcapInstance, "Transfer")
+			.withArgs(accounts[4], ethersProvider.constants.AddressZero, amount);
+		balance = await tcapInstance.balanceOf(accounts[4]);
 		expect(balance).to.eq(0);
 		const totalSupply = await tcapInstance.totalSupply();
 		expect(totalSupply).to.eq(0);

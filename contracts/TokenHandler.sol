@@ -23,7 +23,10 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
   /** @dev Logs all the calls of the functions. */
   event LogSetTCAPXContract(address indexed _owner, TCAPX _token);
   event LogSetOracle(address indexed _owner, Oracle _oracle);
-  event LogSetCollateralContract(address indexed _owner, ERC20 _collateral);
+  event LogSetCollateralContract(
+    address indexed _owner,
+    ERC20 _collateralContract
+  );
   event LogSetDivisor(address indexed _owner, uint256 _divisor);
   event LogSetRatio(address indexed _owner, uint256 _ratio);
   event LogCreateVault(address indexed _owner, uint256 indexed _id);
@@ -56,7 +59,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
 
   TCAPX public TCAPXToken;
   Oracle public oracle;
-  ERC20 public collateral;
+  ERC20 public collateralContract;
   uint256 public divisor;
   uint256 public ratio;
   mapping(address => uint256) public vaultToUser;
@@ -102,12 +105,12 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
 
   /**
    * @notice Sets the address of the collateral contract
-   * @param _collateral address
+   * @param _collateralContract address
    * @dev Only owner can call it
    */
-  function setCollateralContract(ERC20 _collateral) public onlyOwner {
-    collateral = _collateral;
-    emit LogSetCollateralContract(msg.sender, _collateral);
+  function setCollateralContract(ERC20 _collateralContract) public onlyOwner {
+    collateralContract = _collateralContract;
+    emit LogSetCollateralContract(msg.sender, _collateralContract);
   }
 
   /**
@@ -173,7 +176,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
     nonReentrant
     vaultExists
   {
-    collateral.transferFrom(msg.sender, address(this), _amount);
+    collateralContract.transferFrom(msg.sender, address(this), _amount);
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     vault.Collateral = vault.Collateral.add(_amount);
     emit LogAddCollateral(msg.sender, vault.Id, _amount);
@@ -190,7 +193,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
       "Transaction reverted with Retrieve amount higher than collateral"
     );
     vault.Collateral = vault.Collateral.sub(_amount);
-    collateral.transfer(msg.sender, _amount);
+    collateralContract.transfer(msg.sender, _amount);
     emit LogRemoveCollateral(msg.sender, vault.Id, _amount);
   }
 
