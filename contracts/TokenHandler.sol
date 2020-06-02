@@ -21,9 +21,9 @@ import "@nomiclabs/buidler/console.sol";
  */
 contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
   /** @dev Logs all the calls of the functions. */
-  event LogSetTCAPX(address indexed _owner, TCAPX _token);
+  event LogSetTCAPXContract(address indexed _owner, TCAPX _token);
   event LogSetOracle(address indexed _owner, Oracle _oracle);
-  event LogSetStablecoin(address indexed _owner, ERC20 _stablecoin);
+  event LogSetCollateralContract(address indexed _owner, ERC20 _collateral);
   event LogSetDivisor(address indexed _owner, uint256 _divisor);
   event LogSetRatio(address indexed _owner, uint256 _ratio);
   event LogCreateVault(address indexed _owner, uint256 indexed _id);
@@ -56,7 +56,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
 
   TCAPX public TCAPXToken;
   Oracle public oracle;
-  ERC20 public stablecoin;
+  ERC20 public collateral;
   uint256 public divisor;
   uint256 public ratio;
   mapping(address => uint256) public vaultToUser;
@@ -85,9 +85,9 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @param _TCAPXToken address
    * @dev Only owner can call it
    */
-  function setTCAPX(TCAPX _TCAPXToken) public onlyOwner {
+  function setTCAPXContract(TCAPX _TCAPXToken) public onlyOwner {
     TCAPXToken = _TCAPXToken;
-    emit LogSetTCAPX(msg.sender, _TCAPXToken);
+    emit LogSetTCAPXContract(msg.sender, _TCAPXToken);
   }
 
   /**
@@ -101,13 +101,13 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
   }
 
   /**
-   * @notice Sets the address of the stablecoin contract
-   * @param _stablecoin address
+   * @notice Sets the address of the collateral contract
+   * @param _collateral address
    * @dev Only owner can call it
    */
-  function setStablecoin(ERC20 _stablecoin) public onlyOwner {
-    stablecoin = _stablecoin;
-    emit LogSetStablecoin(msg.sender, _stablecoin);
+  function setCollateralContract(ERC20 _collateral) public onlyOwner {
+    collateral = _collateral;
+    emit LogSetCollateralContract(msg.sender, _collateral);
   }
 
   /**
@@ -163,9 +163,9 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
   }
 
   /**
-   * @notice Adds Stablecoin to vault
+   * @notice Adds collateral to vault
    * @dev Only whitelisted can call it
-   * @param _amount of stablecoin to add
+   * @param _amount of collateral to add
    */
   function addCollateral(uint256 _amount)
     public
@@ -173,15 +173,15 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
     nonReentrant
     vaultExists
   {
-    stablecoin.transferFrom(msg.sender, address(this), _amount);
+    collateral.transferFrom(msg.sender, address(this), _amount);
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     vault.Collateral = vault.Collateral.add(_amount);
     emit LogAddCollateral(msg.sender, vault.Id, _amount);
   }
 
   /**
-   * @notice Removes not used stablecoin from collateral
-   * @param _amount of stablecoin to add
+   * @notice Removes not used collateral from collateral
+   * @param _amount of collateral to add
    */
   function removeCollateral(uint256 _amount) public nonReentrant vaultExists {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
@@ -190,7 +190,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
       "Transaction reverted with Retrieve amount higher than collateral"
     );
     vault.Collateral = vault.Collateral.sub(_amount);
-    stablecoin.transfer(msg.sender, _amount);
+    collateral.transfer(msg.sender, _amount);
     emit LogRemoveCollateral(msg.sender, vault.Id, _amount);
   }
 

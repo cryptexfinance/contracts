@@ -38,15 +38,15 @@ describe("TCAP.x Token Handler", async function () {
 		const stablecoin = await ethers.getContractFactory("Stablecoin");
 		stablecoinInstance = await stablecoin.deploy();
 		await stablecoinInstance.deployed();
-		await tcapInstance.setTokenHandler(tokenHandlerInstance.address);
+		await tcapInstance.addTokenHandler(tokenHandlerInstance.address);
 	});
 
 	it("...should set the token contract", async () => {
-		await expect(tokenHandlerInstance.connect(addr1).setTCAPX(accounts[1])).to.be.revertedWith(
-			"Ownable: caller is not the owner"
-		);
-		await expect(tokenHandlerInstance.connect(owner).setTCAPX(tcapInstance.address))
-			.to.emit(tokenHandlerInstance, "LogSetTCAPX")
+		await expect(
+			tokenHandlerInstance.connect(addr1).setTCAPXContract(accounts[1])
+		).to.be.revertedWith("Ownable: caller is not the owner");
+		await expect(tokenHandlerInstance.connect(owner).setTCAPXContract(tcapInstance.address))
+			.to.emit(tokenHandlerInstance, "LogSetTCAPXContract")
 			.withArgs(accounts[0], tcapInstance.address);
 		let currentTCAPX = await tokenHandlerInstance.TCAPXToken();
 		expect(currentTCAPX).to.eq(tcapInstance.address);
@@ -64,14 +64,16 @@ describe("TCAP.x Token Handler", async function () {
 	});
 
 	it("...should set the stablecoin contract", async () => {
-		await expect(tokenHandlerInstance.connect(addr1).setStablecoin(accounts[1])).to.be.revertedWith(
-			"Ownable: caller is not the owner"
-		);
-		await expect(tokenHandlerInstance.connect(owner).setStablecoin(stablecoinInstance.address))
-			.to.emit(tokenHandlerInstance, "LogSetStablecoin")
+		await expect(
+			tokenHandlerInstance.connect(addr1).setCollateralContract(accounts[1])
+		).to.be.revertedWith("Ownable: caller is not the owner");
+		await expect(
+			tokenHandlerInstance.connect(owner).setCollateralContract(stablecoinInstance.address)
+		)
+			.to.emit(tokenHandlerInstance, "LogSetCollateralContract")
 			.withArgs(accounts[0], stablecoinInstance.address);
-		let currentStablecoin = await tokenHandlerInstance.stablecoin();
-		expect(currentStablecoin).to.eq(stablecoinInstance.address);
+		let currentCollateral = await tokenHandlerInstance.collateral();
+		expect(currentCollateral).to.eq(stablecoinInstance.address);
 	});
 
 	it("...should set the divisor value", async () => {

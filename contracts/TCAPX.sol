@@ -12,9 +12,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  */
 contract TCAPX is ERC20, Ownable {
   /** @dev Logs all the calls of the functions. */
-  event LogSetTokenHandler(address indexed _owner, address _tokenHandler);
+  event LogAddTokenHandler(address indexed _owner, address _tokenHandler);
 
-  address public tokenHandler;
+  mapping(address => bool) public tokenHandlers;
 
   constructor(
     string memory _name,
@@ -24,7 +24,7 @@ contract TCAPX is ERC20, Ownable {
 
   /** @notice Throws if called by any account other than the handler. */
   modifier onlyHandler() {
-    require(tokenHandler == msg.sender, "Caller is not the handler");
+    require(tokenHandlers[msg.sender], "Caller is not the handler");
     _;
   }
 
@@ -33,9 +33,9 @@ contract TCAPX is ERC20, Ownable {
    * @param _handler address of the receiver of tokens
    * @dev Only owner can call it
    */
-  function setTokenHandler(address _handler) public onlyOwner {
-    tokenHandler = _handler;
-    emit LogSetTokenHandler(msg.sender, _handler);
+  function addTokenHandler(address _handler) public onlyOwner {
+    tokenHandlers[_handler] = true;
+    emit LogAddTokenHandler(msg.sender, _handler);
   }
 
   /**
