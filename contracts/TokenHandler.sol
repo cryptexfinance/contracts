@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./mocks/Oracle.sol";
 import "./TCAPX.sol";
+import "./ITokenHandler.sol";
 
 //Debug
 import "@nomiclabs/buidler/console.sol";
@@ -19,7 +20,12 @@ import "@nomiclabs/buidler/console.sol";
  * @author Cristian Espinoza
  * @notice Contract in charge of handling the TCAP.X Token and stake
  */
-contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
+contract TokenHandler is
+  ITokenHandler,
+  Ownable,
+  AccessControl,
+  ReentrancyGuard
+{
   /** @dev Logs all the calls of the functions. */
   event LogSetTCAPXContract(address indexed _owner, TCAPX _token);
   event LogSetOracle(address indexed _owner, Oracle _oracle);
@@ -88,7 +94,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @param _TCAPXToken address
    * @dev Only owner can call it
    */
-  function setTCAPXContract(TCAPX _TCAPXToken) public onlyOwner {
+  function setTCAPXContract(TCAPX _TCAPXToken) public override onlyOwner {
     TCAPXToken = _TCAPXToken;
     emit LogSetTCAPXContract(msg.sender, _TCAPXToken);
   }
@@ -98,7 +104,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @param _oracle address
    * @dev Only owner can call it
    */
-  function setOracle(Oracle _oracle) public onlyOwner {
+  function setOracle(Oracle _oracle) public override onlyOwner {
     oracle = _oracle;
     emit LogSetOracle(msg.sender, _oracle);
   }
@@ -108,7 +114,11 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @param _collateralContract address
    * @dev Only owner can call it
    */
-  function setCollateralContract(ERC20 _collateralContract) public onlyOwner {
+  function setCollateralContract(ERC20 _collateralContract)
+    public
+    override
+    onlyOwner
+  {
     collateralContract = _collateralContract;
     emit LogSetCollateralContract(msg.sender, _collateralContract);
   }
@@ -118,7 +128,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @param _divisor uint
    * @dev Only owner can call it
    */
-  function setDivisor(uint256 _divisor) public onlyOwner {
+  function setDivisor(uint256 _divisor) public override onlyOwner {
     divisor = _divisor;
     emit LogSetDivisor(msg.sender, _divisor);
   }
@@ -128,7 +138,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @param _ratio uint
    * @dev Only owner can call it
    */
-  function setRatio(uint256 _ratio) public onlyOwner {
+  function setRatio(uint256 _ratio) public override onlyOwner {
     ratio = _ratio;
     emit LogSetRatio(msg.sender, _ratio);
   }
@@ -138,7 +148,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @param _investor address
    * @dev Only owner can call it
    */
-  function addInvestor(address _investor) public onlyOwner {
+  function addInvestor(address _investor) public override onlyOwner {
     grantRole(INVESTOR_ROLE, _investor);
   }
 
@@ -147,7 +157,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @param _investor address
    * @dev Only owner can call it
    */
-  function removeInvestor(address _investor) public onlyOwner {
+  function removeInvestor(address _investor) public override onlyOwner {
     revokeRole(INVESTOR_ROLE, _investor);
   }
 
@@ -155,7 +165,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @notice Creates a Vault
    * @dev Only whitelisted can call it
    */
-  function createVault() public onlyInvestor {
+  function createVault() public override onlyInvestor {
     require(vaultToUser[msg.sender] == 0, "Vault already created");
     uint256 id = counter.current();
     vaultToUser[msg.sender] = id;
@@ -172,6 +182,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    */
   function addCollateral(uint256 _amount)
     public
+    override
     onlyInvestor
     nonReentrant
     vaultExists
@@ -186,7 +197,12 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @notice Removes not used collateral from collateral
    * @param _amount of collateral to add
    */
-  function removeCollateral(uint256 _amount) public nonReentrant vaultExists {
+  function removeCollateral(uint256 _amount)
+    public
+    override
+    nonReentrant
+    vaultExists
+  {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     require(
       vault.Collateral >= _amount,
@@ -201,7 +217,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @notice Mints TCAP.X Tokens staking the collateral
    * @param _amount of tokens to mint
    */
-  function mint(uint256 _amount) public nonReentrant vaultExists {
+  function mint(uint256 _amount) public override nonReentrant vaultExists {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     uint256 requiredCollateral = minRequiredCollateral(_amount);
     require(vault.Collateral >= requiredCollateral, "Not enough collateral");
@@ -218,7 +234,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @notice Burns TCAP.X Tokens freen the staked collateral
    * @param _amount of tokens to burn
    */
-  function burn(uint256 _amount) public nonReentrant vaultExists {
+  function burn(uint256 _amount) public override nonReentrant vaultExists {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     require(vault.Debt >= _amount, "Amount greater than debt");
     vault.Debt = vault.Debt.sub(_amount);
@@ -231,7 +247,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @dev TCAPX token is 18 decimals
    * @return price of the TCAPX Token
    */
-  function TCAPXPrice() public view returns (uint256 price) {
+  function TCAPXPrice() public override view returns (uint256 price) {
     uint256 totalMarketPrice = oracle.price();
     price = totalMarketPrice.div(divisor);
   }
@@ -244,6 +260,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    */
   function minRequiredCollateral(uint256 _amount)
     public
+    override
     view
     returns (uint256 collateral)
   {
@@ -260,6 +277,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    */
   function getVault(uint256 _id)
     public
+    override
     view
     returns (
       uint256,
@@ -279,6 +297,7 @@ contract TokenHandler is Ownable, AccessControl, ReentrancyGuard {
    */
   function getVaultRatio(uint256 _vaultId)
     public
+    override
     view
     returns (uint256 currentRatio)
   {
