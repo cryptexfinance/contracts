@@ -12,20 +12,20 @@ import "@nomiclabs/buidler/console.sol";
 
 
 contract RToken is ERC20, Ownable {
-  IERC20 public rDAI;
+  IERC20 public DAI;
 
-  constructor(IERC20 _rDAI) public ERC20("rDAI TEST", "rDAI") {
-    rDAI = _rDAI;
+  constructor(IERC20 _DAI) public ERC20("rDAI TEST", "rDAI") {
+    DAI = _DAI;
   }
 
   function mint(uint256 _amount) public returns (bool) {
-    rDAI.transferFrom(msg.sender, address(this), _amount);
+    DAI.transferFrom(msg.sender, address(this), _amount);
     _mint(msg.sender, _amount);
     return true;
   }
 
   function redeem(uint256 _amount) public returns (bool) {
-    rDAI.transfer(msg.sender, _amount);
+    DAI.transfer(msg.sender, _amount);
     _burn(msg.sender, _amount);
     return true;
   }
@@ -34,8 +34,21 @@ contract RToken is ERC20, Ownable {
     public
     returns (bool)
   {
-    rDAI.transfer(_owner, _amount);
+    DAI.transfer(_owner, _amount);
     _burn(msg.sender, _amount);
     return true;
+  }
+
+  function payInterest(address owner) external virtual returns (bool) {
+    return true;
+  }
+
+  function interestPayableOf(address owner)
+    external
+    virtual
+    view
+    returns (uint256 amount)
+  {
+    amount = 0;
   }
 }

@@ -40,7 +40,7 @@ describe("TCAP.x Interest Token Handler", async function () {
 		await stablecoinInstance.deployed();
 		await tcapInstance.addTokenHandler(tokenHandlerInstance.address);
 		const rToken = await ethers.getContractFactory("RToken");
-		rTokenInstance = await rToken.deploy();
+		rTokenInstance = await rToken.deploy(stablecoinInstance.address);
 		await rTokenInstance.deployed();
 	});
 
@@ -57,12 +57,14 @@ describe("TCAP.x Interest Token Handler", async function () {
 	//
 	it("...should set the staking contract", async () => {
 		await expect(
-			tokenHandlerInstance.connect(addr1).setStakingContract(accounts[1])
+			tokenHandlerInstance.connect(addr1).setInterestTokenAddress(accounts[1])
 		).to.be.revertedWith("Ownable: caller is not the owner");
-		await expect(tokenHandlerInstance.connect(owner).setStakingContract(rTokenInstance.address))
-			.to.emit(tokenHandlerInstance, "LogSetStakingContract")
+		await expect(
+			tokenHandlerInstance.connect(owner).setInterestTokenAddress(rTokenInstance.address)
+		)
+			.to.emit(tokenHandlerInstance, "LogSetInterestTokenAddress")
 			.withArgs(accounts[0], rTokenInstance.address);
-		let currentInterestBearingContract = await tokenHandlerInstance.InterestBearingContract();
+		let currentInterestBearingContract = await tokenHandlerInstance.interestTokenAddress();
 		expect(currentInterestBearingContract).to.eq(rTokenInstance.address);
 	});
 
@@ -214,6 +216,8 @@ describe("TCAP.x Interest Token Handler", async function () {
 		await expect(tokenHandlerInstance.connect(addr1).addCollateral(amount))
 			.to.emit(tokenHandlerInstance, "LogAddCollateral")
 			.withArgs(accounts[1], 1, amount);
+		let rdaiBalance = await rTokenInstance.balanceOf(tokenHandlerInstance.address);
+		expect(rdaiBalance).to.eq(amount, "rDai Balance should increase to fee");
 		let vault = await tokenHandlerInstance.getVault(1);
 		expect(vault[0]).to.eq(1);
 		expect(vault[1]).to.eq(amount);
@@ -222,17 +226,19 @@ describe("TCAP.x Interest Token Handler", async function () {
 		balance = await stablecoinInstance.balanceOf(accounts[1]);
 		expect(balance).to.eq(0);
 		balance = await stablecoinInstance.balanceOf(tokenHandlerInstance.address);
-		expect(balance).to.eq(amount);
+		expect(balance).to.eq(0);
 		await stablecoinInstance.mint(accounts[1], amount);
 		await stablecoinInstance.connect(addr1).approve(tokenHandlerInstance.address, amount);
 		await tokenHandlerInstance.connect(addr1).addCollateral(amount);
+		rdaiBalance = await rTokenInstance.balanceOf(tokenHandlerInstance.address);
+		expect(rdaiBalance).to.eq(amount.add(amount), "rDai Balance should increase to fee");
 		vault = await tokenHandlerInstance.getVault(1);
 		expect(vault[0]).to.eq(1);
 		expect(vault[1]).to.eq(amount.add(amount));
 		expect(vault[2]).to.eq(accounts[1]);
 		expect(vault[3]).to.eq(0);
 		balance = await stablecoinInstance.balanceOf(tokenHandlerInstance.address);
-		expect(balance).to.eq(amount.add(amount));
+		expect(balance).to.eq(0);
 	});
 
 	it("...should allow investor to retrieve unused collateral", async () => {
@@ -249,7 +255,8 @@ describe("TCAP.x Interest Token Handler", async function () {
 		await expect(tokenHandlerInstance.connect(addr1).removeCollateral(amount))
 			.to.emit(tokenHandlerInstance, "LogRemoveCollateral")
 			.withArgs(accounts[1], 1, amount);
-
+		let rdaiBalance = await rTokenInstance.balanceOf(tokenHandlerInstance.address);
+		expect(rdaiBalance).to.eq(amount, "rDai Balance should decrease");
 		let vault = await tokenHandlerInstance.getVault(1);
 		expect(vault[0]).to.eq(1);
 		expect(vault[1]).to.eq(amount);
@@ -258,8 +265,10 @@ describe("TCAP.x Interest Token Handler", async function () {
 		balance = await stablecoinInstance.balanceOf(accounts[1]);
 		expect(balance).to.eq(amount);
 		balance = await stablecoinInstance.balanceOf(tokenHandlerInstance.address);
-		expect(balance).to.eq(amount);
+		expect(balance).to.eq(0);
 		await tokenHandlerInstance.connect(addr1).removeCollateral(amount);
+		rdaiBalance = await rTokenInstance.balanceOf(tokenHandlerInstance.address);
+		expect(rdaiBalance).to.eq(0, "rDai Balance should decrease");
 		vault = await tokenHandlerInstance.getVault(1);
 		expect(vault[0]).to.eq(1);
 		expect(vault[1]).to.eq(0);
@@ -336,6 +345,16 @@ describe("TCAP.x Interest Token Handler", async function () {
 		ratio = await tokenHandlerInstance.getVaultRatio(1);
 		expect(ratio).to.eq(0);
 	});
+
+	it("...should allow owner to redeem interest", async () => {
+		await expect(tokenHandlerInstance.connect(addr1).retrieveInterest()).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(tokenHandlerInstance.connect(owner).retrieveInterest())
+			.to.emit(tokenHandlerInstance, "LogRetrieveInterest")
+			.withArgs(accounts[0], 0);
+	});
+
 	xit("...should allow users to liquidate investors", async () => {});
 	xit("LIQUIDATION CONFIGURATION TESTS", async () => {});
 });
