@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for contracts/TCAPX.sol</title>
+    <title>Code coverage report for contracts/IAllocationStrategy.sol</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -16,28 +16,28 @@
 <div class='wrapper'>
   <div class='pad1'>
     <h1>
-      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> TCAPX.sol
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> IAllocationStrategy.sol
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>5/5</span>
+        <span class='fraction'>0/0</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>2/2</span>
+        <span class='fraction'>0/0</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>5/5</span>
+        <span class='fraction'>0/0</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>6/6</span>
+        <span class='fraction'>0/0</span>
       </div>
     </div>
   </div>
@@ -102,8 +102,7 @@
 57
 58
 59
-60
-61</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+60</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -129,18 +128,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">52×</span>
-<span class="cline-any cline-yes">50×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">12×</span>
-<span class="cline-any cline-yes">12×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -150,7 +137,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">36×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -160,68 +146,79 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">14×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.6.8;
-&nbsp;
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-&nbsp;
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">pragma solidity ^0.6.4;
 &nbsp;
 /**
- * @title TCAP.X
- * @author Cristian Espinoza
- * @notice ERC20 token on the Ethereum Blockchain that provides total exposure to the cryptocurrency sector
+ * @notice Allocation strategy for assets.
+ *         - It invests the underlying assets into some yield generating contracts,
+ *           usually lending contracts, in return it gets new assets aka. saving assets.
+ *         - Savings assets can be redeemed back to the underlying assets plus interest any time.
  */
-contract TCAPX is ERC20, Ownable {
-  /** @dev Logs all the calls of the functions. */
-  event LogAddTokenHandler(address indexed _owner, address _tokenHandler);
+interface IAllocationStrategy {
 &nbsp;
-  mapping(address =&gt; bool) public tokenHandlers;
+    /**
+     * @notice Underlying asset for the strategy
+     * @return address Underlying asset address
+     */
+    function underlying() external view returns (address);
 &nbsp;
-  constructor(
-    string memory _name,
-    string memory _symbol,
-    uint256 _decimals
-  ) public ERC20(_name, _symbol) {}
+    /**
+     * @notice Calculates the exchange rate from underlying to saving assets
+     * @return uint256 Calculated exchange rate scaled by 1e18
+     *
+     * NOTE:
+     *
+     *   underlying = savingAssets × exchangeRate
+     */
+    function exchangeRateStored() external view returns (uint256);
 &nbsp;
-  /** @notice Throws if called by any account other than the handler. */
-  modifier onlyHandler() {
-    require(tokenHandlers[msg.sender], "Caller is not the handler");
-    _;
-  }
+    /**
+      * @notice Applies accrued interest to all savings
+      * @dev This should calculates interest accrued from the last checkpointed
+      *      block up to the current block and writes new checkpoint to storage.
+      * @return bool success(true) or failure(false)
+      */
+    function accrueInterest() external returns (bool);
 &nbsp;
-  /**
-   * @notice Sets the address of the handler contract
-   * @param _handler address of the receiver of tokens
-   * @dev Only owner can call it
-   */
-  function addTokenHandler(address _handler) public onlyOwner {
-    tokenHandlers[_handler] = true;
-    emit LogAddTokenHandler(msg.sender, _handler);
-  }
+    /**
+     * @notice Sender supplies underlying assets into the market and receives saving assets in exchange
+     * @dev Interst shall be accrued
+     * @param investAmount The amount of the underlying asset to supply
+     * @return uint256 Amount of saving assets created
+     */
+    function investUnderlying(uint256 investAmount) external returns (uint256);
 &nbsp;
-  /**
-   * @notice Mints TCAPX Tokens
-   * @param _account address of the receiver of tokens
-   * @param _amount uint of tokens to mint
-   * @dev Only handler can call it
-   */
-  function mint(address _account, uint256 _amount) public onlyHandler {
-    _mint(_account, _amount);
-  }
+    /**
+     * @notice Sender redeems saving assets in exchange for a specified amount of underlying asset
+     * @dev Interst shall be accrued
+     * @param redeemAmount The amount of underlying to redeem
+     * @return uint256 Amount of saving assets burned
+     */
+    function redeemUnderlying(uint256 redeemAmount) external returns (uint256);
 &nbsp;
-  /**
-   * @notice Burns TCAPX Tokens
-   * @param _account address of the receiver of tokens
-   * @param _amount uint of tokens to burn
-   * @dev Only handler can call it
-   */
-  function burn(address _account, uint256 _amount) public onlyHandler {
-    _burn(_account, _amount);
-  }
+    /**
+     * @notice Owner redeems all saving assets
+     * @dev Interst shall be accrued
+     * @return savingsAmount Amount of savings redeemed
+     * @return underlyingAmount Amount of underlying redeemed
+     */
+    function redeemAll() external returns (uint256 savingsAmount, uint256 underlyingAmount);
+&nbsp;
 }
 &nbsp;</pre></td></tr>
 </table></pre>

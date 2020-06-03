@@ -76,7 +76,6 @@ describe("TCAP.x Token", async function () {
 			.withArgs(accounts[0], accounts[2]);
 		let currentHandler = await tcapInstance.tokenHandlers(accounts[2]);
 		expect(currentHandler).to.eq(true);
-		console.log("accounts[3]", accounts[3]);
 		await expect(tcapInstance.connect(owner).addTokenHandler(accounts[3]))
 			.to.emit(tcapInstance, "LogAddTokenHandler")
 			.withArgs(accounts[0], accounts[3]);
