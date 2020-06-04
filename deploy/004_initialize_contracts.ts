@@ -28,8 +28,8 @@ module.exports = async ({deployments}: any) => {
 			tcapxAbi,
 			TcapxContract.signer
 		) as Tcapx;
-		console.log("setting token Handler", tokenHandlerContractDeployment.address);
-		await tcapx.setTokenHandler(tokenHandlerContractDeployment.address);
+		console.log("adding token Handler", tokenHandlerContractDeployment.address);
+		await tcapx.addTokenHandler(tokenHandlerContractDeployment.address);
 
 		let handlerContract = await ethersBuidler.getContract("TokenHandler");
 		let handlerAbi = handlerContract.interface;
@@ -43,9 +43,9 @@ module.exports = async ({deployments}: any) => {
 		let ratio = process.env.RATIO as string;
 
 		console.log("setting token address", TcapxDeployment.address);
-		await handler.setTCAPX(TcapxDeployment.address);
-		console.log("setting stablecoin address", stablecoinContract);
-		await handler.setStablecoin(stablecoinContract);
+		await handler.setTCAPXContract(TcapxDeployment.address);
+		console.log("setting collateral address", stablecoinContract);
+		await handler.setCollateralContract(stablecoinContract);
 		console.log("setting oracle address", oracleContract);
 		await handler.setOracle(oracleContract);
 		console.log("setting the divisor", divisor);

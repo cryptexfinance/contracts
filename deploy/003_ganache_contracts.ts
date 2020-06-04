@@ -1,4 +1,5 @@
 import {buidlerArguments} from "@nomiclabs/buidler";
+import {ethers} from "ethers";
 
 require("dotenv").config();
 module.exports = async ({getNamedAccounts, deployments}: any) => {
@@ -7,7 +8,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		const {deployer} = await getNamedAccounts();
 
 		log("Ganache found, deploying test contracts");
-		const price = process.env.PRICE;
+		const price = process.env.PRICE as string;
 		let Oracle;
 		try {
 			Oracle = await deployments.get("Oracle");
@@ -20,7 +21,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 				"Oracle",
 				{from: deployer, gas: 4000000},
 				"Oracle",
-				price
+				ethers.utils.parseEther(price)
 			);
 			Oracle = await deployments.get("Oracle");
 			if (deployResult.newlyDeployed) {
