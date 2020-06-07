@@ -1,5 +1,4 @@
 const ethers = require("ethers");
-import {utils} from "ethers";
 import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
 import {Tcapx} from "../typechain/Tcapx";
 import {TokenHandler} from "../typechain/TokenHandler";
@@ -14,7 +13,7 @@ module.exports = async ({deployments}: any) => {
 	if (buidlerArguments.network === "ganache" || buidlerArguments.network === "buidlerevm") {
 		let oracle = await deployments.get("Oracle");
 		oracleContract = oracle.address;
-		let stablecoin = await deployments.get("Stablecoin");
+		let stablecoin = await deployments.get("DAI");
 		stablecoinContract = await stablecoin.address;
 	} else {
 		oracleContract = process.env.ORACLE_ADDRESS as string;
