@@ -226,6 +226,9 @@ describe("TCAP.x Token Handler", async function () {
 		const bigAmount = ethersProvider.utils.parseEther("100375");
 		let balance = await stablecoinInstance.balanceOf(accounts[1]);
 		expect(balance).to.eq(0);
+		ratio = await tokenHandlerInstance.getVaultRatio(1);
+		console.log("ratio", ratio.toString());
+
 		await expect(tokenHandlerInstance.connect(addr3).removeCollateral(amount)).to.be.revertedWith(
 			"No Vault created"
 		);
@@ -295,6 +298,13 @@ describe("TCAP.x Token Handler", async function () {
 		expect(ratio).to.eq(150);
 	});
 
+	it("...shouln't allow investors to retrieve stake unless debt is paid", async () => {
+		let vault = await tokenHandlerInstance.getVault(1);
+		await expect(tokenHandlerInstance.connect(addr1).removeCollateral(vault[1])).to.be.revertedWith(
+			"Collateral below min required ratio"
+		);
+	});
+
 	it("...should allow investors to burn tokens", async () => {
 		const amount = ethersProvider.utils.parseEther("10");
 		const bigAmount = ethersProvider.utils.parseEther("100");
@@ -321,6 +331,18 @@ describe("TCAP.x Token Handler", async function () {
 	it("...should update change the collateral ratio", async () => {
 		ratio = await tokenHandlerInstance.getVaultRatio(1);
 		expect(ratio).to.eq(0);
+	});
+
+	it("...should allow investors to retrieve stake when debt is paid", async () => {
+		let vault = await tokenHandlerInstance.getVault(1);
+		await expect(tokenHandlerInstance.connect(addr1).removeCollateral(vault[1]))
+			.to.emit(tokenHandlerInstance, "LogRemoveCollateral")
+			.withArgs(accounts[1], 1, vault[1]);
+		vault = await tokenHandlerInstance.getVault(1);
+		expect(vault[0]).to.eq(1);
+		expect(vault[1]).to.eq(0);
+		expect(vault[2]).to.eq(accounts[1]);
+		expect(vault[3]).to.eq(0);
 	});
 	xit("...should allow users to liquidate investors", async () => {});
 	xit("LIQUIDATION CONFIGURATION TESTS", async () => {});

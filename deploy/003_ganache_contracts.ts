@@ -1,5 +1,6 @@
-import {buidlerArguments} from "@nomiclabs/buidler";
 import {ethers} from "ethers";
+import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
+import {Stablecoin} from "../typechain/Stablecoin";
 
 require("dotenv").config();
 module.exports = async ({getNamedAccounts, deployments}: any) => {
@@ -46,6 +47,15 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 			if (deployResult.newlyDeployed) {
 				log(`Stablecoin deployed at ${Stablecoin.address} for ${deployResult.receipt.gasUsed}`);
 			}
+
+			let StablecoinContract = await ethersBuidler.getContract("Stablecoin");
+			let stableAbi = StablecoinContract.interface;
+			let stable = new ethers.Contract(
+				Stablecoin.address,
+				stableAbi,
+				StablecoinContract.signer
+			) as Stablecoin;
+			await stable.mint(deployer, ethers.utils.parseEther("100"));
 		}
 	}
 };
