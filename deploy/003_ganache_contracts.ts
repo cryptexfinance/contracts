@@ -145,16 +145,24 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		let tcapxAbi = TcapxContract.interface;
 		let tcapx = new ethers.Contract(
 			TcapxDeployment.address,
+
 			tcapxAbi,
 			TcapxContract.signer
 		) as Tcapx;
+		console.log("TcapxDeployment.address", TcapxDeployment.address);
 		console.log("adding token Handlers");
 
 		await tcapx.addTokenHandler(usdcHandler.address);
 		await tcapx.addTokenHandler(usdtHandler.address);
 
+		let tokenHandlers = await tcapx.tokenHandlers(usdcHandler.address);
+		console.log("tokenHandlers", tokenHandlers);
+		tokenHandlers = await tcapx.tokenHandlers(usdtHandler.address);
+		console.log("tokenHandlers", tokenHandlers);
+
 		let divisor = process.env.DIVISOR as string;
 		let ratio = process.env.RATIO as string;
+		let oracle = await deployments.get("Oracle");
 
 		let usdtHandlerContract = await ethersBuidler.getContract("TokenHandler");
 		let handlerAbi = usdtHandlerContract.interface;
@@ -173,6 +181,8 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		await handler.setDivisor(divisor);
 		console.log("setting ratio", ratio);
 		await handler.setRatio(ratio);
+		console.log("setting oracle", oracle.address);
+		await handler.setOracle(oracle.address);
 
 		let usdcHandlerContract = await ethersBuidler.getContract("TokenHandler");
 		handlerAbi = usdtHandlerContract.interface;
@@ -191,6 +201,8 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		await handler.setDivisor(divisor);
 		console.log("setting ratio", ratio);
 		await handler.setRatio(ratio);
+		console.log("setting oracle", oracle.address);
+		await handler.setOracle(oracle.address);
 	}
 };
 module.exports.tags = ["Oracle", "DAI", "USDC", "USDT"];
