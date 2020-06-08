@@ -66,11 +66,18 @@ contract InterestTokenHandler is ITokenHandler {
     vaultExists
   {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
+    uint256 currentRatio = getVaultRatio(vault.Id);
     require(
       vault.Collateral >= _amount,
       "Transaction reverted with Retrieve amount higher than collateral"
     );
     vault.Collateral = vault.Collateral.sub(_amount);
+    if (currentRatio != 0) {
+      require(
+        getVaultRatio(vault.Id) >= ratio,
+        "Collateral below min required ratio"
+      );
+    }
     interestTokenAddress.redeemAndTransfer(msg.sender, _amount);
     emit LogRemoveCollateral(msg.sender, vault.Id, _amount);
   }

@@ -196,11 +196,19 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     vaultExists
   {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
+    uint256 currentRatio = getVaultRatio(vault.Id);
     require(
       vault.Collateral >= _amount,
       "Transaction reverted with Retrieve amount higher than collateral"
     );
     vault.Collateral = vault.Collateral.sub(_amount);
+    if (currentRatio != 0) {
+      require(
+        getVaultRatio(vault.Id) >= ratio,
+        "Collateral below min required ratio"
+      );
+    }
+
     collateralContract.transfer(msg.sender, _amount);
     emit LogRemoveCollateral(msg.sender, vault.Id, _amount);
   }
@@ -266,6 +274,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @return id the vault
    * @return collateral added
    * @return owner of the vault
+   * @return debt of the vault
    */
   function getVault(uint256 _id)
     public
