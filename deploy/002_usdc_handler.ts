@@ -7,8 +7,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		handlerContract = await deployments.get("USDCTokenHandler");
 	} catch (error) {
 		log(error.message);
-	}
-	if (!handlerContract) {
+
 		const deployResult = await deployIfDifferent(
 			["data"],
 			"USDCTokenHandler",

@@ -9,6 +9,6 @@ import "./ITokenHandler.sol";
  * @author Cristian Espinoza
  * @notice Contract in charge of handling the TCAP.X Token and stake
  */
-contract TokenHandler is ITokenHandler {
+contract DAITokenHandler is ITokenHandler {
 
 }

@@ -7,8 +7,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		handlerContract = await deployments.get("DAITokenHandler");
 	} catch (error) {
 		log(error.message);
-	}
-	if (!handlerContract) {
+
 		const deployResult = await deployIfDifferent(
 			["data"],
 			"DAITokenHandler",

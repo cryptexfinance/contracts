@@ -27,7 +27,7 @@ describe("TCAP.x Token Handler", async function () {
 		const TCAPX = await ethers.getContractFactory("TCAPX");
 		tcapInstance = await TCAPX.deploy("TCAP.X", "TCAPX", 18);
 		await tcapInstance.deployed();
-		const TCAPXHandler = await ethers.getContractFactory("TokenHandler");
+		const TCAPXHandler = await ethers.getContractFactory("DAITokenHandler");
 		tokenHandlerInstance = await TCAPXHandler.deploy();
 		await tokenHandlerInstance.deployed();
 		expect(tokenHandlerInstance.address).properAddress;
@@ -35,7 +35,7 @@ describe("TCAP.x Token Handler", async function () {
 		const totalMarketCap = ethersProvider.utils.parseEther("251300189107");
 		oracleInstance = await oracle.deploy(totalMarketCap);
 		await oracleInstance.deployed();
-		const stablecoin = await ethers.getContractFactory("Stablecoin");
+		const stablecoin = await ethers.getContractFactory("DAI");
 		stablecoinInstance = await stablecoin.deploy();
 		await stablecoinInstance.deployed();
 		await tcapInstance.addTokenHandler(tokenHandlerInstance.address);
@@ -227,7 +227,6 @@ describe("TCAP.x Token Handler", async function () {
 		let balance = await stablecoinInstance.balanceOf(accounts[1]);
 		expect(balance).to.eq(0);
 		ratio = await tokenHandlerInstance.getVaultRatio(1);
-		console.log("ratio", ratio.toString());
 
 		await expect(tokenHandlerInstance.connect(addr3).removeCollateral(amount)).to.be.revertedWith(
 			"No Vault created"

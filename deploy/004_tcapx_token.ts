@@ -11,8 +11,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		TCAPX = await deployments.get("TCAPX");
 	} catch (error) {
 		log(error.message);
-	}
-	if (!TCAPX) {
+
 		const deployResult = await deployIfDifferent(
 			["data"],
 			"TCAPX",
