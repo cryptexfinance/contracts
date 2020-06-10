@@ -25,16 +25,9 @@ const config: BuidlerConfig = {
 			url: "http://127.0.0.1:8545",
 			accounts: {mnemonic: ganacheMnemonic},
 		},
-		rinkeby: {
-			url: process.env.RINKEBY_API_URL,
-			accounts: {mnemonic: mnemonic},
-		},
-		kovan: {
-			url: process.env.KOVAN_API_URL,
-			accounts: {mnemonic: mnemonic},
-		},
-		mainnet: {
-			url: process.env.MAIN_API_URL,
+
+		goerli: {
+			url: process.env.GOERLI_API_URL,
 			accounts: {mnemonic: mnemonic},
 		},
 	},

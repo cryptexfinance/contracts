@@ -1,15 +1,17 @@
 import {ethers} from "ethers";
 import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
 import {Stablecoin} from "../typechain/Stablecoin";
-import {Tcapx} from "../typechain/Tcapx";
-import {TokenHandler} from "../typechain/TokenHandler";
 require("dotenv").config();
 module.exports = async ({getNamedAccounts, deployments}: any) => {
-	if (buidlerArguments.network === "ganache" || buidlerArguments.network === "buidlerevm") {
+	if (
+		buidlerArguments.network === "goerli" ||
+		buidlerArguments.network === "ganache" ||
+		buidlerArguments.network === "buidlerevm"
+	) {
 		const {deployIfDifferent, log} = deployments;
 		const {deployer} = await getNamedAccounts();
 
-		log("Ganache found, deploying mockup stablecoin contracts");
+		log(`${buidlerArguments.network} found, deploying mockup stablecoin contracts`);
 
 		//Deploy Mock Stablecoins
 		let DAI, USDC, USDT;

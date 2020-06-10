@@ -1,16 +1,15 @@
 import {ethers} from "ethers";
 import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
-import {Stablecoin} from "../typechain/Stablecoin";
-import {Tcapx} from "../typechain/Tcapx";
 import {DaiTokenHandler} from "../typechain/DaiTokenHandler";
 import {UsdcTokenHandler} from "../typechain/UsdcTokenHandler";
 import {UsdtTokenHandler} from "../typechain/UsdtTokenHandler";
 require("dotenv").config();
-module.exports = async ({getNamedAccounts, deployments}: any) => {
-	if (buidlerArguments.network === "ganache" || buidlerArguments.network === "buidlerevm") {
-		const {deployIfDifferent, log} = deployments;
-		const {deployer} = await getNamedAccounts();
-
+module.exports = async ({deployments}: any) => {
+	if (
+		buidlerArguments.network === "goerli" ||
+		buidlerArguments.network === "ganache" ||
+		buidlerArguments.network === "buidlerevm"
+	) {
 		let DAIHandler = await deployments.get("DAITokenHandler");
 		let USDCHandler = await deployments.get("USDCTokenHandler");
 		let USDTHandler = await deployments.get("USDTTokenHandler");

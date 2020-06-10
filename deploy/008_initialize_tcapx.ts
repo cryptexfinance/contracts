@@ -3,8 +3,12 @@ import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
 import {Tcapx} from "../typechain/Tcapx";
 require("dotenv").config();
 
-module.exports = async ({getNamedAccounts, deployments}: any) => {
-	if (buidlerArguments.network === "ganache" || buidlerArguments.network === "buidlerevm") {
+module.exports = async ({deployments}: any) => {
+	if (
+		buidlerArguments.network === "goerli" ||
+		buidlerArguments.network === "ganache" ||
+		buidlerArguments.network === "buidlerevm"
+	) {
 		let DAIHandler = await deployments.get("DAITokenHandler");
 		let USDCHandler = await deployments.get("USDCTokenHandler");
 		let USDTHandler = await deployments.get("USDTTokenHandler");
