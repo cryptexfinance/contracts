@@ -19,7 +19,7 @@ import "./TCAPX.sol";
 abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   /** @dev Logs all the calls of the functions. */
   event LogSetTCAPXContract(address indexed _owner, TCAPX _token);
-  event LogSetOracle(address indexed _owner, Oracle _oracle);
+  event LogSetTCAPOracle(address indexed _owner, Oracle _oracle);
   event LogSetCollateralContract(
     address indexed _owner,
     ERC20 _collateralContract
@@ -55,7 +55,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   }
 
   TCAPX public TCAPXToken;
-  Oracle public oracle;
+  Oracle public tcapOracle;
   ERC20 public collateralContract;
   uint256 public divisor;
   uint256 public ratio;
@@ -95,9 +95,9 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @param _oracle address
    * @dev Only owner can call it
    */
-  function setOracle(Oracle _oracle) public virtual onlyOwner {
-    oracle = _oracle;
-    emit LogSetOracle(msg.sender, _oracle);
+  function setTCAPOracle(Oracle _oracle) public virtual onlyOwner {
+    tcapOracle = _oracle;
+    emit LogSetTCAPOracle(msg.sender, _oracle);
   }
 
   /**
@@ -247,7 +247,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @return price of the TCAPX Token
    */
   function TCAPXPrice() public virtual view returns (uint256 price) {
-    uint256 totalMarketPrice = oracle.price();
+    uint256 totalMarketPrice = tcapOracle.price();
     price = totalMarketPrice.div(divisor);
   }
 
