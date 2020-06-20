@@ -48,7 +48,7 @@ contract WETHTokenHandler is
    * @param _amount uint amount to mint
    * @return collateral of the TCAPX Token
    */
-  function minRequiredCollateral(uint256 _amount)
+  function requiredCollateral(uint256 _amount)
     public
     override
     view
@@ -56,11 +56,6 @@ contract WETHTokenHandler is
   {
     uint256 tcapPrice = TCAPXPrice();
     uint256 ethPrice = ethPriceOracle.price();
-    console.logUint(ethPrice);
-    //TODO: Fix this
-    collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100 ether)).div(
-      ethPrice
-    );
-    console.logUint(collateral);
+    collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100)).div(ethPrice);
   }
 }

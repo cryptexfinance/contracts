@@ -34,7 +34,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 		const oracle = await ethers.getContractFactory("Oracle");
 		const oracle2 = await ethers.getContractFactory("Oracle");
 		const totalMarketCap = ethersProvider.utils.parseEther("251300189107");
-		const ethPrice = "230";
+		const ethPrice = ethersProvider.utils.parseEther("230");
 		tcapOracleInstance = await oracle.deploy(totalMarketCap);
 		await tcapOracleInstance.deployed();
 		priceOracleInstance = await oracle2.deploy(ethPrice);
@@ -272,12 +272,11 @@ describe("TCAP.x WETH Token Handler", async function () {
 
 	it("...should return the correct minimal collateral required", async () => {
 		let amount = ethersProvider.utils.parseEther("1");
-		const reqAmount = await wethTokenHandler.minRequiredCollateral(amount);
+		const reqAmount = await wethTokenHandler.requiredCollateral(amount);
 		const ethPrice = await priceOracleInstance.price();
-		const tcapPrice = await tcapOracleInstance.price();
+		const tcapPrice = await wethTokenHandler.TCAPXPrice();
 		const ratio = await wethTokenHandler.ratio();
-		const div = await ethers.utils.parseEther("100");
-		let result = tcapPrice.mul(amount).mul(ratio).div(div);
+		let result = tcapPrice.mul(amount).mul(ratio).div(100).div(ethPrice);
 		console.log("result", result.toString());
 		expect(reqAmount).to.eq(result);
 	});
@@ -286,7 +285,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 		const amount = ethersProvider.utils.parseEther("10");
 		const lowAmount = ethersProvider.utils.parseEther("1");
 		const bigAmount = ethersProvider.utils.parseEther("100");
-		const reqAmount = await wethTokenHandler.minRequiredCollateral(amount);
+		const reqAmount = await wethTokenHandler.requiredCollateral(amount);
 
 		await wethTokenInstance.mint(accounts[1], reqAmount);
 		let tcapxBalance = await tcapInstance.balanceOf(accounts[1]);
@@ -331,7 +330,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 	it("...should allow investors to burn tokens", async () => {
 		const amount = ethersProvider.utils.parseEther("10");
 		const bigAmount = ethersProvider.utils.parseEther("100");
-		const reqAmount = await wethTokenHandler.minRequiredCollateral(amount);
+		const reqAmount = await wethTokenHandler.requiredCollateral(amount);
 
 		await expect(wethTokenHandler.connect(addr3).burn(amount)).to.be.revertedWith(
 			"No Vault created"

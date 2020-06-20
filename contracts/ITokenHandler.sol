@@ -57,6 +57,10 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   TCAPX public TCAPXToken;
   Oracle public tcapOracle;
   ERC20 public collateralContract;
+  /**
+   * @notice divisor value to set the TCAP.X price
+   * @dev Is 1x10^10 so the result is a token with 18 decimals
+   */
   uint256 public divisor;
   uint256 public ratio;
   mapping(address => uint256) public vaultToUser;
@@ -218,7 +222,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
    */
   function mint(uint256 _amount) public virtual nonReentrant vaultExists {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
-    uint256 requiredCollateral = minRequiredCollateral(_amount);
+    uint256 requiredCollateral = requiredCollateral(_amount); // TODO: rename to collateral for mint
     require(vault.Collateral >= requiredCollateral, "Not enough collateral");
     vault.Debt = vault.Debt.add(_amount);
     require(
@@ -244,6 +248,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   /**
    * @notice Returns the price of the TCAPX token
    * @dev TCAPX token is 18 decimals
+   * @dev oracle totalMarketPrice must be in wei format
    * @return price of the TCAPX Token
    */
   function TCAPXPrice() public virtual view returns (uint256 price) {
@@ -254,10 +259,11 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   /**
    * @notice Returns the minimal required collateral to mint TCAPX token
    * @dev TCAPX token is 18 decimals
+   * @dev it's divided by 100 ether to cancel the decimal ratio of the amount in wei
    * @param _amount uint amount to mint
    * @return collateral of the TCAPX Token
    */
-  function minRequiredCollateral(uint256 _amount)
+  function requiredCollateral(uint256 _amount)
     public
     virtual
     view
@@ -292,6 +298,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
 
   /**
    * @notice Returns the current collateralization ratio
+   * @dev is multiplied by 100 ether to cancel the wei value of the tcapx price
    * @param _vaultId uint of the vault
    * @return currentRatio
    */
