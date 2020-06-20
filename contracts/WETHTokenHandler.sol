@@ -12,6 +12,9 @@ import "./TCAPX.sol";
 
 import "./ITokenHandler.sol";
 
+//DEBUG
+import "@nomiclabs/buidler/console.sol";
+
 
 /**
  * @title TCAP.X ETH Vault
@@ -25,7 +28,6 @@ contract WETHTokenHandler is
   ITokenHandler
 {
   /** @dev Logs all the calls of the functions. */
-  event LogSetTcapOracle(address indexed _owner, Oracle _tcapOracle);
   event LogSetETHPriceOracle(address indexed _owner, Oracle _priceOracle);
 
   Oracle public ethPriceOracle;
@@ -38,5 +40,27 @@ contract WETHTokenHandler is
   function setETHPriceOracle(Oracle _oracle) public virtual onlyOwner {
     ethPriceOracle = _oracle;
     emit LogSetETHPriceOracle(msg.sender, _oracle);
+  }
+
+  /**
+   * @notice Returns the minimal required collateral to mint TCAPX token
+   * @dev TCAPX token is 18 decimals
+   * @param _amount uint amount to mint
+   * @return collateral of the TCAPX Token
+   */
+  function minRequiredCollateral(uint256 _amount)
+    public
+    override
+    view
+    returns (uint256 collateral)
+  {
+    uint256 tcapPrice = TCAPXPrice();
+    uint256 ethPrice = ethPriceOracle.price();
+    console.logUint(ethPrice);
+    //TODO: Fix this
+    collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100 ether)).div(
+      ethPrice
+    );
+    console.logUint(collateral);
   }
 }

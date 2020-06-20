@@ -32,16 +32,16 @@ describe("TCAP.x WETH Token Handler", async function () {
 		await wethTokenHandler.deployed();
 		expect(wethTokenHandler.address).properAddress;
 		const oracle = await ethers.getContractFactory("Oracle");
+		const oracle2 = await ethers.getContractFactory("Oracle");
 		const totalMarketCap = ethersProvider.utils.parseEther("251300189107");
-		const ethPrice = ethersProvider.utils.parseEther("230");
+		const ethPrice = "230";
 		tcapOracleInstance = await oracle.deploy(totalMarketCap);
 		await tcapOracleInstance.deployed();
-		priceOracleInstance = await oracle.deploy(ethPrice);
+		priceOracleInstance = await oracle2.deploy(ethPrice);
 		await priceOracleInstance.deployed();
 		await tcapInstance.addTokenHandler(wethTokenHandler.address);
 		const weth = await ethers.getContractFactory("WETH");
 		wethTokenInstance = await weth.deploy();
-		await priceOracleInstance.deployed();
 	});
 
 	it("...should set the tcap.x contract", async () => {
@@ -70,11 +70,11 @@ describe("TCAP.x WETH Token Handler", async function () {
 		await expect(wethTokenHandler.connect(addr1).setETHPriceOracle(accounts[1])).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(wethTokenHandler.connect(owner).setETHPriceOracle(tcapOracleInstance.address))
+		await expect(wethTokenHandler.connect(owner).setETHPriceOracle(priceOracleInstance.address))
 			.to.emit(wethTokenHandler, "LogSetETHPriceOracle")
-			.withArgs(accounts[0], tcapOracleInstance.address);
+			.withArgs(accounts[0], priceOracleInstance.address);
 		let currentPriceOracle = await wethTokenHandler.ethPriceOracle();
-		expect(currentPriceOracle).to.eq(tcapOracleInstance.address);
+		expect(currentPriceOracle).to.eq(priceOracleInstance.address);
 	});
 
 	it("...should set the weth contract", async () => {
@@ -270,11 +270,24 @@ describe("TCAP.x WETH Token Handler", async function () {
 		expect(balance).to.eq(0);
 	});
 
+	it("...should return the correct minimal collateral required", async () => {
+		let amount = ethersProvider.utils.parseEther("1");
+		const reqAmount = await wethTokenHandler.minRequiredCollateral(amount);
+		const ethPrice = await priceOracleInstance.price();
+		const tcapPrice = await tcapOracleInstance.price();
+		const ratio = await wethTokenHandler.ratio();
+		const div = await ethers.utils.parseEther("100");
+		let result = tcapPrice.mul(amount).mul(ratio).div(div);
+		console.log("result", result.toString());
+		expect(reqAmount).to.eq(result);
+	});
+
 	it("...should allow investors to mint tokens", async () => {
 		const amount = ethersProvider.utils.parseEther("10");
 		const lowAmount = ethersProvider.utils.parseEther("1");
 		const bigAmount = ethersProvider.utils.parseEther("100");
 		const reqAmount = await wethTokenHandler.minRequiredCollateral(amount);
+
 		await wethTokenInstance.mint(accounts[1], reqAmount);
 		let tcapxBalance = await tcapInstance.balanceOf(accounts[1]);
 		expect(tcapxBalance).to.eq(0);
