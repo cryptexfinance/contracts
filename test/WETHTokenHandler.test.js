@@ -277,21 +277,22 @@ describe("TCAP.x WETH Token Handler", async function () {
 		const tcapPrice = await wethTokenHandler.TCAPXPrice();
 		const ratio = await wethTokenHandler.ratio();
 		let result = tcapPrice.mul(amount).mul(ratio).div(100).div(ethPrice);
-		console.log("result", result.toString());
 		expect(reqAmount).to.eq(result);
 	});
 
 	it("...should allow investors to mint tokens", async () => {
 		const amount = ethersProvider.utils.parseEther("10");
+		const amount2 = ethersProvider.utils.parseEther("11");
 		const lowAmount = ethersProvider.utils.parseEther("1");
 		const bigAmount = ethersProvider.utils.parseEther("100");
 		const reqAmount = await wethTokenHandler.requiredCollateral(amount);
+		const reqAmount2 = await wethTokenHandler.requiredCollateral(amount2);
 
-		await wethTokenInstance.mint(accounts[1], reqAmount);
+		await wethTokenInstance.mint(accounts[1], reqAmount2);
 		let tcapxBalance = await tcapInstance.balanceOf(accounts[1]);
 		expect(tcapxBalance).to.eq(0);
-		await wethTokenInstance.connect(addr1).approve(wethTokenHandler.address, reqAmount);
-		await wethTokenHandler.connect(addr1).addCollateral(reqAmount);
+		await wethTokenInstance.connect(addr1).approve(wethTokenHandler.address, reqAmount2);
+		await wethTokenHandler.connect(addr1).addCollateral(reqAmount2);
 		await expect(wethTokenHandler.connect(addr3).mint(amount)).to.be.revertedWith(
 			"No Vault created"
 		);
@@ -304,8 +305,13 @@ describe("TCAP.x WETH Token Handler", async function () {
 		tcapxBalance = await tcapInstance.balanceOf(accounts[1]);
 		expect(tcapxBalance).to.eq(amount);
 		vault = await wethTokenHandler.getVault(1);
+		console.log("vault", vault);
 		expect(vault[0]).to.eq(1);
-		expect(vault[1]).to.eq(reqAmount);
+		console.log("vault[0]", vault[0].toString());
+		console.log("vault[1]", vault[1].toString());
+		console.log("vault[2]", vault[2].toString());
+		console.log("vault[3]", vault[3].toString());
+		expect(vault[1]).to.eq(reqAmount2);
 		expect(vault[2]).to.eq(accounts[1]);
 		expect(vault[3]).to.eq(amount);
 		await expect(wethTokenHandler.connect(addr1).mint(lowAmount)).to.be.revertedWith(
@@ -317,7 +323,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 		let ratio = await wethTokenHandler.getVaultRatio(2);
 		expect(ratio).to.eq(0);
 		ratio = await wethTokenHandler.getVaultRatio(1);
-		expect(ratio).to.eq(150);
+		expect(ratio).to.eq(164);
 	});
 
 	it("...shouln't allow investors to retrieve stake unless debt is paid", async () => {
@@ -329,8 +335,10 @@ describe("TCAP.x WETH Token Handler", async function () {
 
 	it("...should allow investors to burn tokens", async () => {
 		const amount = ethersProvider.utils.parseEther("10");
+		const amount2 = ethersProvider.utils.parseEther("11");
 		const bigAmount = ethersProvider.utils.parseEther("100");
 		const reqAmount = await wethTokenHandler.requiredCollateral(amount);
+		const reqAmount2 = await wethTokenHandler.requiredCollateral(amount2);
 
 		await expect(wethTokenHandler.connect(addr3).burn(amount)).to.be.revertedWith(
 			"No Vault created"
@@ -345,7 +353,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 		expect(tcapxBalance).to.eq(0);
 		vault = await wethTokenHandler.getVault(1);
 		expect(vault[0]).to.eq(1);
-		expect(vault[1]).to.eq(reqAmount);
+		expect(vault[1]).to.eq(reqAmount2);
 		expect(vault[2]).to.eq(accounts[1]);
 		expect(vault[3]).to.eq(0);
 	});

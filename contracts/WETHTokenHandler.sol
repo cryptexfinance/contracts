@@ -12,7 +12,6 @@ import "./TCAPX.sol";
 
 import "./ITokenHandler.sol";
 
-//DEBUG
 import "@nomiclabs/buidler/console.sol";
 
 
@@ -45,6 +44,7 @@ contract WETHTokenHandler is
   /**
    * @notice Returns the minimal required collateral to mint TCAPX token
    * @dev TCAPX token is 18 decimals
+   * @dev Is only divided by 100 as eth price comes in wei to cancel the additional 0
    * @param _amount uint amount to mint
    * @return collateral of the TCAPX Token
    */
@@ -57,5 +57,31 @@ contract WETHTokenHandler is
     uint256 tcapPrice = TCAPXPrice();
     uint256 ethPrice = ethPriceOracle.price();
     collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100)).div(ethPrice);
+  }
+
+  /**
+   * @notice Returns the current collateralization ratio
+   * @dev is multiplied by 100 to cancel the wei value of the tcapx price
+   * @dev ratio is not 100% accurate as decimals precisions is complicated
+   * @param _vaultId uint of the vault
+   * @return currentRatio
+   */
+  function getVaultRatio(uint256 _vaultId)
+    public
+    override
+    view
+    returns (uint256 currentRatio)
+  {
+    Vault memory vault = vaults[_vaultId];
+    if (vault.Id == 0 || vault.Debt == 0) {
+      currentRatio = 0;
+    } else {
+      uint256 ethPrice = ethPriceOracle.price();
+      currentRatio = (
+        (ethPrice.mul(vault.Collateral.mul(100))).div(
+          vault.Debt.mul(TCAPXPrice())
+        )
+      );
+    }
   }
 }
