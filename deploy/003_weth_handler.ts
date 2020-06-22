@@ -1,6 +1,4 @@
-import {ethers} from "ethers";
 import {buidlerArguments} from "@nomiclabs/buidler";
-require("dotenv").config();
 module.exports = async ({getNamedAccounts, deployments}: any) => {
 	if (
 		buidlerArguments.network === "goerli" ||
@@ -10,25 +8,25 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		const {deployIfDifferent, log} = deployments;
 		const {deployer} = await getNamedAccounts();
 
-		let Oracle;
+		let handlerContract;
 		try {
-			Oracle = await deployments.get("Oracle");
+			handlerContract = await deployments.get("WETHTokenHandler");
 		} catch (error) {
 			log(error.message);
 
-			const price = process.env.PRICE as string;
 			const deployResult = await deployIfDifferent(
 				["data"],
-				"Oracle",
+				"WETHTokenHandler",
 				{from: deployer, gas: 4000000},
-				"Oracle",
-				ethers.utils.parseEther(price)
+				"WETHTokenHandler"
 			);
-			Oracle = await deployments.get("Oracle");
+			handlerContract = await deployments.get("USDTTokenHandler");
 			if (deployResult.newlyDeployed) {
-				log(`Oracle deployed at ${Oracle.address} for ${deployResult.receipt.gasUsed}`);
+				log(
+					`WETHTokenHandler deployed at ${handlerContract.address} for ${deployResult.receipt.gasUsed}`
+				);
 			}
 		}
 	}
 };
-module.exports.tags = ["Oracle"];
+module.exports.tags = ["WETHTokenHandler"];
