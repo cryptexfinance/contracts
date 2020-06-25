@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./mocks/Oracle.sol";
 import "./TCAPX.sol";
+import "./mocks/PriceFeed.sol";
 
 import "./ITokenHandler.sol";
 
@@ -27,16 +28,16 @@ contract WETHTokenHandler is
   ITokenHandler
 {
   /** @dev Logs all the calls of the functions. */
-  event LogSetETHPriceOracle(address indexed _owner, Oracle _priceOracle);
+  event LogSetETHPriceOracle(address indexed _owner, PriceFeed _priceOracle);
 
-  Oracle public ethPriceOracle;
+  PriceFeed public ethPriceOracle;
 
   /**
    * @notice Sets the address of the oracle contract for the price feed
    * @param _oracle address
    * @dev Only owner can call it
    */
-  function setETHPriceOracle(Oracle _oracle) public virtual onlyOwner {
+  function setETHPriceOracle(PriceFeed _oracle) public virtual onlyOwner {
     ethPriceOracle = _oracle;
     emit LogSetETHPriceOracle(msg.sender, _oracle);
   }
@@ -55,7 +56,8 @@ contract WETHTokenHandler is
     returns (uint256 collateral)
   {
     uint256 tcapPrice = TCAPXPrice();
-    uint256 ethPrice = ethPriceOracle.price();
+    bytes32 ethPriceBytes = ethPriceOracle.read();
+    uint256 ethPrice = bytesToUint(ethPriceBytes);
     collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100)).div(ethPrice);
   }
 
@@ -76,12 +78,24 @@ contract WETHTokenHandler is
     if (vault.Id == 0 || vault.Debt == 0) {
       currentRatio = 0;
     } else {
-      uint256 ethPrice = ethPriceOracle.price();
+      bytes32 ethPriceBytes = ethPriceOracle.read();
+      uint256 ethPrice = bytesToUint(ethPriceBytes);
       currentRatio = (
         (ethPrice.mul(vault.Collateral.mul(100))).div(
           vault.Debt.mul(TCAPXPrice())
         )
       );
     }
+  }
+
+  function bytesToUint(bytes32 b) internal pure returns (uint256) {
+    uint256 number;
+    for (uint256 i = 0; i < b.length; i++) {
+      number =
+        number +
+        uint256(uint8((b[i]))) *
+        (2**(8 * (b.length - (i + 1))));
+    }
+    return number;
   }
 }

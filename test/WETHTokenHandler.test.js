@@ -1,5 +1,6 @@
 var expect = require("chai").expect;
 var ethersProvider = require("ethers");
+const {util} = require("chai");
 
 describe("TCAP.x WETH Token Handler", async function () {
 	let wethTokenHandler, wethTokenInstance, tcapInstance, tcapOracleInstance, priceOracleInstance;
@@ -32,13 +33,14 @@ describe("TCAP.x WETH Token Handler", async function () {
 		await wethTokenHandler.deployed();
 		expect(wethTokenHandler.address).properAddress;
 		const oracle = await ethers.getContractFactory("Oracle");
-		const oracle2 = await ethers.getContractFactory("Oracle");
+		const oracle2 = await ethers.getContractFactory("PriceFeed");
 		const totalMarketCap = ethersProvider.utils.parseEther("251300189107");
 		const ethPrice = ethersProvider.utils.parseEther("230");
 		tcapOracleInstance = await oracle.deploy(totalMarketCap);
 		await tcapOracleInstance.deployed();
-		priceOracleInstance = await oracle2.deploy(ethPrice);
+		priceOracleInstance = await oracle2.deploy();
 		await priceOracleInstance.deployed();
+		priceOracleInstance.post(ethPrice, 0, ethersProvider.constants.AddressZero);
 		await tcapInstance.addTokenHandler(wethTokenHandler.address);
 		const weth = await ethers.getContractFactory("WETH");
 		wethTokenInstance = await weth.deploy();
@@ -273,7 +275,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 	it("...should return the correct minimal collateral required", async () => {
 		let amount = ethersProvider.utils.parseEther("1");
 		const reqAmount = await wethTokenHandler.requiredCollateral(amount);
-		const ethPrice = await priceOracleInstance.price();
+		const ethPrice = await priceOracleInstance.read();
 		const tcapPrice = await wethTokenHandler.TCAPXPrice();
 		const ratio = await wethTokenHandler.ratio();
 		let result = tcapPrice.mul(amount).mul(ratio).div(100).div(ethPrice);
@@ -305,12 +307,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 		tcapxBalance = await tcapInstance.balanceOf(accounts[1]);
 		expect(tcapxBalance).to.eq(amount);
 		vault = await wethTokenHandler.getVault(1);
-		console.log("vault", vault);
 		expect(vault[0]).to.eq(1);
-		console.log("vault[0]", vault[0].toString());
-		console.log("vault[1]", vault[1].toString());
-		console.log("vault[2]", vault[2].toString());
-		console.log("vault[3]", vault[3].toString());
 		expect(vault[1]).to.eq(reqAmount2);
 		expect(vault[2]).to.eq(accounts[1]);
 		expect(vault[3]).to.eq(amount);
