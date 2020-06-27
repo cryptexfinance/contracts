@@ -334,8 +334,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 		const amount = ethersProvider.utils.parseEther("10");
 		const amount2 = ethersProvider.utils.parseEther("11");
 		const bigAmount = ethersProvider.utils.parseEther("100");
-		const reqAmount = await wethTokenHandler.requiredCollateral(amount);
-		const reqAmount2 = await wethTokenHandler.requiredCollateral(amount2);
+		const reqAmount = await wethTokenHandler.requiredCollateral(amount2);
 
 		await expect(wethTokenHandler.connect(addr3).burn(amount)).to.be.revertedWith(
 			"No Vault created"

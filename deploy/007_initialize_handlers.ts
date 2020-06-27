@@ -20,7 +20,7 @@ module.exports = async ({deployments}: any) => {
 		let divisor = process.env.DIVISOR as string;
 		let ratio = process.env.RATIO as string;
 		let oracle = await deployments.get("Oracle");
-		let ethOracle = await deployments.get("ETHOracle");
+		let priceFeed = await deployments.get("PriceFeed");
 
 		let daiHandlerContract = await ethersBuidler.getContract("DAITokenHandler");
 		let usdcHandlerContract = await ethersBuidler.getContract("USDCTokenHandler");
@@ -85,7 +85,7 @@ module.exports = async ({deployments}: any) => {
 		await usdc.setTCAPOracle(oracle.address);
 		await usdt.setTCAPOracle(oracle.address);
 		await weth.setTCAPOracle(oracle.address);
-		await weth.setETHPriceOracle(ethOracle.address);
+		await weth.setETHPriceOracle(priceFeed.address);
 	}
 };
 module.exports.tags = ["Initialize"];

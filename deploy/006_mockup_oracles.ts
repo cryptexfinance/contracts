@@ -1,5 +1,6 @@
 import {ethers} from "ethers";
-import {buidlerArguments} from "@nomiclabs/buidler";
+import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
+import {PriceFeed} from "../typechain/PriceFeed";
 require("dotenv").config();
 module.exports = async ({getNamedAccounts, deployments}: any) => {
 	if (
@@ -10,7 +11,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		const {deployIfDifferent, log} = deployments;
 		const {deployer} = await getNamedAccounts();
 
-		let Oracle, ETHOracle;
+		let Oracle, PriceFeed;
 		try {
 			Oracle = await deployments.get("Oracle");
 		} catch (error) {
@@ -30,24 +31,32 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 			}
 
 			try {
-				ETHOracle = await deployments.get("ETHOracle");
+				PriceFeed = await deployments.get("PriceFeed");
 			} catch (error) {
 				log(error.message);
 
-				const price = process.env.ETH_PRICE as string;
+				const price = ethers.utils.parseEther(process.env.ETH_PRICE as string);
 				const deployResult = await deployIfDifferent(
 					["data"],
-					"ETHOracle",
+					"PriceFeed",
 					{from: deployer, gas: 4000000},
-					"Oracle",
-					ethers.utils.parseEther(price)
+					"PriceFeed"
 				);
-				ETHOracle = await deployments.get("ETHOracle");
+				PriceFeed = await deployments.get("PriceFeed");
 				if (deployResult.newlyDeployed) {
-					log(`ETH Oracle deployed at ${ETHOracle.address} for ${deployResult.receipt.gasUsed}`);
+					log(
+						`Price Feed Oracle deployed at ${PriceFeed.address} for ${deployResult.receipt.gasUsed}`
+					);
 				}
+				let priceFeedContract = await ethersBuidler.getContract("PriceFeed");
+				let priceContract = new ethers.Contract(
+					PriceFeed.address,
+					priceFeedContract.interface,
+					priceFeedContract.signer
+				) as PriceFeed;
+				await priceContract.post(price, 0, ethers.constants.AddressZero);
 			}
 		}
 	}
 };
-module.exports.tags = ["Oracle", "ETHOracle"];
+module.exports.tags = ["Oracle", "PriceFeed"];
