@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for contracts/IAllocationStrategy.sol</title>
+    <title>Code coverage report for contracts/WETHTokenHandler.sol</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -16,28 +16,28 @@
 <div class='wrapper'>
   <div class='pad1'>
     <h1>
-      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> IAllocationStrategy.sol
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> WETHTokenHandler.sol
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>0/0</span>
+        <span class='fraction'>10/10</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>0/0</span>
+        <span class='fraction'>2/2</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>0/0</span>
+        <span class='fraction'>3/3</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>0/0</span>
+        <span class='fraction'>10/10</span>
       </div>
     </div>
   </div>
@@ -102,7 +102,35 @@
 57
 58
 59
-60</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -141,6 +169,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -156,69 +186,123 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">22×</span>
+<span class="cline-any cline-yes">22×</span>
+<span class="cline-any cline-yes">22×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">pragma solidity ^0.6.4;
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">46×</span>
+<span class="cline-any cline-yes">46×</span>
+<span class="cline-any cline-yes">27×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">19×</span>
+<span class="cline-any cline-yes">19×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.6.8;
+&nbsp;
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "./mocks/Oracle.sol";
+import "./TCAPX.sol";
+&nbsp;
+import "./ITokenHandler.sol";
+&nbsp;
+import "@nomiclabs/buidler/console.sol";
+&nbsp;
 &nbsp;
 /**
- * @notice Allocation strategy for assets.
- *         - It invests the underlying assets into some yield generating contracts,
- *           usually lending contracts, in return it gets new assets aka. saving assets.
- *         - Savings assets can be redeemed back to the underlying assets plus interest any time.
+ * @title TCAP.X ETH Vault
+ * @author Cristian Espinoza
+ * @notice Contract in charge of handling the TCAP.X Token and stake using ETH as Collateral
  */
-interface IAllocationStrategy {
+contract WETHTokenHandler is
+  Ownable,
+  AccessControl,
+  ReentrancyGuard,
+  ITokenHandler
+{
+  /** @dev Logs all the calls of the functions. */
+  event LogSetETHPriceOracle(address indexed _owner, Oracle _priceOracle);
 &nbsp;
-    /**
-     * @notice Underlying asset for the strategy
-     * @return address Underlying asset address
-     */
-    function underlying() external view returns (address);
+  Oracle public ethPriceOracle;
 &nbsp;
-    /**
-     * @notice Calculates the exchange rate from underlying to saving assets
-     * @return uint256 Calculated exchange rate scaled by 1e18
-     *
-     * NOTE:
-     *
-     *   underlying = savingAssets × exchangeRate
-     */
-    function exchangeRateStored() external view returns (uint256);
+  /**
+   * @notice Sets the address of the oracle contract for the price feed
+   * @param _oracle address
+   * @dev Only owner can call it
+   */
+  function setETHPriceOracle(Oracle _oracle) public virtual onlyOwner {
+    ethPriceOracle = _oracle;
+    emit LogSetETHPriceOracle(msg.sender, _oracle);
+  }
 &nbsp;
-    /**
-      * @notice Applies accrued interest to all savings
-      * @dev This should calculates interest accrued from the last checkpointed
-      *      block up to the current block and writes new checkpoint to storage.
-      * @return bool success(true) or failure(false)
-      */
-    function accrueInterest() external returns (bool);
+  /**
+   * @notice Returns the minimal required collateral to mint TCAPX token
+   * @dev TCAPX token is 18 decimals
+   * @dev Is only divided by 100 as eth price comes in wei to cancel the additional 0
+   * @param _amount uint amount to mint
+   * @return collateral of the TCAPX Token
+   */
+  function requiredCollateral(uint256 _amount)
+    public
+    override
+    view
+    returns (uint256 collateral)
+  {
+    uint256 tcapPrice = TCAPXPrice();
+    uint256 ethPrice = ethPriceOracle.price();
+    collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100)).div(ethPrice);
+  }
 &nbsp;
-    /**
-     * @notice Sender supplies underlying assets into the market and receives saving assets in exchange
-     * @dev Interst shall be accrued
-     * @param investAmount The amount of the underlying asset to supply
-     * @return uint256 Amount of saving assets created
-     */
-    function investUnderlying(uint256 investAmount) external returns (uint256);
-&nbsp;
-    /**
-     * @notice Sender redeems saving assets in exchange for a specified amount of underlying asset
-     * @dev Interst shall be accrued
-     * @param redeemAmount The amount of underlying to redeem
-     * @return uint256 Amount of saving assets burned
-     */
-    function redeemUnderlying(uint256 redeemAmount) external returns (uint256);
-&nbsp;
-    /**
-     * @notice Owner redeems all saving assets
-     * @dev Interst shall be accrued
-     * @return savingsAmount Amount of savings redeemed
-     * @return underlyingAmount Amount of underlying redeemed
-     */
-    function redeemAll() external returns (uint256 savingsAmount, uint256 underlyingAmount);
-&nbsp;
+  /**
+   * @notice Returns the current collateralization ratio
+   * @dev is multiplied by 100 to cancel the wei value of the tcapx price
+   * @dev ratio is not 100% accurate as decimals precisions is complicated
+   * @param _vaultId uint of the vault
+   * @return currentRatio
+   */
+  function getVaultRatio(uint256 _vaultId)
+    public
+    override
+    view
+    returns (uint256 currentRatio)
+  {
+    Vault memory vault = vaults[_vaultId];
+    if (vault.Id == 0 || vault.Debt == 0) {
+      currentRatio = 0;
+    } else {
+      uint256 ethPrice = ethPriceOracle.price();
+      currentRatio = (
+        (ethPrice.mul(vault.Collateral.mul(100))).div(
+          vault.Debt.mul(TCAPXPrice())
+        )
+      );
+    }
+  }
 }
 &nbsp;</pre></td></tr>
 </table></pre>

@@ -53,13 +53,13 @@ describe("TCAP.x Token Handler", async function () {
 	});
 
 	it("...should set the oracle contract", async () => {
-		await expect(tokenHandlerInstance.connect(addr1).setOracle(accounts[1])).to.be.revertedWith(
+		await expect(tokenHandlerInstance.connect(addr1).setTCAPOracle(accounts[1])).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(tokenHandlerInstance.connect(owner).setOracle(oracleInstance.address))
-			.to.emit(tokenHandlerInstance, "LogSetOracle")
+		await expect(tokenHandlerInstance.connect(owner).setTCAPOracle(oracleInstance.address))
+			.to.emit(tokenHandlerInstance, "LogSetTCAPOracle")
 			.withArgs(accounts[0], oracleInstance.address);
-		let currentOracle = await tokenHandlerInstance.oracle();
+		let currentOracle = await tokenHandlerInstance.tcapOracle();
 		expect(currentOracle).to.eq(oracleInstance.address);
 	});
 
@@ -263,7 +263,7 @@ describe("TCAP.x Token Handler", async function () {
 		const amount = ethersProvider.utils.parseEther("10");
 		const lowAmount = ethersProvider.utils.parseEther("1");
 		const bigAmount = ethersProvider.utils.parseEther("100");
-		const reqAmount = await tokenHandlerInstance.minRequiredCollateral(amount);
+		const reqAmount = await tokenHandlerInstance.requiredCollateral(amount);
 		await stablecoinInstance.mint(accounts[1], reqAmount);
 		let tcapxBalance = await tcapInstance.balanceOf(accounts[1]);
 		expect(tcapxBalance).to.eq(0);
@@ -307,7 +307,7 @@ describe("TCAP.x Token Handler", async function () {
 	it("...should allow investors to burn tokens", async () => {
 		const amount = ethersProvider.utils.parseEther("10");
 		const bigAmount = ethersProvider.utils.parseEther("100");
-		const reqAmount = await tokenHandlerInstance.minRequiredCollateral(amount);
+		const reqAmount = await tokenHandlerInstance.requiredCollateral(amount);
 
 		await expect(tokenHandlerInstance.connect(addr3).burn(amount)).to.be.revertedWith(
 			"No Vault created"

@@ -3,9 +3,6 @@ pragma solidity ^0.6.8;
 import "./ITokenHandler.sol";
 import "./IRToken.sol";
 
-//Debug
-import "@nomiclabs/buidler/console.sol";
-
 
 /**
  * @title TCAP.X Token Handler

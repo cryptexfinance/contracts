@@ -12,6 +12,7 @@ module.exports = async ({deployments}: any) => {
 		let DAIHandler = await deployments.get("DAITokenHandler");
 		let USDCHandler = await deployments.get("USDCTokenHandler");
 		let USDTHandler = await deployments.get("USDTTokenHandler");
+		let WETHHandler = await deployments.get("WETHTokenHandler");
 		let TcapxDeployment = await deployments.get("TCAPX");
 		let TcapxContract = await ethersBuidler.getContract("TCAPX");
 		let tcapxAbi = TcapxContract.interface;
@@ -26,6 +27,7 @@ module.exports = async ({deployments}: any) => {
 		await tcapx.addTokenHandler(DAIHandler.address);
 		await tcapx.addTokenHandler(USDCHandler.address);
 		await tcapx.addTokenHandler(USDTHandler.address);
+		await tcapx.addTokenHandler(WETHHandler.address);
 	}
 };
 module.exports.tags = ["Initialize"];

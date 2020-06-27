@@ -14,7 +14,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		log(`${buidlerArguments.network} found, deploying mockup stablecoin contracts`);
 
 		//Deploy Mock Stablecoins
-		let DAI, USDC, USDT;
+		let DAI, USDC, USDT, WETH;
 		try {
 			DAI = await deployments.get("DAI");
 		} catch (error) {
@@ -80,6 +80,28 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 			let stable = new ethers.Contract(USDT.address, stableAbi, USDTContract.signer) as Stablecoin;
 			await stable.mint(deployer, ethers.utils.parseEther("100"));
 		}
+
+		try {
+			WETH = await deployments.get("WETH");
+		} catch (error) {
+			log(error.message);
+
+			const deployResult = await deployIfDifferent(
+				["data"],
+				"WETH",
+				{from: deployer, gas: 4000000},
+				"WETH"
+			);
+			WETH = await deployments.get("WETH");
+			if (deployResult.newlyDeployed) {
+				log(`WETH deployed at ${WETH.address} for ${deployResult.receipt.gasUsed}`);
+			}
+
+			let WETHContract = await ethersBuidler.getContract("WETH");
+			let stableAbi = WETHContract.interface;
+			let stable = new ethers.Contract(WETH.address, stableAbi, WETHContract.signer) as Stablecoin;
+			await stable.mint(deployer, ethers.utils.parseEther("100"));
+		}
 	}
 };
-module.exports.tags = ["DAI", "USDC", "USDT"];
+module.exports.tags = ["DAI", "USDC", "USDT", "WETH"];
