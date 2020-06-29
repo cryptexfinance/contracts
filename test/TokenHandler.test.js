@@ -7,6 +7,7 @@ describe("TCAP.x Token Handler", async function () {
 	let accounts = [];
 	let divisor = "10000000000";
 	let ratio = "150";
+	let burnFee = "1";
 
 	before("Set Accounts", async () => {
 		let [acc0, acc1, acc3, acc4] = await ethers.getSigners();
@@ -96,6 +97,17 @@ describe("TCAP.x Token Handler", async function () {
 			.withArgs(accounts[0], ratio);
 		let currentRatio = await tokenHandlerInstance.ratio();
 		expect(currentRatio).to.eq(ratio);
+	});
+
+	it("...should set the burn fee", async () => {
+		await expect(tokenHandlerInstance.connect(addr1).setBurnFee(1)).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(tokenHandlerInstance.connect(owner).setBurnFee(burnFee))
+			.to.emit(tokenHandlerInstance, "LogSetBurnFee")
+			.withArgs(accounts[0], burnFee);
+		let currentBurnFee = await tokenHandlerInstance.burnFee();
+		expect(currentBurnFee).to.eq(burnFee);
 	});
 
 	it("...should return the token price", async () => {
@@ -302,6 +314,15 @@ describe("TCAP.x Token Handler", async function () {
 		await expect(tokenHandlerInstance.connect(addr1).removeCollateral(vault[1])).to.be.revertedWith(
 			"Collateral below min required ratio"
 		);
+	});
+
+	it("...should calculate the burn fee", async () => {
+		let tcapPrice = await tokenHandlerInstance.TCAPXPrice();
+		let result = tcapPrice.mul(1).div(100);
+		let fee = await tokenHandlerInstance.getFee(1);
+		expect(fee).to.eq(result);
+		result = tcapPrice.mul(10).div(100);
+		fee = await tokenHandlerInstance.getFee(10);
 	});
 
 	it("...should allow investors to burn tokens", async () => {

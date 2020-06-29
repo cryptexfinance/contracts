@@ -26,6 +26,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   );
   event LogSetDivisor(address indexed _owner, uint256 _divisor);
   event LogSetRatio(address indexed _owner, uint256 _ratio);
+  event LogSetBurnFee(address indexed _owner, uint256 _burnFee);
   event LogCreateVault(address indexed _owner, uint256 indexed _id);
   event LogAddCollateral(
     address indexed _owner,
@@ -43,6 +44,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   using SafeMath for uint256;
   using Counters for Counters.Counter;
 
+  /** @dev vault id counter */
   Counters.Counter counter;
 
   bytes32 public constant INVESTOR_ROLE = keccak256("INVESTOR_ROLE");
@@ -53,16 +55,22 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     address Owner;
     uint256 Debt;
   }
-
+  /** @dev TCAP Token Address */
   TCAPX public TCAPXToken;
+  /** @dev Total Market Cap Oracle */
   Oracle public tcapOracle;
+  /** @dev Collateral Token Address*/
   ERC20 public collateralContract;
+
   /**
    * @notice divisor value to set the TCAP.X price
    * @dev Is 1x10^10 so the result is a token with 18 decimals
    */
   uint256 public divisor;
+  /** @dev Liquidation Ratio */
   uint256 public ratio;
+  /** @dev Fee charged when burning TCAP.X Tokens */
+  uint256 public burnFee;
   mapping(address => uint256) public vaultToUser;
   mapping(uint256 => Vault) public vaults;
 
@@ -136,6 +144,16 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   function setRatio(uint256 _ratio) public virtual onlyOwner {
     ratio = _ratio;
     emit LogSetRatio(msg.sender, _ratio);
+  }
+
+  /**
+   * @notice Sets the collateral ratio needed to mint tokens
+   * @param _burnFee uint
+   * @dev Only owner can call it
+   */
+  function setBurnFee(uint256 _burnFee) public virtual onlyOwner {
+    burnFee = _burnFee;
+    emit LogSetBurnFee(msg.sender, _burnFee);
   }
 
   /**
@@ -316,5 +334,14 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
         (vault.Collateral.mul(100 ether)).div(vault.Debt.mul(TCAPXPrice()))
       );
     }
+  }
+
+  /**
+   * @notice Calculates the burn fee for a certain amount
+   * @param _amount uint to calculate from
+   * @return fee
+   */
+  function getFee(uint256 _amount) public virtual view returns (uint256 fee) {
+    fee = (TCAPXPrice().mul(_amount).mul(burnFee)).div(100);
   }
 }

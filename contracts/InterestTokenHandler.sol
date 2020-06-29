@@ -79,7 +79,8 @@ contract InterestTokenHandler is ITokenHandler {
     emit LogRemoveCollateral(msg.sender, vault.Id, _amount);
   }
 
-  /** @notice Allow owner of contract to retrieve the generated interest by burning PUSH
+  /**
+   * @notice Allow owner of contract to retrieve the generated interest by burning PUSH
    * @dev only owner can call this function
    * @dev rDAI pays interests, owner gets all the DAI in the contract
    * @dev The push tokens are backed by rDAI and not DAI so it shouldn't affect staking
