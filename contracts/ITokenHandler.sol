@@ -40,6 +40,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   );
   event LogMint(address indexed _owner, uint256 indexed _id, uint256 _amount);
   event LogBurn(address indexed _owner, uint256 indexed _id, uint256 _amount);
+  event LogRetrieveFees(address indexed _owner, uint256 _amount);
 
   using SafeMath for uint256;
   using Counters for Counters.Counter;
@@ -255,12 +256,29 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @notice Burns TCAP.X Tokens freen the staked collateral
    * @param _amount of tokens to burn
    */
-  function burn(uint256 _amount) public virtual nonReentrant vaultExists {
+  function burn(uint256 _amount)
+    public
+    virtual
+    payable
+    nonReentrant
+    vaultExists
+  {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
+    uint256 fee = getFee(_amount);
     require(vault.Debt >= _amount, "Amount greater than debt");
+    require(fee == msg.value, "Burn fee different than required");
     vault.Debt = vault.Debt.sub(_amount);
     TCAPXToken.burn(msg.sender, _amount);
     emit LogBurn(msg.sender, vault.Id, _amount);
+  }
+
+  /**
+   * @notice Sends the owner of the contract the Fees saved on ETH
+   */
+  function retrieveFees() public virtual onlyOwner {
+    uint256 amount = address(this).balance;
+    payable(owner()).transfer(amount);
+    emit LogRetrieveFees(msg.sender, amount);
   }
 
   /**
@@ -339,9 +357,10 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   /**
    * @notice Calculates the burn fee for a certain amount
    * @param _amount uint to calculate from
+   * @dev it's divided by 100 ether to cancel the decimal ratio of the amount in wei
    * @return fee
    */
   function getFee(uint256 _amount) public virtual view returns (uint256 fee) {
-    fee = (TCAPXPrice().mul(_amount).mul(burnFee)).div(100);
+    fee = (TCAPXPrice().mul(_amount).mul(burnFee)).div(100 ether);
   }
 }
