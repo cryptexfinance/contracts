@@ -19,6 +19,7 @@ module.exports = async ({deployments}: any) => {
 
 		let divisor = process.env.DIVISOR as string;
 		let ratio = process.env.RATIO as string;
+		let burnFee = process.env.BURN_FEE as string;
 		let oracle = await deployments.get("Oracle");
 		let priceFeed = await deployments.get("PriceFeed");
 
@@ -79,6 +80,12 @@ module.exports = async ({deployments}: any) => {
 		await usdc.setRatio(ratio);
 		await usdt.setRatio(ratio);
 		await weth.setRatio(ratio);
+
+		console.log("setting burn fee", burnFee);
+		await dai.setBurnFee(burnFee);
+		await usdc.setBurnFee(burnFee);
+		await usdt.setBurnFee(burnFee);
+		await weth.setBurnFee(burnFee);
 
 		console.log("setting oracle", oracle.address);
 		await dai.setTCAPOracle(oracle.address);
