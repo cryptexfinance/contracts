@@ -338,26 +338,38 @@ describe("TCAP.x Interest Token Handler", async function () {
 	});
 
 	it("...should calculate the burn fee", async () => {
+		let amount = ethersProvider.utils.parseEther("1");
+		let divisor = ethersProvider.utils.parseEther("100");
 		let tcapPrice = await tokenHandlerInstance.TCAPXPrice();
-		let result = tcapPrice.mul(1).div(100);
-		let fee = await tokenHandlerInstance.getFee(1);
+		let result = tcapPrice.mul(amount).div(divisor);
+		let fee = await tokenHandlerInstance.getFee(amount);
 		expect(fee).to.eq(result);
-		result = tcapPrice.mul(10).div(100);
-		fee = await tokenHandlerInstance.getFee(10);
+		amount = ethersProvider.utils.parseEther("10");
+		result = tcapPrice.mul(amount).div(divisor);
+		fee = await tokenHandlerInstance.getFee(amount);
+		expect(fee).to.eq(result);
 	});
 
 	it("...should allow investors to burn tokens", async () => {
 		const amount = ethersProvider.utils.parseEther("10");
 		const bigAmount = ethersProvider.utils.parseEther("100");
 		const reqAmount = await tokenHandlerInstance.requiredCollateral(amount);
+		const ethHighAmount = ethersProvider.utils.parseEther("50");
+		const ethAmount = await tokenHandlerInstance.getFee(amount);
 
 		await expect(tokenHandlerInstance.connect(addr3).burn(amount)).to.be.revertedWith(
 			"No Vault created"
 		);
-		await expect(tokenHandlerInstance.connect(addr1).burn(bigAmount)).to.be.revertedWith(
-			"Amount greater than debt"
+		await expect(tokenHandlerInstance.connect(addr1).burn(amount)).to.be.revertedWith(
+			"Burn fee different than required"
 		);
-		await expect(tokenHandlerInstance.connect(addr1).burn(amount))
+		await expect(
+			tokenHandlerInstance.connect(addr1).burn(amount, {value: ethHighAmount})
+		).to.be.revertedWith("Burn fee different than required");
+		await expect(
+			tokenHandlerInstance.connect(addr1).burn(bigAmount, {value: ethAmount})
+		).to.be.revertedWith("Amount greater than debt");
+		await expect(tokenHandlerInstance.connect(addr1).burn(amount, {value: ethAmount}))
 			.to.emit(tokenHandlerInstance, "LogBurn")
 			.withArgs(accounts[1], 1, amount);
 		let tcapxBalance = await tcapInstance.balanceOf(accounts[1]);
@@ -395,6 +407,20 @@ describe("TCAP.x Interest Token Handler", async function () {
 		expect(vault[3]).to.eq(0);
 	});
 
+	it("...should allow owner to retrieve fees in the contract", async () => {
+		let ethBalance = await ethers.provider.getBalance(tokenHandlerInstance.address);
+		let accountBalance = await ethers.provider.getBalance(accounts[0]);
+		await expect(tokenHandlerInstance.connect(addr3).retrieveFees()).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(tokenHandlerInstance.connect(owner).retrieveFees())
+			.to.emit(tokenHandlerInstance, "LogRetrieveFees")
+			.withArgs(accounts[0], ethBalance);
+		let currentAccountBalance = await ethers.provider.getBalance(accounts[0]);
+		expect(currentAccountBalance).to.gt(accountBalance);
+		ethBalance = await ethers.provider.getBalance(tokenHandlerInstance.address);
+		expect(ethBalance).to.eq(0);
+	});
 	xit("...should allow users to liquidate investors", async () => {});
 	xit("LIQUIDATION CONFIGURATION TESTS", async () => {});
 });

@@ -298,7 +298,6 @@ describe("TCAP.x WETH Token Handler", async function () {
 		const amount2 = ethersProvider.utils.parseEther("11");
 		const lowAmount = ethersProvider.utils.parseEther("1");
 		const bigAmount = ethersProvider.utils.parseEther("100");
-		const reqAmount = await wethTokenHandler.requiredCollateral(amount);
 		const reqAmount2 = await wethTokenHandler.requiredCollateral(amount2);
 
 		await wethTokenInstance.mint(accounts[1], reqAmount2);
@@ -350,8 +349,9 @@ describe("TCAP.x WETH Token Handler", async function () {
 		let fee = await wethTokenHandler.getFee(amount);
 		expect(fee).to.eq(result);
 		amount = ethersProvider.utils.parseEther("100");
-		result = tcapPrice.mul(amount).div(100);
+		result = tcapPrice.mul(amount).div(divisor).div(ethPrice);
 		fee = await wethTokenHandler.getFee(amount);
+		expect(fee).to.eq(result);
 	});
 
 	it("...should allow investors to burn tokens", async () => {
@@ -365,12 +365,12 @@ describe("TCAP.x WETH Token Handler", async function () {
 		await expect(wethTokenHandler.connect(addr3).burn(amount)).to.be.revertedWith(
 			"No Vault created"
 		);
-		await expect(wethTokenHandler.connect(addr1).burn(bigAmount)).to.be.revertedWith(
-			"Amount greater than debt"
-		);
 		await expect(wethTokenHandler.connect(addr1).burn(amount)).to.be.revertedWith(
 			"Burn fee different than required"
 		);
+		await expect(
+			wethTokenHandler.connect(addr1).burn(bigAmount, {value: ethAmount})
+		).to.be.revertedWith("Amount greater than debt");
 		await expect(
 			wethTokenHandler.connect(addr1).burn(amount, {value: ethHighAmount})
 		).to.be.revertedWith("Burn fee different than required");
