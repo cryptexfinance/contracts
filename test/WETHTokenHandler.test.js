@@ -133,9 +133,9 @@ describe("TCAP.x WETH Token Handler", async function () {
 			.withArgs(accounts[0], false);
 		whitelist = await wethTokenHandler.whitelistEnabled();
 		expect(whitelist).to.eq(false);
-		await expect(wethTokenHandler.connect(owner).enableWhitelist(false))
+		await expect(wethTokenHandler.connect(owner).enableWhitelist(true))
 			.to.emit(wethTokenHandler, "LogEnableWhitelist")
-			.withArgs(accounts[0], false);
+			.withArgs(accounts[0], true);
 	});
 
 	it("...should return the token price", async () => {

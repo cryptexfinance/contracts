@@ -13,18 +13,21 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 			handlerContract = await deployments.get("WETHTokenHandler");
 		} catch (error) {
 			log(error.message);
-
-			const deployResult = await deployIfDifferent(
-				["data"],
-				"WETHTokenHandler",
-				{from: deployer, gas: 5000000},
-				"WETHTokenHandler"
-			);
-			handlerContract = await deployments.get("USDTTokenHandler");
-			if (deployResult.newlyDeployed) {
-				log(
-					`WETHTokenHandler deployed at ${handlerContract.address} for ${deployResult.receipt.gasUsed}`
+			try {
+				const deployResult = await deployIfDifferent(
+					["data"],
+					"WETHTokenHandler",
+					{from: deployer, gas: 5000000},
+					"WETHTokenHandler"
 				);
+				handlerContract = await deployments.get("USDTTokenHandler");
+				if (deployResult.newlyDeployed) {
+					log(
+						`WETHTokenHandler deployed at ${handlerContract.address} for ${deployResult.receipt.gasUsed}`
+					);
+				}
+			} catch (error) {
+				log(error.message);
 			}
 		}
 	}
