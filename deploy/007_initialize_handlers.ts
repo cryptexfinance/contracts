@@ -20,6 +20,7 @@ module.exports = async ({deployments}: any) => {
 		let divisor = process.env.DIVISOR as string;
 		let ratio = process.env.RATIO as string;
 		let burnFee = process.env.BURN_FEE as string;
+		let whitelist = process.env.WHITELIST as string;
 		let oracle = await deployments.get("Oracle");
 		let priceFeed = await deployments.get("PriceFeed");
 
@@ -93,6 +94,12 @@ module.exports = async ({deployments}: any) => {
 		await usdt.setTCAPOracle(oracle.address);
 		await weth.setTCAPOracle(oracle.address);
 		await weth.setETHPriceOracle(priceFeed.address);
+
+		console.log("setting whitelist", whitelist);
+		await dai.enableWhitelist(Boolean(whitelist));
+		await usdc.enableWhitelist(Boolean(whitelist));
+		await usdt.enableWhitelist(Boolean(whitelist));
+		await weth.enableWhitelist(Boolean(whitelist));
 	}
 };
 module.exports.tags = ["Initialize"];

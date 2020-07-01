@@ -122,6 +122,22 @@ describe("TCAP.x WETH Token Handler", async function () {
 		expect(currentBurnFee).to.eq(burnFee);
 	});
 
+	it("...should remove the investors requirement flag", async () => {
+		let whitelist = await wethTokenHandler.whitelistEnabled();
+		expect(whitelist).to.eq(true);
+		await expect(wethTokenHandler.connect(addr1).enableWhitelist(false)).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(wethTokenHandler.connect(owner).enableWhitelist(false))
+			.to.emit(wethTokenHandler, "LogEnableWhitelist")
+			.withArgs(accounts[0], false);
+		whitelist = await wethTokenHandler.whitelistEnabled();
+		expect(whitelist).to.eq(false);
+		await expect(wethTokenHandler.connect(owner).enableWhitelist(false))
+			.to.emit(wethTokenHandler, "LogEnableWhitelist")
+			.withArgs(accounts[0], false);
+	});
+
 	it("...should return the token price", async () => {
 		let tcapxPrice = await wethTokenHandler.TCAPXPrice();
 		let totalMarketCap = await tcapOracleInstance.price();

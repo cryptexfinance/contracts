@@ -27,6 +27,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   event LogSetDivisor(address indexed _owner, uint256 _divisor);
   event LogSetRatio(address indexed _owner, uint256 _ratio);
   event LogSetBurnFee(address indexed _owner, uint256 _burnFee);
+  event LogEnableWhitelist(address indexed _owner, bool _enable);
   event LogCreateVault(address indexed _owner, uint256 indexed _id);
   event LogAddCollateral(
     address indexed _owner,
@@ -72,12 +73,16 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   uint256 public ratio;
   /** @dev Fee charged when burning TCAP.X Tokens */
   uint256 public burnFee;
+  /** @dev Flag that allows any users to create vaults*/
+  bool public whitelistEnabled;
   mapping(address => uint256) public vaultToUser;
   mapping(uint256 => Vault) public vaults;
 
   /** @notice Throws if called by any account other than the investor. */
   modifier onlyInvestor() {
-    require(hasRole(INVESTOR_ROLE, msg.sender), "Caller is not investor");
+    if (whitelistEnabled) {
+      require(hasRole(INVESTOR_ROLE, msg.sender), "Caller is not investor");
+    }
     _;
   }
 
@@ -89,6 +94,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
 
   /** @dev counter starts in one as 0 is reserved for empty objects */
   constructor() public {
+    whitelistEnabled = true;
     counter.increment();
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
   }
@@ -155,6 +161,16 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   function setBurnFee(uint256 _burnFee) public virtual onlyOwner {
     burnFee = _burnFee;
     emit LogSetBurnFee(msg.sender, _burnFee);
+  }
+
+  /**
+   * @notice Sets the flag to true in order to allow only investor to use the contract
+   * @param _enable uint
+   * @dev Only owner can call it
+   */
+  function enableWhitelist(bool _enable) public virtual onlyOwner {
+    whitelistEnabled = _enable;
+    emit LogEnableWhitelist(msg.sender, whitelistEnabled);
   }
 
   /**
