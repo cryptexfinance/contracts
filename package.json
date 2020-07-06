@@ -13,6 +13,7 @@
 		"deploy": "npx buidler deploy"
 	},
 	"dependencies": {
+		"@chainlink/contracts": "^0.0.7-beta",
 		"@openzeppelin/contracts": "^3.0.1",
 		"@typechain/ethers-v4": "^1.0.0",
 		"@types/chai": "^4.2.11",

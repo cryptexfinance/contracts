@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./mocks/Oracle.sol";
 import "./TCAPX.sol";
-import "./mocks/PriceFeed.sol";
+import "./oracles/ChainlinkOracle.sol";
 
 import "./ITokenHandler.sol";
 
@@ -28,18 +28,25 @@ contract WETHTokenHandler is
   ITokenHandler
 {
   /** @dev Logs all the calls of the functions. */
-  event LogSetETHPriceOracle(address indexed _owner, PriceFeed _priceOracle);
+  event LogSetCollateralPriceOracle(
+    address indexed _owner,
+    ChainlinkOracle _priceOracle
+  );
 
-  PriceFeed public ethPriceOracle;
+  ChainlinkOracle public collateralPriceOracle;
 
   /**
    * @notice Sets the address of the oracle contract for the price feed
-   * @param _oracle address
+   * @param _collateral address
    * @dev Only owner can call it
    */
-  function setETHPriceOracle(PriceFeed _oracle) public virtual onlyOwner {
-    ethPriceOracle = _oracle;
-    emit LogSetETHPriceOracle(msg.sender, _oracle);
+  function setCollateralPriceOracle(ChainlinkOracle _collateral)
+    public
+    virtual
+    onlyOwner
+  {
+    collateralPriceOracle = _collateral;
+    emit LogSetCollateralPriceOracle(msg.sender, _collateral);
   }
 
   /**
@@ -56,8 +63,8 @@ contract WETHTokenHandler is
     returns (uint256 collateral)
   {
     uint256 tcapPrice = TCAPXPrice();
-    bytes32 ethPriceBytes = ethPriceOracle.read();
-    uint256 ethPrice = bytesToUint(ethPriceBytes);
+    uint256 ethPrice = uint256(collateralPriceOracle.getLatestAnswer());
+
     collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100)).div(ethPrice);
   }
 
@@ -78,8 +85,7 @@ contract WETHTokenHandler is
     if (vault.Id == 0 || vault.Debt == 0) {
       currentRatio = 0;
     } else {
-      bytes32 ethPriceBytes = ethPriceOracle.read();
-      uint256 ethPrice = bytesToUint(ethPriceBytes);
+      uint256 ethPrice = uint256(collateralPriceOracle.getLatestAnswer());
       currentRatio = (
         (ethPrice.mul(vault.Collateral.mul(100))).div(
           vault.Debt.mul(TCAPXPrice())
@@ -95,19 +101,7 @@ contract WETHTokenHandler is
    * @return fee
    */
   function getFee(uint256 _amount) public override view returns (uint256 fee) {
-    bytes32 ethPriceBytes = ethPriceOracle.read();
-    uint256 ethPrice = bytesToUint(ethPriceBytes);
+    uint256 ethPrice = uint256(collateralPriceOracle.getLatestAnswer());
     fee = (TCAPXPrice().mul(_amount).mul(burnFee)).div(100).div(ethPrice);
-  }
-
-  function bytesToUint(bytes32 b) internal pure returns (uint256) {
-    uint256 number;
-    for (uint256 i = 0; i < b.length; i++) {
-      number =
-        number +
-        uint256(uint8((b[i]))) *
-        (2**(8 * (b.length - (i + 1))));
-    }
-    return number;
   }
 }
