@@ -26,6 +26,8 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   );
   event LogSetDivisor(address indexed _owner, uint256 _divisor);
   event LogSetRatio(address indexed _owner, uint256 _ratio);
+  event LogSetBurnFee(address indexed _owner, uint256 _burnFee);
+  event LogEnableWhitelist(address indexed _owner, bool _enable);
   event LogCreateVault(address indexed _owner, uint256 indexed _id);
   event LogAddCollateral(
     address indexed _owner,
@@ -39,10 +41,12 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   );
   event LogMint(address indexed _owner, uint256 indexed _id, uint256 _amount);
   event LogBurn(address indexed _owner, uint256 indexed _id, uint256 _amount);
+  event LogRetrieveFees(address indexed _owner, uint256 _amount);
 
   using SafeMath for uint256;
   using Counters for Counters.Counter;
 
+  /** @dev vault id counter */
   Counters.Counter counter;
 
   bytes32 public constant INVESTOR_ROLE = keccak256("INVESTOR_ROLE");
@@ -53,22 +57,32 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     address Owner;
     uint256 Debt;
   }
-
+  /** @dev TCAP Token Address */
   TCAPX public TCAPXToken;
+  /** @dev Total Market Cap Oracle */
   Oracle public tcapOracle;
+  /** @dev Collateral Token Address*/
   ERC20 public collateralContract;
+
   /**
    * @notice divisor value to set the TCAP.X price
    * @dev Is 1x10^10 so the result is a token with 18 decimals
    */
   uint256 public divisor;
+  /** @dev Liquidation Ratio */
   uint256 public ratio;
+  /** @dev Fee charged when burning TCAP.X Tokens */
+  uint256 public burnFee;
+  /** @dev Flag that allows any users to create vaults*/
+  bool public whitelistEnabled;
   mapping(address => uint256) public vaultToUser;
   mapping(uint256 => Vault) public vaults;
 
   /** @notice Throws if called by any account other than the investor. */
   modifier onlyInvestor() {
-    require(hasRole(INVESTOR_ROLE, msg.sender), "Caller is not investor");
+    if (whitelistEnabled) {
+      require(hasRole(INVESTOR_ROLE, msg.sender), "Caller is not investor");
+    }
     _;
   }
 
@@ -80,6 +94,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
 
   /** @dev counter starts in one as 0 is reserved for empty objects */
   constructor() public {
+    whitelistEnabled = true;
     counter.increment();
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
   }
@@ -136,6 +151,26 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   function setRatio(uint256 _ratio) public virtual onlyOwner {
     ratio = _ratio;
     emit LogSetRatio(msg.sender, _ratio);
+  }
+
+  /**
+   * @notice Sets the collateral ratio needed to mint tokens
+   * @param _burnFee uint
+   * @dev Only owner can call it
+   */
+  function setBurnFee(uint256 _burnFee) public virtual onlyOwner {
+    burnFee = _burnFee;
+    emit LogSetBurnFee(msg.sender, _burnFee);
+  }
+
+  /**
+   * @notice Sets the flag to true in order to allow only investor to use the contract
+   * @param _enable uint
+   * @dev Only owner can call it
+   */
+  function enableWhitelist(bool _enable) public virtual onlyOwner {
+    whitelistEnabled = _enable;
+    emit LogEnableWhitelist(msg.sender, whitelistEnabled);
   }
 
   /**
@@ -237,12 +272,29 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @notice Burns TCAP.X Tokens freen the staked collateral
    * @param _amount of tokens to burn
    */
-  function burn(uint256 _amount) public virtual nonReentrant vaultExists {
+  function burn(uint256 _amount)
+    public
+    virtual
+    payable
+    nonReentrant
+    vaultExists
+  {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
+    uint256 fee = getFee(_amount);
     require(vault.Debt >= _amount, "Amount greater than debt");
+    require(fee == msg.value, "Burn fee different than required");
     vault.Debt = vault.Debt.sub(_amount);
     TCAPXToken.burn(msg.sender, _amount);
     emit LogBurn(msg.sender, vault.Id, _amount);
+  }
+
+  /**
+   * @notice Sends the owner of the contract the Fees saved on ETH
+   */
+  function retrieveFees() public virtual onlyOwner {
+    uint256 amount = address(this).balance;
+    payable(owner()).transfer(amount);
+    emit LogRetrieveFees(msg.sender, amount);
   }
 
   /**
@@ -316,5 +368,15 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
         (vault.Collateral.mul(100 ether)).div(vault.Debt.mul(TCAPXPrice()))
       );
     }
+  }
+
+  /**
+   * @notice Calculates the burn fee for a certain amount
+   * @param _amount uint to calculate from
+   * @dev it's divided by 100 ether to cancel the decimal ratio of the amount in wei
+   * @return fee
+   */
+  function getFee(uint256 _amount) public virtual view returns (uint256 fee) {
+    fee = (TCAPXPrice().mul(_amount).mul(burnFee)).div(100 ether);
   }
 }

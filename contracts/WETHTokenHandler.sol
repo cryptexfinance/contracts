@@ -88,6 +88,18 @@ contract WETHTokenHandler is
     }
   }
 
+  /**
+   * @notice Calculates the burn fee for a certain amount
+   * @param _amount uint to calculate from
+   * @dev it's divided by 100 to cancel the wei value of the tcapx price
+   * @return fee
+   */
+  function getFee(uint256 _amount) public override view returns (uint256 fee) {
+    bytes32 ethPriceBytes = ethPriceOracle.read();
+    uint256 ethPrice = bytesToUint(ethPriceBytes);
+    fee = (TCAPXPrice().mul(_amount).mul(burnFee)).div(100).div(ethPrice);
+  }
+
   function bytesToUint(bytes32 b) internal pure returns (uint256) {
     uint256 number;
     for (uint256 i = 0; i < b.length; i++) {

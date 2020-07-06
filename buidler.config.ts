@@ -5,6 +5,7 @@ usePlugin("@nomiclabs/buidler-waffle");
 usePlugin("@nomiclabs/buidler-etherscan");
 usePlugin("buidler-deploy");
 usePlugin("solidity-coverage");
+usePlugin("buidler-gas-reporter");
 
 const mnemonic = process.env.MNENOMIC as string;
 const ganacheMnemonic = process.env.GANACHEMNENOMIC as string;
@@ -37,6 +38,12 @@ const config: BuidlerConfig = {
 		// Your API key for Etherscan
 		// Obtain one at https://etherscan.io/
 		apiKey: process.env.ETHERSCAN_API_KEY as string,
+	},
+	gasReporter: {
+		enabled: process.env.REPORT_GAS == "true" ? true : false,
+		currency: "USD",
+		gasPrice: 21,
+		coinmarketcap: process.env.COIN_API as string,
 	},
 };
 

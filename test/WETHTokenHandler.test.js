@@ -1,6 +1,5 @@
 var expect = require("chai").expect;
 var ethersProvider = require("ethers");
-const {util} = require("chai");
 
 describe("TCAP.x WETH Token Handler", async function () {
 	let wethTokenHandler, wethTokenInstance, tcapInstance, tcapOracleInstance, priceOracleInstance;
@@ -8,6 +7,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 	let accounts = [];
 	let divisor = "10000000000";
 	let ratio = "150";
+	let burnFee = "1";
 
 	before("Set Accounts", async () => {
 		let [acc0, acc1, acc3, acc4] = await ethers.getSigners();
@@ -109,6 +109,33 @@ describe("TCAP.x WETH Token Handler", async function () {
 			.withArgs(accounts[0], ratio);
 		let currentRatio = await wethTokenHandler.ratio();
 		expect(currentRatio).to.eq(ratio);
+	});
+
+	it("...should set the burn fee", async () => {
+		await expect(wethTokenHandler.connect(addr1).setBurnFee(1)).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(wethTokenHandler.connect(owner).setBurnFee(burnFee))
+			.to.emit(wethTokenHandler, "LogSetBurnFee")
+			.withArgs(accounts[0], burnFee);
+		let currentBurnFee = await wethTokenHandler.burnFee();
+		expect(currentBurnFee).to.eq(burnFee);
+	});
+
+	it("...should remove the investors requirement flag", async () => {
+		let whitelist = await wethTokenHandler.whitelistEnabled();
+		expect(whitelist).to.eq(true);
+		await expect(wethTokenHandler.connect(addr1).enableWhitelist(false)).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(wethTokenHandler.connect(owner).enableWhitelist(false))
+			.to.emit(wethTokenHandler, "LogEnableWhitelist")
+			.withArgs(accounts[0], false);
+		whitelist = await wethTokenHandler.whitelistEnabled();
+		expect(whitelist).to.eq(false);
+		await expect(wethTokenHandler.connect(owner).enableWhitelist(true))
+			.to.emit(wethTokenHandler, "LogEnableWhitelist")
+			.withArgs(accounts[0], true);
 	});
 
 	it("...should return the token price", async () => {
@@ -287,7 +314,6 @@ describe("TCAP.x WETH Token Handler", async function () {
 		const amount2 = ethersProvider.utils.parseEther("11");
 		const lowAmount = ethersProvider.utils.parseEther("1");
 		const bigAmount = ethersProvider.utils.parseEther("100");
-		const reqAmount = await wethTokenHandler.requiredCollateral(amount);
 		const reqAmount2 = await wethTokenHandler.requiredCollateral(amount2);
 
 		await wethTokenInstance.mint(accounts[1], reqAmount2);
@@ -330,19 +356,41 @@ describe("TCAP.x WETH Token Handler", async function () {
 		);
 	});
 
+	it("...should calculate the burn fee", async () => {
+		let amount = ethersProvider.utils.parseEther("10");
+		let divisor = 100;
+		let tcapPrice = await wethTokenHandler.TCAPXPrice();
+		let ethPrice = await priceOracleInstance.read();
+		let result = tcapPrice.mul(amount).div(divisor).div(ethPrice);
+		let fee = await wethTokenHandler.getFee(amount);
+		expect(fee).to.eq(result);
+		amount = ethersProvider.utils.parseEther("100");
+		result = tcapPrice.mul(amount).div(divisor).div(ethPrice);
+		fee = await wethTokenHandler.getFee(amount);
+		expect(fee).to.eq(result);
+	});
+
 	it("...should allow investors to burn tokens", async () => {
 		const amount = ethersProvider.utils.parseEther("10");
 		const amount2 = ethersProvider.utils.parseEther("11");
 		const bigAmount = ethersProvider.utils.parseEther("100");
-		const reqAmount = await wethTokenHandler.requiredCollateral(amount2);
+		const ethHighAmount = ethersProvider.utils.parseEther("50");
+		const reqAmount2 = await wethTokenHandler.requiredCollateral(amount2);
+		const ethAmount = await wethTokenHandler.getFee(amount);
 
 		await expect(wethTokenHandler.connect(addr3).burn(amount)).to.be.revertedWith(
 			"No Vault created"
 		);
-		await expect(wethTokenHandler.connect(addr1).burn(bigAmount)).to.be.revertedWith(
-			"Amount greater than debt"
+		await expect(wethTokenHandler.connect(addr1).burn(amount)).to.be.revertedWith(
+			"Burn fee different than required"
 		);
-		await expect(wethTokenHandler.connect(addr1).burn(amount))
+		await expect(
+			wethTokenHandler.connect(addr1).burn(bigAmount, {value: ethAmount})
+		).to.be.revertedWith("Amount greater than debt");
+		await expect(
+			wethTokenHandler.connect(addr1).burn(amount, {value: ethHighAmount})
+		).to.be.revertedWith("Burn fee different than required");
+		await expect(wethTokenHandler.connect(addr1).burn(amount, {value: ethAmount}))
 			.to.emit(wethTokenHandler, "LogBurn")
 			.withArgs(accounts[1], 1, amount);
 		let tcapxBalance = await tcapInstance.balanceOf(accounts[1]);
@@ -352,6 +400,9 @@ describe("TCAP.x WETH Token Handler", async function () {
 		expect(vault[1]).to.eq(reqAmount2);
 		expect(vault[2]).to.eq(accounts[1]);
 		expect(vault[3]).to.eq(0);
+
+		let ethBalance = await ethers.provider.getBalance(wethTokenHandler.address);
+		expect(ethBalance).to.eq(ethAmount);
 	});
 
 	it("...should update change the collateral ratio", async () => {
@@ -369,6 +420,21 @@ describe("TCAP.x WETH Token Handler", async function () {
 		expect(vault[1]).to.eq(0);
 		expect(vault[2]).to.eq(accounts[1]);
 		expect(vault[3]).to.eq(0);
+	});
+
+	it("...should allow owner to retrieve fees in the contract", async () => {
+		let ethBalance = await ethers.provider.getBalance(wethTokenHandler.address);
+		let accountBalance = await ethers.provider.getBalance(accounts[0]);
+		await expect(wethTokenHandler.connect(addr3).retrieveFees()).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(wethTokenHandler.connect(owner).retrieveFees())
+			.to.emit(wethTokenHandler, "LogRetrieveFees")
+			.withArgs(accounts[0], ethBalance);
+		let currentAccountBalance = await ethers.provider.getBalance(accounts[0]);
+		expect(currentAccountBalance).to.gt(accountBalance);
+		ethBalance = await ethers.provider.getBalance(wethTokenHandler.address);
+		expect(ethBalance).to.eq(0);
 	});
 	xit("...should allow users to liquidate investors", async () => {});
 	xit("LIQUIDATION CONFIGURATION TESTS", async () => {});
