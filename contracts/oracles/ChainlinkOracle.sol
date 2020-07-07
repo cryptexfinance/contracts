@@ -5,8 +5,6 @@ import "@chainlink/contracts/src/v0.6/interfaces/AggregatorInterface.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/SafeCast.sol";
 
-import "@nomiclabs/buidler/console.sol";
-
 
 contract ChainlinkOracle is Ownable {
   AggregatorInterface internal ref;
@@ -18,7 +16,6 @@ contract ChainlinkOracle is Ownable {
   }
 
   function setReferenceContract(address _aggregator) public onlyOwner() {
-    console.logAddress(_aggregator);
     ref = AggregatorInterface(_aggregator);
   }
 
