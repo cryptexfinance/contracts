@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import "./mocks/Oracle.sol";
 import "./TCAPX.sol";
 import "./oracles/ChainlinkOracle.sol";
@@ -342,7 +343,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     returns (uint256 collateral)
   {
     uint256 tcapPrice = TCAPXPrice();
-    uint256 collateralPrice = uint256(collateralPriceOracle.getLatestAnswer());
+    uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
     collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100)).div(
       collateralPrice
     );
@@ -388,9 +389,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     if (vault.Id == 0 || vault.Debt == 0) {
       currentRatio = 0;
     } else {
-      uint256 collateralPrice = uint256(
-        collateralPriceOracle.getLatestAnswer()
-      );
+      uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
       currentRatio = (
         (collateralPrice.mul(vault.Collateral.mul(100))).div(
           vault.Debt.mul(TCAPXPrice())
@@ -406,7 +405,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @return fee
    */
   function getFee(uint256 _amount) public virtual view returns (uint256 fee) {
-    uint256 collateralPrice = uint256(collateralPriceOracle.getLatestAnswer());
+    uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
     fee = (TCAPXPrice().mul(_amount).mul(burnFee)).div(100).div(
       collateralPrice
     );

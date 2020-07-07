@@ -3,12 +3,15 @@ pragma solidity ^0.6.8;
 
 import "@chainlink/contracts/src/v0.6/interfaces/AggregatorInterface.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/SafeCast.sol";
 
 import "@nomiclabs/buidler/console.sol";
 
 
 contract ChainlinkOracle is Ownable {
   AggregatorInterface internal ref;
+
+  using SafeCast for int256;
 
   constructor(address _aggregator) public {
     ref = AggregatorInterface(_aggregator);
@@ -20,8 +23,8 @@ contract ChainlinkOracle is Ownable {
   }
 
   //Multiplies by 10000000000 to handle decimals
-  function getLatestAnswer() public view returns (int256) {
-    int256 result = ref.latestAnswer() * 10000000000;
+  function getLatestAnswer() public view returns (uint256) {
+    uint256 result = (ref.latestAnswer() * 10000000000).toUint256();
     return result;
   }
 
