@@ -342,8 +342,10 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     returns (uint256 collateral)
   {
     uint256 tcapPrice = TCAPXPrice();
-    uint256 ethPrice = uint256(collateralPriceOracle.getLatestAnswer());
-    collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100)).div(ethPrice);
+    uint256 collateralPrice = uint256(collateralPriceOracle.getLatestAnswer());
+    collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100)).div(
+      collateralPrice
+    );
   }
 
   /**
@@ -386,9 +388,11 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     if (vault.Id == 0 || vault.Debt == 0) {
       currentRatio = 0;
     } else {
-      uint256 ethPrice = uint256(collateralPriceOracle.getLatestAnswer());
+      uint256 collateralPrice = uint256(
+        collateralPriceOracle.getLatestAnswer()
+      );
       currentRatio = (
-        (ethPrice.mul(vault.Collateral.mul(100))).div(
+        (collateralPrice.mul(vault.Collateral.mul(100))).div(
           vault.Debt.mul(TCAPXPrice())
         )
       );
@@ -396,13 +400,15 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   }
 
   /**
-   * @notice Calculates the burn fee for a certain amount
+   * @notice Calculates the burn fee for a specified amount
    * @param _amount uint to calculate from
    * @dev it's divided by 100 to cancel the wei value of the tcapx price
    * @return fee
    */
   function getFee(uint256 _amount) public virtual view returns (uint256 fee) {
-    uint256 ethPrice = uint256(collateralPriceOracle.getLatestAnswer());
-    fee = (TCAPXPrice().mul(_amount).mul(burnFee)).div(100).div(ethPrice);
+    uint256 collateralPrice = uint256(collateralPriceOracle.getLatestAnswer());
+    fee = (TCAPXPrice().mul(_amount).mul(burnFee)).div(100).div(
+      collateralPrice
+    );
   }
 }
