@@ -1,13 +1,14 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.6.4;
+
 
 /**
  * @notice RToken storage structures
  */
 contract RTokenStructs {
-
-    /**
-     * @notice Global stats
-     */
+  /**
+   * @notice Global stats
+   */
   struct GlobalStats {
     /// @notice Total redeemable tokens supply
     uint256 totalSupply;
@@ -16,8 +17,8 @@ contract RTokenStructs {
   }
 
   /**
-    * @notice Account stats stored
-    */
+   * @notice Account stats stored
+   */
   struct AccountStatsView {
     /// @notice Current hat ID
     uint256 hatID;
@@ -38,16 +39,16 @@ contract RTokenStructs {
   }
 
   /**
-    * @notice Account stats stored
-    */
+   * @notice Account stats stored
+   */
   struct AccountStatsStored {
     /// @notice Cumulative interest generated for the account
     uint256 cumulativeInterest;
   }
 
   /**
-    * @notice Hat stats view
-    */
+   * @notice Hat stats view
+   */
   struct HatStatsView {
     /// @notice Number of addresses has the hat
     uint256 useCount;
@@ -58,8 +59,8 @@ contract RTokenStructs {
   }
 
   /**
-    * @notice Hat stats stored
-    */
+   * @notice Hat stats stored
+   */
   struct HatStatsStored {
     /// @notice Number of addresses has the hat
     uint256 useCount;
@@ -70,13 +71,13 @@ contract RTokenStructs {
   }
 
   /**
-    * @notice Hat structure describes who are the recipients of the interest
-    *
-    * To be a valid hat structure:
-    *   - at least one recipient
-    *   - recipients.length == proportions.length
-    *   - each value in proportions should be greater than 0
-    */
+   * @notice Hat structure describes who are the recipients of the interest
+   *
+   * To be a valid hat structure:
+   *   - at least one recipient
+   *   - recipients.length == proportions.length
+   *   - each value in proportions should be greater than 0
+   */
   struct Hat {
     address[] recipients;
     uint32[] proportions;
@@ -103,28 +104,28 @@ contract RTokenStructs {
     uint256 sInternalAmount;
   }
 
-    /**
-     * Additional Definitions:
-     *
-     *   - rGross = sInternalToR(sInternalAmount)
-     *   - lRecipientsSum = sum(lRecipients)
-     *   - interestPayable = rGross - lDebt - rInterest
-     *   - realtimeBalance = rAmount + interestPayable
-     *
-     *   - rAmount aka. tokenBalance
-     *   - rGross aka. receivedSavings
-     *   - lDebt aka. receivedLoan
-     *
-     * Account Invariants:
-     *
-     *   - rAmount = lRecipientsSum + rInterest [with rounding errors]
-     *
-     * Global Invariants:
-     *
-     * - globalStats.totalSupply = sum(account.tokenBalance)
-     * - globalStats.totalSavingsAmount = sum(account.receivedSavings) [with rounding errors]
-     * - sum(hatStats.totalLoans) = sum(account.receivedLoan)
-     * - sum(hatStats.totalSavings) = sum(account.receivedSavings + cumulativeInterest - rInterest) [with rounding errors]
-     *
-     */
+  /**
+   * Additional Definitions:
+   *
+   *   - rGross = sInternalToR(sInternalAmount)
+   *   - lRecipientsSum = sum(lRecipients)
+   *   - interestPayable = rGross - lDebt - rInterest
+   *   - realtimeBalance = rAmount + interestPayable
+   *
+   *   - rAmount aka. tokenBalance
+   *   - rGross aka. receivedSavings
+   *   - lDebt aka. receivedLoan
+   *
+   * Account Invariants:
+   *
+   *   - rAmount = lRecipientsSum + rInterest [with rounding errors]
+   *
+   * Global Invariants:
+   *
+   * - globalStats.totalSupply = sum(account.tokenBalance)
+   * - globalStats.totalSavingsAmount = sum(account.receivedSavings) [with rounding errors]
+   * - sum(hatStats.totalLoans) = sum(account.receivedLoan)
+   * - sum(hatStats.totalSavings) = sum(account.receivedSavings + cumulativeInterest - rInterest) [with rounding errors]
+   *
+   */
 }

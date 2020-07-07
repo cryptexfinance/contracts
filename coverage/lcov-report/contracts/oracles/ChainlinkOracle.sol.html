@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for contracts/mocks/RToken.sol</title>
+    <title>Code coverage report for contracts/oracles/ChainlinkOracle.sol</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -16,28 +16,28 @@
 <div class='wrapper'>
   <div class='pad1'>
     <h1>
-      <a href="../../index.html">all files</a> / <a href="index.html">contracts/mocks/</a> RToken.sol
+      <a href="../../index.html">all files</a> / <a href="index.html">contracts/oracles/</a> ChainlinkOracle.sol
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">0% </span>
+        <span class="strong">27.27% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>0/12</span>
+        <span class='fraction'>3/11</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">100% </span>
+        <span class="strong">0% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>0/0</span>
+        <span class='fraction'>0/4</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">0% </span>
+        <span class="strong">33.33% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>0/6</span>
+        <span class='fraction'>2/6</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">0% </span>
+        <span class="strong">27.27% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>0/12</span>
+        <span class='fraction'>3/11</span>
       </div>
     </div>
   </div>
@@ -86,18 +86,7 @@
 41
 42
 43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+44</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -111,6 +100,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">98×</span>
+<span class="cline-any cline-yes">94×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -126,83 +126,50 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: UNLICENSED
-/** @dev This contract is for testing only */
-pragma solidity ^0.6.4;
+pragma solidity ^0.6.8;
 &nbsp;
-import "../IRToken.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@chainlink/contracts/src/v0.6/interfaces/AggregatorInterface.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-&nbsp;
-//Testing
-import "@nomiclabs/buidler/console.sol";
+import "@openzeppelin/contracts/utils/SafeCast.sol";
 &nbsp;
 &nbsp;
-contract RToken is ERC20, Ownable {
-  IERC20 public DAI;
+contract ChainlinkOracle is Ownable {
+  AggregatorInterface internal ref;
 &nbsp;
-  co</span>nstructor(IERC20 _DAI) public ERC20("rDAI TEST", "rDAI"<span class="fstat-no" title="function not covered" >) {
-<span class="cstat-no" title="statement not covered" >    DAI = _DAI</span>;
+  using SafeCast for int256;
+&nbsp;
+  constructor(address _aggregator) public {
+    ref = AggregatorInterface(_aggregator);
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  function mint(uint256 _amount) public returns (bool) </span>{
-<span class="cstat-no" title="statement not covered" >    DAI.transferFrom(msg.sender, address(this), _amount)</span>;
-<span class="cstat-no" title="statement not covered" >    _mint(msg.sender, _amount)</span>;
-<span class="cstat-no" title="statement not covered" >    return true;</span>
+  fu</span>nction setReferenceContract(address _aggregator) public onlyOwner(<span class="fstat-no" title="function not covered" >) {
+<span class="cstat-no" title="statement not covered" >    ref = AggregatorInterface(_aggregator)</span>;
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  function redeem(uint256 _amount) public returns (bool) </span>{
-<span class="cstat-no" title="statement not covered" >    DAI.transfer(msg.sender, _amount)</span>;
-<span class="cstat-no" title="statement not covered" >    _burn(msg.sender, _amount)</span>;
-<span class="cstat-no" title="statement not covered" >    return true;</span>
+  //Multiplies by 10000000000 to handle decimals
+  function getLatestAnswer() public view returns (uint256) {
+    uint256 result = (ref.latestAnswer() * 10000000000).toUint256();
+    return result;
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  function redeemAndTransfer(address _owner, uint256 _amount)</span>
-    public
-    returns (bool)
-  {
-<span class="cstat-no" title="statement not covered" >    DAI.transfer(_owner, _amount)</span>;
-<span class="cstat-no" title="statement not covered" >    _burn(msg.sender, _amount)</span>;
-<span class="cstat-no" title="statement not covered" >    return true;</span>
+<span class="fstat-no" title="function not covered" >  function getLatestTimestamp() public view returns (uint256) </span>{
+<span class="cstat-no" title="statement not covered" >    return ref.latestTimestamp();</span>
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  function payInterest(address owner) external virtual returns (bool) </span>{
-<span class="cstat-no" title="statement not covered" >    return true;</span>
+<span class="fstat-no" title="function not covered" >  function getPreviousAnswer(uint256 _back) public view returns (int256) </span>{
+<span class="cstat-no" title="statement not covered" >    uint256 latest = ref.latestRound();</span>
+<span class="cstat-no" title="statement not covered" >    require(_back &lt;= latest, "Not enough history")</span>;
+<span class="cstat-no" title="statement not covered" >    return ref.getAnswer(latest - _back);</span>
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  function interestPayableOf(address owner)</span>
-    external
-    virtual
-    view
-    returns (uint256 amount)
-  {
-<span class="cstat-no" title="statement not covered" >    amount = 0</span>;
+<span class="fstat-no" title="function not covered" >  function getPreviousTimestamp(uint256 _back) public view returns (uint256) </span>{
+<span class="cstat-no" title="statement not covered" >    uint256 latest = ref.latestRound();</span>
+<span class="cstat-no" title="statement not covered" >    require(_back &lt;= latest, "Not enough history")</span>;
+<span class="cstat-no" title="statement not covered" >    return ref.getTimestamp(latest - _back);</span>
   }
 }
 &nbsp;</pre></td></tr>
@@ -211,7 +178,7 @@ contract RToken is ERC20, Ownable {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Jul 07 2020 17:10:22 GMT-0600 (Central Standard Time)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Jul 07 2020 17:43:48 GMT-0600 (Central Standard Time)
 </div>
 </div>
 <script src="../../prettify.js"></script>

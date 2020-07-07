@@ -20,9 +20,9 @@
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">75% </span>
+        <span class="strong">0% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>9/12</span>
+        <span class='fraction'>0/12</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
@@ -30,18 +30,18 @@
         <span class='fraction'>0/0</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">83.33% </span>
+        <span class="strong">0% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>5/6</span>
+        <span class='fraction'>0/6</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">75% </span>
+        <span class="strong">0% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>9/12</span>
+        <span class='fraction'>0/12</span>
       </div>
     </div>
   </div>
-  <div class='status-line medium'></div>
+  <div class='status-line low'></div>
 <pre><table class="coverage">
 <tr><td class="line-count quiet">1
 2
@@ -114,13 +114,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">46×</span>
-<span class="cline-any cline-yes">46×</span>
-<span class="cline-any cline-yes">46×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -133,22 +133,22 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">19×</span>
-<span class="cline-any cline-yes">19×</span>
-<span class="cline-any cline-yes">19×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: UNLICENSED
@@ -167,14 +167,14 @@ import "@nomiclabs/buidler/console.sol";
 contract RToken is ERC20, Ownable {
   IERC20 public DAI;
 &nbsp;
-  constructor(IERC20 _DAI) public ERC20("rDAI TEST", "rDAI") {
-    DAI = _DAI;
+  co</span>nstructor(IERC20 _DAI) public ERC20("rDAI TEST", "rDAI"<span class="fstat-no" title="function not covered" >) {
+<span class="cstat-no" title="statement not covered" >    DAI = _DAI</span>;
   }
 &nbsp;
-  function mint(uint256 _amount) public returns (bool) {
-    DAI.transferFrom(msg.sender, address(this), _amount);
-    _mint(msg.sender, _amount);
-    return true;
+<span class="fstat-no" title="function not covered" >  function mint(uint256 _amount) public returns (bool) </span>{
+<span class="cstat-no" title="statement not covered" >    DAI.transferFrom(msg.sender, address(this), _amount)</span>;
+<span class="cstat-no" title="statement not covered" >    _mint(msg.sender, _amount)</span>;
+<span class="cstat-no" title="statement not covered" >    return true;</span>
   }
 &nbsp;
 <span class="fstat-no" title="function not covered" >  function redeem(uint256 _amount) public returns (bool) </span>{
@@ -183,26 +183,26 @@ contract RToken is ERC20, Ownable {
 <span class="cstat-no" title="statement not covered" >    return true;</span>
   }
 &nbsp;
-  function redeemAndTransfer(address _owner, uint256 _amount)
+<span class="fstat-no" title="function not covered" >  function redeemAndTransfer(address _owner, uint256 _amount)</span>
     public
     returns (bool)
   {
-    DAI.transfer(_owner, _amount);
-    _burn(msg.sender, _amount);
-    return true;
+<span class="cstat-no" title="statement not covered" >    DAI.transfer(_owner, _amount)</span>;
+<span class="cstat-no" title="statement not covered" >    _burn(msg.sender, _amount)</span>;
+<span class="cstat-no" title="statement not covered" >    return true;</span>
   }
 &nbsp;
-  function payInterest(address owner) external virtual returns (bool) {
-    return true;
+<span class="fstat-no" title="function not covered" >  function payInterest(address owner) external virtual returns (bool) </span>{
+<span class="cstat-no" title="statement not covered" >    return true;</span>
   }
 &nbsp;
-  function interestPayableOf(address owner)
+<span class="fstat-no" title="function not covered" >  function interestPayableOf(address owner)</span>
     external
     virtual
     view
     returns (uint256 amount)
   {
-    amount = 0;
+<span class="cstat-no" title="statement not covered" >    amount = 0</span>;
   }
 }
 &nbsp;</pre></td></tr>
@@ -211,7 +211,7 @@ contract RToken is ERC20, Ownable {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Jun 02 2020 20:22:42 GMT-0600 (Central Standard Time)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Jul 07 2020 17:10:22 GMT-0600 (Central Standard Time)
 </div>
 </div>
 <script src="../../prettify.js"></script>

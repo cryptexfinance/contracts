@@ -41,7 +41,7 @@ describe("TCAP.x Interest Token Handler", async function () {
 		await oracleInstance.deployed();
 		priceOracleInstance = await collateralOracle.deploy(aggregatorInstance.address);
 		await priceOracleInstance.deployed();
-		const stablecoin = await ethers.getContractFactory("Stablecoin");
+		const stablecoin = await ethers.getContractFactory("DAI");
 		stablecoinInstance = await stablecoin.deploy();
 		await stablecoinInstance.deployed();
 		await tcapInstance.addTokenHandler(tokenHandlerInstance.address);

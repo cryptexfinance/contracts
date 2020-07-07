@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for contracts/mocks/RToken.sol</title>
+    <title>Code coverage report for contracts/mocks/AggregatorInterfaceStable.sol</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -16,13 +16,13 @@
 <div class='wrapper'>
   <div class='pad1'>
     <h1>
-      <a href="../../index.html">all files</a> / <a href="index.html">contracts/mocks/</a> RToken.sol
+      <a href="../../index.html">all files</a> / <a href="index.html">contracts/mocks/</a> AggregatorInterfaceStable.sol
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">0% </span>
+        <span class="strong">20% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>0/12</span>
+        <span class='fraction'>1/5</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
@@ -30,14 +30,14 @@
         <span class='fraction'>0/0</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">0% </span>
+        <span class="strong">20% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>0/6</span>
+        <span class='fraction'>1/5</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">0% </span>
+        <span class="strong">20% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>0/12</span>
+        <span class='fraction'>1/5</span>
       </div>
     </div>
   </div>
@@ -81,23 +81,7 @@
 36
 37
 38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+39</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -105,12 +89,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">53×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -119,22 +98,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -148,62 +114,48 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: UNLICENSED
-/** @dev This contract is for testing only */
-pragma solidity ^0.6.4;
-&nbsp;
-import "../IRToken.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-&nbsp;
-//Testing
-import "@nomiclabs/buidler/console.sol";
+pragma solidity &gt;=0.6.0;
 &nbsp;
 &nbsp;
-contract RToken is ERC20, Ownable {
-  IERC20 public DAI;
+contract AggregatorInterfaceStable {
+  int256 value = 100000000;
 &nbsp;
-  co</span>nstructor(IERC20 _DAI) public ERC20("rDAI TEST", "rDAI"<span class="fstat-no" title="function not covered" >) {
-<span class="cstat-no" title="statement not covered" >    DAI = _DAI</span>;
+  function latestAnswer() public virtual view returns (int256) {
+    return value;
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  function mint(uint256 _amount) public returns (bool) </span>{
-<span class="cstat-no" title="statement not covered" >    DAI.transferFrom(msg.sender, address(this), _amount)</span>;
-<span class="cstat-no" title="statement not covered" >    _mint(msg.sender, _amount)</span>;
-<span class="cstat-no" title="statement not covered" >    return true;</span>
+<span class="fstat-no" title="function not covered" >  function latestTimestamp() public virtual view returns (uint256) </span>{
+<span class="cstat-no" title="statement not covered" >    return 0;</span>
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  function redeem(uint256 _amount) public returns (bool) </span>{
-<span class="cstat-no" title="statement not covered" >    DAI.transfer(msg.sender, _amount)</span>;
-<span class="cstat-no" title="statement not covered" >    _burn(msg.sender, _amount)</span>;
-<span class="cstat-no" title="statement not covered" >    return true;</span>
+<span class="fstat-no" title="function not covered" >  function latestRound() public virtual view returns (uint256) </span>{
+<span class="cstat-no" title="statement not covered" >    return 0;</span>
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  function redeemAndTransfer(address _owner, uint256 _amount)</span>
-    public
-    returns (bool)
-  {
-<span class="cstat-no" title="statement not covered" >    DAI.transfer(_owner, _amount)</span>;
-<span class="cstat-no" title="statement not covered" >    _burn(msg.sender, _amount)</span>;
-<span class="cstat-no" title="statement not covered" >    return true;</span>
+<span class="fstat-no" title="function not covered" >  function getAnswer(uint256 roundId) public virtual view returns (int256) </span>{
+<span class="cstat-no" title="statement not covered" >    return 0;</span>
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  function payInterest(address owner) external virtual returns (bool) </span>{
-<span class="cstat-no" title="statement not covered" >    return true;</span>
+<span class="fstat-no" title="function not covered" >  function getTimestamp(uint256 roundId) public virtual view returns (uint256) </span>{
+<span class="cstat-no" title="statement not covered" >    return 0;</span>
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  function interestPayableOf(address owner)</span>
-    external
-    virtual
-    view
-    returns (uint256 amount)
-  {
-<span class="cstat-no" title="statement not covered" >    amount = 0</span>;
-  }
+  event AnswerUpdated(
+    int256 indexed current,
+    uint256 indexed roundId,
+    uint256 timestamp
+  );
+  event NewRound(
+    uint256 indexed roundId,
+    address indexed startedBy,
+    uint256 startedAt
+  );
 }
 &nbsp;</pre></td></tr>
 </table></pre>
