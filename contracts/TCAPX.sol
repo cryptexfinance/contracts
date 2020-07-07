@@ -13,14 +13,20 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract TCAPX is ERC20, Ownable {
   /** @dev Logs all the calls of the functions. */
   event LogAddTokenHandler(address indexed _owner, address _tokenHandler);
+  event LogSetCap(address indexed _owner, uint256 _amount);
+  event LogEnableCap(address indexed _owner, bool _enable);
 
+  uint256 public cap;
+  bool public capEnabled = false;
   mapping(address => bool) public tokenHandlers;
 
   constructor(
     string memory _name,
     string memory _symbol,
-    uint256 _decimals
-  ) public ERC20(_name, _symbol) {}
+    uint256 _cap
+  ) public ERC20(_name, _symbol) {
+    cap = _cap;
+  }
 
   /** @notice Throws if called by any account other than the handler. */
   modifier onlyHandler() {
@@ -56,5 +62,42 @@ contract TCAPX is ERC20, Ownable {
    */
   function burn(address _account, uint256 _amount) public onlyHandler {
     _burn(_account, _amount);
+  }
+
+  /**
+   * @notice Sets the maximum cap of the token
+   * @param _cap value
+   * @dev Only owner can call it
+   */
+  function setCap(uint256 _cap) public onlyOwner {
+    cap = _cap;
+    emit LogSetCap(msg.sender, _cap);
+  }
+
+  /**
+   * @notice Enables or Disables the Token Cap
+   * @param _enable value
+   * @dev Only owner can call it
+   */
+  function enableCap(bool _enable) public onlyOwner {
+    capEnabled = _enable;
+    emit LogEnableCap(msg.sender, _enable);
+  }
+
+  /**
+   * @dev See {ERC20-_beforeTokenTransfer}.
+   * @notice minted tokens must not cause the total supply to go over the cap.
+   */
+  function _beforeTokenTransfer(
+    address from,
+    address to,
+    uint256 amount
+  ) internal virtual override {
+    super._beforeTokenTransfer(from, to, amount);
+
+    if (from == address(0) && capEnabled) {
+      // When minting tokens
+      require(totalSupply().add(amount) <= cap, "ERC20: cap exceeded");
+    }
   }
 }

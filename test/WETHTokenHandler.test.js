@@ -33,14 +33,14 @@ describe("TCAP.x WETH Token Handler", async function () {
 		await wethTokenHandler.deployed();
 		expect(wethTokenHandler.address).properAddress;
 		const oracle = await ethers.getContractFactory("Oracle");
-		const oracle2 = await ethers.getContractFactory("PriceFeed");
+		const collateralOracle = await ethers.getContractFactory("ChainlinkOracle");
+		const aggregator = await ethers.getContractFactory("AggregatorInterface");
+		let aggregatorInstance = await aggregator.deploy();
 		const totalMarketCap = ethersProvider.utils.parseEther("251300189107");
-		const ethPrice = ethersProvider.utils.parseEther("230");
 		tcapOracleInstance = await oracle.deploy(totalMarketCap);
 		await tcapOracleInstance.deployed();
-		priceOracleInstance = await oracle2.deploy();
+		priceOracleInstance = await collateralOracle.deploy(aggregatorInstance.address);
 		await priceOracleInstance.deployed();
-		priceOracleInstance.post(ethPrice, 0, ethersProvider.constants.AddressZero);
 		await tcapInstance.addTokenHandler(wethTokenHandler.address);
 		const weth = await ethers.getContractFactory("WETH");
 		wethTokenInstance = await weth.deploy();
@@ -68,18 +68,20 @@ describe("TCAP.x WETH Token Handler", async function () {
 		expect(currentOracle).to.eq(tcapOracleInstance.address);
 	});
 
-	it("...should set the eth/usd oracle", async () => {
-		await expect(wethTokenHandler.connect(addr1).setETHPriceOracle(accounts[1])).to.be.revertedWith(
-			"Ownable: caller is not the owner"
-		);
-		await expect(wethTokenHandler.connect(owner).setETHPriceOracle(priceOracleInstance.address))
-			.to.emit(wethTokenHandler, "LogSetETHPriceOracle")
+	it("...should set the collateral feed oracle", async () => {
+		await expect(
+			wethTokenHandler.connect(addr1).setCollateralPriceOracle(accounts[1])
+		).to.be.revertedWith("Ownable: caller is not the owner");
+		await expect(
+			wethTokenHandler.connect(owner).setCollateralPriceOracle(priceOracleInstance.address)
+		)
+			.to.emit(wethTokenHandler, "LogSetCollateralPriceOracle")
 			.withArgs(accounts[0], priceOracleInstance.address);
-		let currentPriceOracle = await wethTokenHandler.ethPriceOracle();
+		let currentPriceOracle = await wethTokenHandler.collateralPriceOracle();
 		expect(currentPriceOracle).to.eq(priceOracleInstance.address);
 	});
 
-	it("...should set the weth contract", async () => {
+	it("...should set the collateral contract", async () => {
 		await expect(
 			wethTokenHandler.connect(addr1).setCollateralContract(accounts[1])
 		).to.be.revertedWith("Ownable: caller is not the owner");
@@ -302,7 +304,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 	it("...should return the correct minimal collateral required", async () => {
 		let amount = ethersProvider.utils.parseEther("1");
 		const reqAmount = await wethTokenHandler.requiredCollateral(amount);
-		const ethPrice = await priceOracleInstance.read();
+		const ethPrice = await priceOracleInstance.getLatestAnswer();
 		const tcapPrice = await wethTokenHandler.TCAPXPrice();
 		const ratio = await wethTokenHandler.ratio();
 		let result = tcapPrice.mul(amount).mul(ratio).div(100).div(ethPrice);
@@ -360,7 +362,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 		let amount = ethersProvider.utils.parseEther("10");
 		let divisor = 100;
 		let tcapPrice = await wethTokenHandler.TCAPXPrice();
-		let ethPrice = await priceOracleInstance.read();
+		let ethPrice = await priceOracleInstance.getLatestAnswer();
 		let result = tcapPrice.mul(amount).div(divisor).div(ethPrice);
 		let fee = await wethTokenHandler.getFee(amount);
 		expect(fee).to.eq(result);

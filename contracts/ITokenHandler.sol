@@ -7,8 +7,10 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import "./mocks/Oracle.sol";
 import "./TCAPX.sol";
+import "./oracles/ChainlinkOracle.sol";
 
 
 /**
@@ -16,13 +18,22 @@ import "./TCAPX.sol";
  * @author Cristian Espinoza
  * @notice Contract in charge of handling the TCAP.X Token and stake
  */
-abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
+abstract contract ITokenHandler is
+  Ownable,
+  AccessControl,
+  ReentrancyGuard,
+  Pausable
+{
   /** @dev Logs all the calls of the functions. */
   event LogSetTCAPXContract(address indexed _owner, TCAPX _token);
   event LogSetTCAPOracle(address indexed _owner, Oracle _oracle);
   event LogSetCollateralContract(
     address indexed _owner,
     ERC20 _collateralContract
+  );
+  event LogSetCollateralPriceOracle(
+    address indexed _owner,
+    ChainlinkOracle _priceOracle
   );
   event LogSetDivisor(address indexed _owner, uint256 _divisor);
   event LogSetRatio(address indexed _owner, uint256 _ratio);
@@ -63,6 +74,8 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   Oracle public tcapOracle;
   /** @dev Collateral Token Address*/
   ERC20 public collateralContract;
+  /** @dev Collateral Oracle Address*/
+  ChainlinkOracle public collateralPriceOracle;
 
   /**
    * @notice divisor value to set the TCAP.X price
@@ -134,6 +147,19 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   }
 
   /**
+   * @notice Sets the address of the oracle contract for the price feed
+   * @param _collateral address
+   * @dev Only owner can call it
+   */
+  function setCollateralPriceOracle(ChainlinkOracle _collateral)
+    public
+    onlyOwner
+  {
+    collateralPriceOracle = _collateral;
+    emit LogSetCollateralPriceOracle(msg.sender, _collateral);
+  }
+
+  /**
    * @notice Sets the divisor amount for token price calculation
    * @param _divisor uint
    * @dev Only owner can call it
@@ -195,7 +221,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @notice Creates a Vault
    * @dev Only whitelisted can call it
    */
-  function createVault() public virtual onlyInvestor {
+  function createVault() public virtual onlyInvestor whenNotPaused {
     require(vaultToUser[msg.sender] == 0, "Vault already created");
     uint256 id = counter.current();
     vaultToUser[msg.sender] = id;
@@ -216,6 +242,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     onlyInvestor
     nonReentrant
     vaultExists
+    whenNotPaused
   {
     collateralContract.transferFrom(msg.sender, address(this), _amount);
     Vault storage vault = vaults[vaultToUser[msg.sender]];
@@ -232,6 +259,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     virtual
     nonReentrant
     vaultExists
+    whenNotPaused
   {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     uint256 currentRatio = getVaultRatio(vault.Id);
@@ -255,7 +283,13 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @notice Mints TCAP.X Tokens staking the collateral
    * @param _amount of tokens to mint
    */
-  function mint(uint256 _amount) public virtual nonReentrant vaultExists {
+  function mint(uint256 _amount)
+    public
+    virtual
+    nonReentrant
+    vaultExists
+    whenNotPaused
+  {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     uint256 requiredCollateral = requiredCollateral(_amount); // TODO: rename to collateral for mint
     require(vault.Collateral >= requiredCollateral, "Not enough collateral");
@@ -278,6 +312,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     payable
     nonReentrant
     vaultExists
+    whenNotPaused
   {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     uint256 fee = getFee(_amount);
@@ -286,6 +321,20 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     vault.Debt = vault.Debt.sub(_amount);
     TCAPXToken.burn(msg.sender, _amount);
     emit LogBurn(msg.sender, vault.Id, _amount);
+  }
+
+  /**
+   * @notice Allows owner to Pause the Contract
+   */
+  function pause() public onlyOwner {
+    _pause();
+  }
+
+  /**
+   * @notice Allows owner to Unpause the Contract
+   */
+  function unpause() public onlyOwner {
+    _unpause();
   }
 
   /**
@@ -311,7 +360,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   /**
    * @notice Returns the minimal required collateral to mint TCAPX token
    * @dev TCAPX token is 18 decimals
-   * @dev it's divided by 100 ether to cancel the decimal ratio of the amount in wei
+   * @dev Is only divided by 100 as eth price comes in wei to cancel the additional 0
    * @param _amount uint amount to mint
    * @return collateral of the TCAPX Token
    */
@@ -321,8 +370,11 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     view
     returns (uint256 collateral)
   {
-    uint256 price = TCAPXPrice();
-    collateral = (price.mul(_amount).mul(ratio)).div(100 ether);
+    uint256 tcapPrice = TCAPXPrice();
+    uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
+    collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100)).div(
+      collateralPrice
+    );
   }
 
   /**
@@ -350,7 +402,8 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
 
   /**
    * @notice Returns the current collateralization ratio
-   * @dev is multiplied by 100 ether to cancel the wei value of the tcapx price
+   * @dev is multiplied by 100 to cancel the wei value of the tcapx price
+   * @dev ratio is not 100% accurate as decimals precisions is complicated
    * @param _vaultId uint of the vault
    * @return currentRatio
    */
@@ -364,19 +417,25 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     if (vault.Id == 0 || vault.Debt == 0) {
       currentRatio = 0;
     } else {
+      uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
       currentRatio = (
-        (vault.Collateral.mul(100 ether)).div(vault.Debt.mul(TCAPXPrice()))
+        (collateralPrice.mul(vault.Collateral.mul(100))).div(
+          vault.Debt.mul(TCAPXPrice())
+        )
       );
     }
   }
 
   /**
-   * @notice Calculates the burn fee for a certain amount
+   * @notice Calculates the burn fee for a specified amount
    * @param _amount uint to calculate from
-   * @dev it's divided by 100 ether to cancel the decimal ratio of the amount in wei
+   * @dev it's divided by 100 to cancel the wei value of the tcapx price
    * @return fee
    */
   function getFee(uint256 _amount) public virtual view returns (uint256 fee) {
-    fee = (TCAPXPrice().mul(_amount).mul(burnFee)).div(100 ether);
+    uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
+    fee = (TCAPXPrice().mul(_amount).mul(burnFee)).div(100).div(
+      collateralPrice
+    );
   }
 }

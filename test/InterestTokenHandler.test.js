@@ -33,9 +33,14 @@ describe("TCAP.x Interest Token Handler", async function () {
 		await tokenHandlerInstance.deployed();
 		expect(tokenHandlerInstance.address).properAddress;
 		const oracle = await ethers.getContractFactory("Oracle");
+		const collateralOracle = await ethers.getContractFactory("ChainlinkOracle");
+		const aggregator = await ethers.getContractFactory("AggregatorInterfaceStable");
+		let aggregatorInstance = await aggregator.deploy();
 		const totalMarketCap = ethersProvider.utils.parseEther("251300189107");
 		oracleInstance = await oracle.deploy(totalMarketCap);
 		await oracleInstance.deployed();
+		priceOracleInstance = await collateralOracle.deploy(aggregatorInstance.address);
+		await priceOracleInstance.deployed();
 		const stablecoin = await ethers.getContractFactory("Stablecoin");
 		stablecoinInstance = await stablecoin.deploy();
 		await stablecoinInstance.deployed();
@@ -80,7 +85,20 @@ describe("TCAP.x Interest Token Handler", async function () {
 		expect(currentOracle).to.eq(oracleInstance.address);
 	});
 
-	it("...should set the stablecoin contract", async () => {
+	it("...should set the collateral feed oracle", async () => {
+		await expect(
+			tokenHandlerInstance.connect(addr1).setCollateralPriceOracle(accounts[1])
+		).to.be.revertedWith("Ownable: caller is not the owner");
+		await expect(
+			tokenHandlerInstance.connect(owner).setCollateralPriceOracle(priceOracleInstance.address)
+		)
+			.to.emit(tokenHandlerInstance, "LogSetCollateralPriceOracle")
+			.withArgs(accounts[0], priceOracleInstance.address);
+		let currentPriceOracle = await tokenHandlerInstance.collateralPriceOracle();
+		expect(currentPriceOracle).to.eq(priceOracleInstance.address);
+	});
+
+	it("...should set the collateral contract", async () => {
 		await expect(
 			tokenHandlerInstance.connect(addr1).setCollateralContract(accounts[1])
 		).to.be.revertedWith("Ownable: caller is not the owner");

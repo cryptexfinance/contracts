@@ -22,8 +22,9 @@ describe("TCAP.x Token", async function () {
 	});
 
 	it("...should deploy the contract", async () => {
+		let cap = ethers.utils.parseEther("100");
 		const TCAPX = await ethers.getContractFactory("TCAPX");
-		tcapInstance = await TCAPX.deploy("TCAP.X", "TCAPX", 18);
+		tcapInstance = await TCAPX.deploy("TCAP.X", "TCAPX", cap);
 		await tcapInstance.deployed();
 		expect(tcapInstance.address).properAddress;
 	});
@@ -33,10 +34,12 @@ describe("TCAP.x Token", async function () {
 		const name = await tcapInstance.name();
 		const decimals = await tcapInstance.decimals();
 		const defaultOwner = await tcapInstance.owner();
+		const cap = await tcapInstance.cap();
 		expect(defaultOwner).to.eq(accounts[0]);
 		expect(symbol).to.eq("TCAPX", "Symbol should equal TCAPX");
 		expect(name).to.eq("TCAP.X");
 		expect(decimals).to.eq(18, "Decimals should be 18");
+		expect(cap).to.eq(ethers.utils.parseEther("100"), "Cap should be 100 Tokens");
 	});
 
 	it("...should have the ERC20 standard functions", async () => {
@@ -44,6 +47,29 @@ describe("TCAP.x Token", async function () {
 		expect(totalSupply).to.eq(0, "Total supply should be 0");
 		const balance = await tcapInstance.balanceOf(accounts[0]);
 		expect(balance).to.eq(0, "Balance should be 0");
+	});
+
+	it("...should update the token contract cap", async () => {
+		let cap = ethers.utils.parseEther("10000");
+		await expect(tcapInstance.connect(addr1).setCap(0)).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(tcapInstance.connect(owner).setCap(cap))
+			.to.emit(tcapInstance, "LogSetCap")
+			.withArgs(accounts[0], cap);
+		let currentCap = await tcapInstance.cap();
+		expect(currentCap).to.eq(cap);
+	});
+
+	it("...should enable the token cap", async () => {
+		await expect(tcapInstance.connect(addr1).enableCap(true)).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(tcapInstance.connect(owner).enableCap(true))
+			.to.emit(tcapInstance, "LogEnableCap")
+			.withArgs(accounts[0], true);
+		let enableCap = await tcapInstance.capEnabled();
+		expect(enableCap).to.eq(true);
 	});
 
 	it("...should allow to approve tokens", async () => {
@@ -140,5 +166,23 @@ describe("TCAP.x Token", async function () {
 		expect(balance).to.eq(0);
 		const totalSupply = await tcapInstance.totalSupply();
 		expect(totalSupply).to.eq(0);
+	});
+
+	it("...shouldn't allow Handlers to mint tokens above cap", async () => {
+		let amount = ethers.utils.parseEther("10000000");
+		await expect(tcapInstance.connect(handler).mint(accounts[0], amount)).to.be.revertedWith(
+			"ERC20: cap exceeded"
+		);
+	});
+
+	it("...should disable the token cap", async () => {
+		await expect(tcapInstance.connect(addr1).enableCap(0)).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(tcapInstance.connect(owner).enableCap(false))
+			.to.emit(tcapInstance, "LogEnableCap")
+			.withArgs(accounts[0], false);
+		let enableCap = await tcapInstance.capEnabled();
+		expect(enableCap).to.eq(false);
 	});
 });

@@ -33,9 +33,14 @@ describe("TCAP.x Token Handler", async function () {
 		await tokenHandlerInstance.deployed();
 		expect(tokenHandlerInstance.address).properAddress;
 		const oracle = await ethers.getContractFactory("Oracle");
+		const collateralOracle = await ethers.getContractFactory("ChainlinkOracle");
+		const aggregator = await ethers.getContractFactory("AggregatorInterfaceStable");
+		let aggregatorInstance = await aggregator.deploy();
 		const totalMarketCap = ethersProvider.utils.parseEther("251300189107");
 		oracleInstance = await oracle.deploy(totalMarketCap);
 		await oracleInstance.deployed();
+		priceOracleInstance = await collateralOracle.deploy(aggregatorInstance.address);
+		await priceOracleInstance.deployed();
 		const stablecoin = await ethers.getContractFactory("DAI");
 		stablecoinInstance = await stablecoin.deploy();
 		await stablecoinInstance.deployed();
@@ -64,7 +69,20 @@ describe("TCAP.x Token Handler", async function () {
 		expect(currentOracle).to.eq(oracleInstance.address);
 	});
 
-	it("...should set the stablecoin contract", async () => {
+	it("...should set the collateral feed oracle", async () => {
+		await expect(
+			tokenHandlerInstance.connect(addr1).setCollateralPriceOracle(accounts[1])
+		).to.be.revertedWith("Ownable: caller is not the owner");
+		await expect(
+			tokenHandlerInstance.connect(owner).setCollateralPriceOracle(priceOracleInstance.address)
+		)
+			.to.emit(tokenHandlerInstance, "LogSetCollateralPriceOracle")
+			.withArgs(accounts[0], priceOracleInstance.address);
+		let currentPriceOracle = await tokenHandlerInstance.collateralPriceOracle();
+		expect(currentPriceOracle).to.eq(priceOracleInstance.address);
+	});
+
+	it("...should set the collateral contract", async () => {
 		await expect(
 			tokenHandlerInstance.connect(addr1).setCollateralContract(accounts[1])
 		).to.be.revertedWith("Ownable: caller is not the owner");
@@ -390,6 +408,46 @@ describe("TCAP.x Token Handler", async function () {
 		expect(currentAccountBalance).to.gt(accountBalance);
 		ethBalance = await ethers.provider.getBalance(tokenHandlerInstance.address);
 		expect(ethBalance).to.eq(0);
+	});
+
+	it("...should allow owner to pause contract", async () => {
+		await expect(tokenHandlerInstance.connect(addr1).pause()).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(tokenHandlerInstance.connect(owner).pause())
+			.to.emit(tokenHandlerInstance, "Paused")
+			.withArgs(accounts[0]);
+		let paused = await tokenHandlerInstance.paused();
+		expect(paused).to.eq(true);
+	});
+
+	it("... shouldn't allow contract calls if contract is paused", async () => {
+		await expect(tokenHandlerInstance.connect(addr1).createVault()).to.be.revertedWith(
+			"Pausable: paused"
+		);
+		await expect(tokenHandlerInstance.connect(addr1).addCollateral(0)).to.be.revertedWith(
+			"Pausable: paused"
+		);
+		await expect(tokenHandlerInstance.connect(addr1).mint(0)).to.be.revertedWith(
+			"Pausable: paused"
+		);
+		await expect(tokenHandlerInstance.connect(addr1).removeCollateral(0)).to.be.revertedWith(
+			"Pausable: paused"
+		);
+	});
+
+	it("...should allow owner to unpause contract", async () => {
+		await expect(tokenHandlerInstance.connect(addr1).unpause()).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(tokenHandlerInstance.connect(owner).unpause())
+			.to.emit(tokenHandlerInstance, "Unpaused")
+			.withArgs(accounts[0]);
+		let paused = await tokenHandlerInstance.paused();
+		expect(paused).to.eq(false);
+		await expect(tokenHandlerInstance.connect(addr1).removeCollateral(0))
+			.to.emit(tokenHandlerInstance, "LogRemoveCollateral")
+			.withArgs(accounts[1], 1, 0);
 	});
 	xit("...should allow users to liquidate investors", async () => {});
 	xit("LIQUIDATION CONFIGURATION TESTS", async () => {});
