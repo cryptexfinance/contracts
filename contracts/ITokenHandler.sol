@@ -18,7 +18,12 @@ import "./oracles/ChainlinkOracle.sol";
  * @author Cristian Espinoza
  * @notice Contract in charge of handling the TCAP.X Token and stake
  */
-abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
+abstract contract ITokenHandler is
+  Ownable,
+  AccessControl,
+  ReentrancyGuard,
+  Pausable
+{
   /** @dev Logs all the calls of the functions. */
   event LogSetTCAPXContract(address indexed _owner, TCAPX _token);
   event LogSetTCAPOracle(address indexed _owner, Oracle _oracle);
@@ -216,7 +221,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @notice Creates a Vault
    * @dev Only whitelisted can call it
    */
-  function createVault() public virtual onlyInvestor {
+  function createVault() public virtual onlyInvestor whenNotPaused {
     require(vaultToUser[msg.sender] == 0, "Vault already created");
     uint256 id = counter.current();
     vaultToUser[msg.sender] = id;
@@ -237,6 +242,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     onlyInvestor
     nonReentrant
     vaultExists
+    whenNotPaused
   {
     collateralContract.transferFrom(msg.sender, address(this), _amount);
     Vault storage vault = vaults[vaultToUser[msg.sender]];
@@ -253,6 +259,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     virtual
     nonReentrant
     vaultExists
+    whenNotPaused
   {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     uint256 currentRatio = getVaultRatio(vault.Id);
@@ -276,7 +283,13 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
    * @notice Mints TCAP.X Tokens staking the collateral
    * @param _amount of tokens to mint
    */
-  function mint(uint256 _amount) public virtual nonReentrant vaultExists {
+  function mint(uint256 _amount)
+    public
+    virtual
+    nonReentrant
+    vaultExists
+    whenNotPaused
+  {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     uint256 requiredCollateral = requiredCollateral(_amount); // TODO: rename to collateral for mint
     require(vault.Collateral >= requiredCollateral, "Not enough collateral");
@@ -299,6 +312,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     payable
     nonReentrant
     vaultExists
+    whenNotPaused
   {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     uint256 fee = getFee(_amount);
@@ -307,6 +321,20 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     vault.Debt = vault.Debt.sub(_amount);
     TCAPXToken.burn(msg.sender, _amount);
     emit LogBurn(msg.sender, vault.Id, _amount);
+  }
+
+  /**
+   * @notice Allows owner to Pause the Contract
+   */
+  function pause() public onlyOwner {
+    _pause();
+  }
+
+  /**
+   * @notice Allows owner to Unpause the Contract
+   */
+  function unpause() public onlyOwner {
+    _unpause();
   }
 
   /**
