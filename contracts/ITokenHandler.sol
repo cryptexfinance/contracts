@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./mocks/Oracle.sol";
 import "./TCAPX.sol";
+import "./oracles/ChainlinkOracle.sol";
 
 
 /**
@@ -23,6 +24,10 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   event LogSetCollateralContract(
     address indexed _owner,
     ERC20 _collateralContract
+  );
+  event LogSetCollateralPriceOracle(
+    address indexed _owner,
+    ChainlinkOracle _priceOracle
   );
   event LogSetDivisor(address indexed _owner, uint256 _divisor);
   event LogSetRatio(address indexed _owner, uint256 _ratio);
@@ -63,6 +68,8 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   Oracle public tcapOracle;
   /** @dev Collateral Token Address*/
   ERC20 public collateralContract;
+  /** @dev Collateral Oracle Address*/
+  ChainlinkOracle public collateralPriceOracle;
 
   /**
    * @notice divisor value to set the TCAP.X price
@@ -131,6 +138,19 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   {
     collateralContract = _collateralContract;
     emit LogSetCollateralContract(msg.sender, _collateralContract);
+  }
+
+  /**
+   * @notice Sets the address of the oracle contract for the price feed
+   * @param _collateral address
+   * @dev Only owner can call it
+   */
+  function setCollateralPriceOracle(ChainlinkOracle _collateral)
+    public
+    onlyOwner
+  {
+    collateralPriceOracle = _collateral;
+    emit LogSetCollateralPriceOracle(msg.sender, _collateral);
   }
 
   /**
@@ -311,7 +331,7 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   /**
    * @notice Returns the minimal required collateral to mint TCAPX token
    * @dev TCAPX token is 18 decimals
-   * @dev it's divided by 100 ether to cancel the decimal ratio of the amount in wei
+   * @dev Is only divided by 100 as eth price comes in wei to cancel the additional 0
    * @param _amount uint amount to mint
    * @return collateral of the TCAPX Token
    */
@@ -321,8 +341,9 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     view
     returns (uint256 collateral)
   {
-    uint256 price = TCAPXPrice();
-    collateral = (price.mul(_amount).mul(ratio)).div(100 ether);
+    uint256 tcapPrice = TCAPXPrice();
+    uint256 ethPrice = uint256(collateralPriceOracle.getLatestAnswer());
+    collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100)).div(ethPrice);
   }
 
   /**
@@ -350,7 +371,8 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
 
   /**
    * @notice Returns the current collateralization ratio
-   * @dev is multiplied by 100 ether to cancel the wei value of the tcapx price
+   * @dev is multiplied by 100 to cancel the wei value of the tcapx price
+   * @dev ratio is not 100% accurate as decimals precisions is complicated
    * @param _vaultId uint of the vault
    * @return currentRatio
    */
@@ -364,8 +386,11 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
     if (vault.Id == 0 || vault.Debt == 0) {
       currentRatio = 0;
     } else {
+      uint256 ethPrice = uint256(collateralPriceOracle.getLatestAnswer());
       currentRatio = (
-        (vault.Collateral.mul(100 ether)).div(vault.Debt.mul(TCAPXPrice()))
+        (ethPrice.mul(vault.Collateral.mul(100))).div(
+          vault.Debt.mul(TCAPXPrice())
+        )
       );
     }
   }
@@ -373,10 +398,11 @@ abstract contract ITokenHandler is Ownable, AccessControl, ReentrancyGuard {
   /**
    * @notice Calculates the burn fee for a certain amount
    * @param _amount uint to calculate from
-   * @dev it's divided by 100 ether to cancel the decimal ratio of the amount in wei
+   * @dev it's divided by 100 to cancel the wei value of the tcapx price
    * @return fee
    */
   function getFee(uint256 _amount) public virtual view returns (uint256 fee) {
-    fee = (TCAPXPrice().mul(_amount).mul(burnFee)).div(100 ether);
+    uint256 ethPrice = uint256(collateralPriceOracle.getLatestAnswer());
+    fee = (TCAPXPrice().mul(_amount).mul(burnFee)).div(100).div(ethPrice);
   }
 }
