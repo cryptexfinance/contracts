@@ -26,7 +26,8 @@ module.exports = async ({deployments}: any) => {
 			whitelist = false;
 		}
 		let oracle = await deployments.get("Oracle");
-		let priceFeed = await deployments.get("PriceFeed");
+		let priceFeedETH = await deployments.get("ChainlinkOracleETH");
+		let priceFeedStable = await deployments.get("ChainlinkOracleStable");
 
 		let daiHandlerContract = await ethersBuidler.getContract("DAITokenHandler");
 		let usdcHandlerContract = await ethersBuidler.getContract("USDCTokenHandler");
@@ -92,12 +93,17 @@ module.exports = async ({deployments}: any) => {
 		await usdt.setBurnFee(burnFee);
 		await weth.setBurnFee(burnFee);
 
-		console.log("setting oracle", oracle.address);
+		console.log("setting TCAP oracle", oracle.address);
 		await dai.setTCAPOracle(oracle.address);
 		await usdc.setTCAPOracle(oracle.address);
 		await usdt.setTCAPOracle(oracle.address);
 		await weth.setTCAPOracle(oracle.address);
-		await weth.setETHPriceOracle(priceFeed.address);
+
+		console.log("setting Collateral oracle");
+		await dai.setCollateralPriceOracle(priceFeedStable.address);
+		await usdc.setCollateralPriceOracle(priceFeedStable.address);
+		await usdt.setCollateralPriceOracle(priceFeedStable.address);
+		await weth.setCollateralPriceOracle(priceFeedETH.address);
 
 		if (!whitelist) {
 			console.log("setting whitelist", whitelist);

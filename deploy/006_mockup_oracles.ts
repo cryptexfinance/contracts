@@ -1,6 +1,5 @@
 import {ethers} from "ethers";
 import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
-import {PriceFeed} from "../typechain/PriceFeed";
 require("dotenv").config();
 module.exports = async ({getNamedAccounts, deployments}: any) => {
 	if (
@@ -11,7 +10,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		const {deployIfDifferent, log} = deployments;
 		const {deployer} = await getNamedAccounts();
 
-		let Oracle, PriceFeed;
+		let Oracle, ChainlinkOracle, ETHAggregator, StableAggregator;
 		try {
 			Oracle = await deployments.get("Oracle");
 		} catch (error) {
@@ -29,34 +28,81 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 			if (deployResult.newlyDeployed) {
 				log(`Oracle deployed at ${Oracle.address} for ${deployResult.receipt.gasUsed}`);
 			}
-
 			try {
-				PriceFeed = await deployments.get("PriceFeed");
+				ETHAggregator = await deployments.get("ETHAggregator");
 			} catch (error) {
 				log(error.message);
 
-				const price = ethers.utils.parseEther(process.env.ETH_PRICE as string);
 				const deployResult = await deployIfDifferent(
 					["data"],
-					"PriceFeed",
+					"ETHAggregator",
 					{from: deployer, gas: 4000000},
-					"PriceFeed"
+					"AggregatorInterface"
 				);
-				PriceFeed = await deployments.get("PriceFeed");
+				ETHAggregator = await deployments.get("ETHAggregator");
 				if (deployResult.newlyDeployed) {
 					log(
-						`Price Feed Oracle deployed at ${PriceFeed.address} for ${deployResult.receipt.gasUsed}`
+						`AggregatorInterface deployed at ${ETHAggregator.address} for ${deployResult.receipt.gasUsed}`
 					);
 				}
-				let priceFeedContract = await ethersBuidler.getContract("PriceFeed");
-				let priceContract = new ethers.Contract(
-					PriceFeed.address,
-					priceFeedContract.interface,
-					priceFeedContract.signer
-				) as PriceFeed;
-				await priceContract.post(price, 0, ethers.constants.AddressZero);
+				try {
+					ChainlinkOracle = await deployments.get("ChainlinkOracleETH");
+				} catch (error) {
+					log(error.message);
+
+					const deployResult = await deployIfDifferent(
+						["data"],
+						"ChainlinkOracleETH",
+						{from: deployer, gas: 4000000},
+						"ChainlinkOracle",
+						ETHAggregator.address
+					);
+					ChainlinkOracle = await deployments.get("ChainlinkOracleETH");
+					if (deployResult.newlyDeployed) {
+						log(
+							`Price Feed Oracle deployed at ${ChainlinkOracle.address} for ${deployResult.receipt.gasUsed}`
+						);
+					}
+				}
+			}
+			try {
+				StableAggregator = await deployments.get("AggregatorInterfaceStable");
+			} catch (error) {
+				log(error.message);
+
+				const deployResult = await deployIfDifferent(
+					["data"],
+					"AggregatorInterfaceStable",
+					{from: deployer, gas: 4000000},
+					"AggregatorInterfaceStable"
+				);
+				StableAggregator = await deployments.get("AggregatorInterfaceStable");
+				if (deployResult.newlyDeployed) {
+					log(
+						`AggregatorInterface deployed at ${StableAggregator.address} for ${deployResult.receipt.gasUsed}`
+					);
+				}
+				try {
+					ChainlinkOracle = await deployments.get("ChainlinkOracleStable");
+				} catch (error) {
+					log(error.message);
+
+					const deployResult = await deployIfDifferent(
+						["data"],
+						"ChainlinkOracleStable",
+						{from: deployer, gas: 4000000},
+						"ChainlinkOracle",
+						StableAggregator.address
+					);
+					ChainlinkOracle = await deployments.get("ChainlinkOracleStable");
+					if (deployResult.newlyDeployed) {
+						log(
+							`Price Feed Oracle deployed at ${ChainlinkOracle.address} for ${deployResult.receipt.gasUsed}`
+						);
+					}
+				}
 			}
 		}
 	}
 };
-module.exports.tags = ["Oracle", "PriceFeed"];
+module.exports.tags = ["Oracle", "ChainlinkOracle"];

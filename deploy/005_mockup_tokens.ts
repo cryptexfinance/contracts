@@ -1,6 +1,6 @@
 import {ethers} from "ethers";
 import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
-import {Stablecoin} from "../typechain/Stablecoin";
+import {Dai as Stablecoin} from "../typechain/Dai";
 require("dotenv").config();
 module.exports = async ({getNamedAccounts, deployments}: any) => {
 	if (

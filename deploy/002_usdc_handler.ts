@@ -18,7 +18,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 				const deployResult = await deployIfDifferent(
 					["data"],
 					"USDCTokenHandler",
-					{from: deployer, gas: 4000000},
+					{from: deployer, gas: 5000000},
 					"USDCTokenHandler"
 				);
 				handlerContract = await deployments.get("USDCTokenHandler");
