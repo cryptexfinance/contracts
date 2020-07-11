@@ -14,11 +14,11 @@ import "./oracles/ChainlinkOracle.sol";
 
 
 /**
- * @title TCAP.X Token Handler
+ * @title TCAP.X Vault Handler
  * @author Cristian Espinoza
  * @notice Contract in charge of handling the TCAP.X Token and stake
  */
-abstract contract ITokenHandler is
+abstract contract IVaultHandler is
   Ownable,
   AccessControl,
   ReentrancyGuard,

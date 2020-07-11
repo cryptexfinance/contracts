@@ -6,20 +6,19 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 
 		let handlerContract;
 		try {
-			handlerContract = await deployments.get("WETHVaultHandler");
+			handlerContract = await deployments.get("BTCVaultHandler");
 		} catch (error) {
-			log(error.message);
 			try {
 				const deployResult = await deployIfDifferent(
 					["data"],
-					"WETHVaultHandler",
+					"BTCVaultHandler",
 					{from: deployer, gas: 5000000},
 					"VaultHandler"
 				);
-				handlerContract = await deployments.get("WETHVaultHandler");
+				handlerContract = await deployments.get("BTCVaultHandler");
 				if (deployResult.newlyDeployed) {
 					log(
-						`WETHVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt.gasUsed}`
+						`BTCVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt.gasUsed}`
 					);
 				}
 			} catch (error) {
@@ -28,4 +27,4 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		}
 	}
 };
-module.exports.tags = ["WETHVaultHandler"];
+module.exports.tags = ["BTCVaultHandler"];

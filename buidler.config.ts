@@ -27,6 +27,10 @@ const config: BuidlerConfig = {
 			accounts: {mnemonic: ganacheMnemonic},
 		},
 
+		rinkeby: {
+			url: process.env.RINKEBY_API_URL,
+			accounts: {mnemonic: mnemonic},
+		},
 		goerli: {
 			url: process.env.GOERLI_API_URL,
 			accounts: {mnemonic: mnemonic},

@@ -28,7 +28,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 		const TCAPX = await ethers.getContractFactory("TCAPX");
 		tcapInstance = await TCAPX.deploy("TCAP.X", "TCAPX", 18);
 		await tcapInstance.deployed();
-		const wethVault = await ethers.getContractFactory("WETHTokenHandler");
+		const wethVault = await ethers.getContractFactory("VaultHandler");
 		wethTokenHandler = await wethVault.deploy();
 		await wethTokenHandler.deployed();
 		expect(wethTokenHandler.address).properAddress;

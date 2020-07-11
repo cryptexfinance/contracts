@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.6.8;
-import "./ITokenHandler.sol";
+import "./IVaultHandler.sol";
 import "./IRToken.sol";
 
 
 /**
- * @title TCAP.X Token Handler
+ * @title TCAP.X RDAI Vault Handler
  * @author Cristian Espinoza
  * @notice Contract in charge of handling the TCAP.X Token and stake
  */
-contract InterestTokenHandler is ITokenHandler {
+contract RDAIVaultHandler is IVaultHandler {
   event LogSetInterestTokenAddress(
     address indexed _owner,
     IRToken _interestTokenAddress
