@@ -32,13 +32,14 @@ describe("TCAP.x Interest Token Handler", async function () {
 		tokenHandlerInstance = await TCAPXHandler.deploy();
 		await tokenHandlerInstance.deployed();
 		expect(tokenHandlerInstance.address).properAddress;
-		const oracle = await ethers.getContractFactory("Oracle");
+		const oracle = await ethers.getContractFactory("TcapOracle");
 		const collateralOracle = await ethers.getContractFactory("ChainlinkOracle");
 		const aggregator = await ethers.getContractFactory("AggregatorInterfaceStable");
 		let aggregatorInstance = await aggregator.deploy();
 		const totalMarketCap = ethersProvider.utils.parseEther("251300189107");
-		oracleInstance = await oracle.deploy(totalMarketCap);
+		oracleInstance = await oracle.deploy();
 		await oracleInstance.deployed();
+		oracleInstance.setLatestAnswer(totalMarketCap);
 		priceOracleInstance = await collateralOracle.deploy(aggregatorInstance.address);
 		await priceOracleInstance.deployed();
 		const stablecoin = await ethers.getContractFactory("DAI");
@@ -146,7 +147,7 @@ describe("TCAP.x Interest Token Handler", async function () {
 
 	it("...should return the token price", async () => {
 		let tcapxPrice = await tokenHandlerInstance.TCAPXPrice();
-		let totalMarketCap = await oracleInstance.price();
+		let totalMarketCap = await oracleInstance.getLatestAnswer();
 		let result = totalMarketCap.div(divisor);
 		expect(tcapxPrice).to.eq(result);
 	});
