@@ -3,7 +3,7 @@ import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
 import {VaultHandler} from "../typechain/VaultHandler";
 require("dotenv").config();
 module.exports = async ({deployments}: any) => {
-	if (buidlerArguments.network === "rinkeby") {
+	if (buidlerArguments.network === "rinkeby" || buidlerArguments.network === "ganache") {
 		let DAIHandler = await deployments.get("DAIVaultHandler");
 		let BTCHandler = await deployments.get("BTCVaultHandler");
 		let WETHHandler = await deployments.get("WETHVaultHandler");

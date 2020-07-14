@@ -1,8 +1,7 @@
-import {ethers} from "ethers";
-import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
+import {buidlerArguments} from "@nomiclabs/buidler";
 require("dotenv").config();
 module.exports = async ({getNamedAccounts, deployments}: any) => {
-	if (buidlerArguments.network === "rinkeby") {
+	if (buidlerArguments.network === "rinkeby" || buidlerArguments.network === "ganache") {
 		const {deployIfDifferent, log} = deployments;
 		const {deployer} = await getNamedAccounts();
 
@@ -12,13 +11,11 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		} catch (error) {
 			log(error.message);
 
-			const price = process.env.PRICE as string;
 			const deployResult = await deployIfDifferent(
 				["data"],
 				"TCAPOracle",
 				{from: deployer, gas: 4000000},
-				"Oracle",
-				ethers.utils.parseEther(price)
+				"TcapOracle"
 			);
 			TCAPOracle = await deployments.get("TCAPOracle");
 			if (deployResult.newlyDeployed) {

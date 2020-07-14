@@ -3,7 +3,7 @@ import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
 import {Dai as Stablecoin} from "../typechain/Dai";
 require("dotenv").config();
 module.exports = async ({getNamedAccounts, deployments}: any) => {
-	if (buidlerArguments.network === "rinkeby") {
+	if (buidlerArguments.network === "rinkeby" || buidlerArguments.network === "ganache") {
 		const {deployIfDifferent, log} = deployments;
 		const {deployer} = await getNamedAccounts();
 
