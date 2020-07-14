@@ -1,29 +1,25 @@
 import {buidlerArguments} from "@nomiclabs/buidler";
 module.exports = async ({getNamedAccounts, deployments}: any) => {
-	if (
-		buidlerArguments.network === "goerli" ||
-		buidlerArguments.network === "ganache" ||
-		buidlerArguments.network === "buidlerevm"
-	) {
+	if (buidlerArguments.network === "rinkeby" || buidlerArguments.network === "ganache") {
 		const {deployIfDifferent, log} = deployments;
 		const {deployer} = await getNamedAccounts();
 
 		let handlerContract;
 		try {
-			handlerContract = await deployments.get("WETHTokenHandler");
+			handlerContract = await deployments.get("WETHVaultHandler");
 		} catch (error) {
 			log(error.message);
 			try {
 				const deployResult = await deployIfDifferent(
 					["data"],
-					"WETHTokenHandler",
+					"WETHVaultHandler",
 					{from: deployer, gas: 5000000},
-					"WETHTokenHandler"
+					"VaultHandler"
 				);
-				handlerContract = await deployments.get("USDTTokenHandler");
+				handlerContract = await deployments.get("WETHVaultHandler");
 				if (deployResult.newlyDeployed) {
 					log(
-						`WETHTokenHandler deployed at ${handlerContract.address} for ${deployResult.receipt.gasUsed}`
+						`WETHVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt.gasUsed}`
 					);
 				}
 			} catch (error) {
@@ -32,4 +28,4 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		}
 	}
 };
-module.exports.tags = ["WETHTokenHandler"];
+module.exports.tags = ["WETHVaultHandler"];

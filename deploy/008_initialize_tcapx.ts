@@ -4,15 +4,10 @@ import {Tcapx} from "../typechain/Tcapx";
 require("dotenv").config();
 
 module.exports = async ({deployments}: any) => {
-	if (
-		buidlerArguments.network === "goerli" ||
-		buidlerArguments.network === "ganache" ||
-		buidlerArguments.network === "buidlerevm"
-	) {
-		let DAIHandler = await deployments.get("DAITokenHandler");
-		let USDCHandler = await deployments.get("USDCTokenHandler");
-		let USDTHandler = await deployments.get("USDTTokenHandler");
-		let WETHHandler = await deployments.get("WETHTokenHandler");
+	if (buidlerArguments.network === "rinkeby" || buidlerArguments.network === "ganache") {
+		let DAIHandler = await deployments.get("DAIVaultHandler");
+		let BTCHandler = await deployments.get("BTCVaultHandler");
+		let WETHHandler = await deployments.get("WETHVaultHandler");
 		let TcapxDeployment = await deployments.get("TCAPX");
 		let TcapxContract = await ethersBuidler.getContract("TCAPX");
 		let tcapxAbi = TcapxContract.interface;
@@ -25,8 +20,7 @@ module.exports = async ({deployments}: any) => {
 		console.log("adding token Handlers");
 
 		await tcapx.addTokenHandler(DAIHandler.address);
-		await tcapx.addTokenHandler(USDCHandler.address);
-		await tcapx.addTokenHandler(USDTHandler.address);
+		await tcapx.addTokenHandler(BTCHandler.address);
 		await tcapx.addTokenHandler(WETHHandler.address);
 	}
 };

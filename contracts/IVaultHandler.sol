@@ -8,17 +8,17 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
-import "./mocks/Oracle.sol";
 import "./TCAPX.sol";
+import "./oracles/TcapOracle.sol";
 import "./oracles/ChainlinkOracle.sol";
 
 
 /**
- * @title TCAP.X Token Handler
+ * @title TCAP.X Vault Handler
  * @author Cristian Espinoza
  * @notice Contract in charge of handling the TCAP.X Token and stake
  */
-abstract contract ITokenHandler is
+abstract contract IVaultHandler is
   Ownable,
   AccessControl,
   ReentrancyGuard,
@@ -26,7 +26,7 @@ abstract contract ITokenHandler is
 {
   /** @dev Logs all the calls of the functions. */
   event LogSetTCAPXContract(address indexed _owner, TCAPX _token);
-  event LogSetTCAPOracle(address indexed _owner, Oracle _oracle);
+  event LogSetTCAPOracle(address indexed _owner, TcapOracle _oracle);
   event LogSetCollateralContract(
     address indexed _owner,
     ERC20 _collateralContract
@@ -71,7 +71,7 @@ abstract contract ITokenHandler is
   /** @dev TCAP Token Address */
   TCAPX public TCAPXToken;
   /** @dev Total Market Cap Oracle */
-  Oracle public tcapOracle;
+  TcapOracle public tcapOracle;
   /** @dev Collateral Token Address*/
   ERC20 public collateralContract;
   /** @dev Collateral Oracle Address*/
@@ -127,7 +127,7 @@ abstract contract ITokenHandler is
    * @param _oracle address
    * @dev Only owner can call it
    */
-  function setTCAPOracle(Oracle _oracle) public virtual onlyOwner {
+  function setTCAPOracle(TcapOracle _oracle) public virtual onlyOwner {
     tcapOracle = _oracle;
     emit LogSetTCAPOracle(msg.sender, _oracle);
   }
@@ -353,7 +353,7 @@ abstract contract ITokenHandler is
    * @return price of the TCAPX Token
    */
   function TCAPXPrice() public virtual view returns (uint256 price) {
-    uint256 totalMarketPrice = tcapOracle.price();
+    uint256 totalMarketPrice = tcapOracle.getLatestAnswer();
     price = totalMarketPrice.div(divisor);
   }
 

@@ -1,104 +1,80 @@
-import {ethers} from "ethers";
-import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
+import {buidlerArguments} from "@nomiclabs/buidler";
 require("dotenv").config();
 module.exports = async ({getNamedAccounts, deployments}: any) => {
-	if (
-		buidlerArguments.network === "goerli" ||
-		buidlerArguments.network === "ganache" ||
-		buidlerArguments.network === "buidlerevm"
-	) {
+	if (buidlerArguments.network === "rinkeby" || buidlerArguments.network === "ganache") {
 		const {deployIfDifferent, log} = deployments;
 		const {deployer} = await getNamedAccounts();
 
-		let Oracle, ChainlinkOracle, ETHAggregator, StableAggregator;
+		let TCAPOracle, BTCOracle, WETHOracle, DAIOracle;
 		try {
-			Oracle = await deployments.get("Oracle");
+			TCAPOracle = await deployments.get("TCAPOracle");
 		} catch (error) {
 			log(error.message);
 
-			const price = process.env.PRICE as string;
 			const deployResult = await deployIfDifferent(
 				["data"],
-				"Oracle",
+				"TCAPOracle",
 				{from: deployer, gas: 4000000},
-				"Oracle",
-				ethers.utils.parseEther(price)
+				"TcapOracle"
 			);
-			Oracle = await deployments.get("Oracle");
+			TCAPOracle = await deployments.get("TCAPOracle");
 			if (deployResult.newlyDeployed) {
-				log(`Oracle deployed at ${Oracle.address} for ${deployResult.receipt.gasUsed}`);
+				log(`Oracle deployed at ${TCAPOracle.address} for ${deployResult.receipt.gasUsed}`);
 			}
 			try {
-				ETHAggregator = await deployments.get("ETHAggregator");
+				BTCOracle = await deployments.get("BTCOracle");
 			} catch (error) {
 				log(error.message);
-
+				let oracleAddress = process.env.BTC_ORACLE as string;
 				const deployResult = await deployIfDifferent(
 					["data"],
-					"ETHAggregator",
+					"BTCOracle",
 					{from: deployer, gas: 4000000},
-					"AggregatorInterface"
+					"ChainlinkOracle",
+					oracleAddress
 				);
-				ETHAggregator = await deployments.get("ETHAggregator");
+				BTCOracle = await deployments.get("BTCOracle");
 				if (deployResult.newlyDeployed) {
 					log(
-						`AggregatorInterface deployed at ${ETHAggregator.address} for ${deployResult.receipt.gasUsed}`
+						`Price Feed Oracle deployed at ${BTCOracle.address} for ${deployResult.receipt.gasUsed}`
 					);
 				}
 				try {
-					ChainlinkOracle = await deployments.get("ChainlinkOracleETH");
+					WETHOracle = await deployments.get("WETHOracle");
 				} catch (error) {
 					log(error.message);
-
+					let oracleAddress = process.env.ETH_ORACLE as string;
 					const deployResult = await deployIfDifferent(
 						["data"],
-						"ChainlinkOracleETH",
+						"WETHOracle",
 						{from: deployer, gas: 4000000},
 						"ChainlinkOracle",
-						ETHAggregator.address
+						oracleAddress
 					);
-					ChainlinkOracle = await deployments.get("ChainlinkOracleETH");
+					WETHOracle = await deployments.get("WETHOracle");
 					if (deployResult.newlyDeployed) {
 						log(
-							`Price Feed Oracle deployed at ${ChainlinkOracle.address} for ${deployResult.receipt.gasUsed}`
+							`Price Feed Oracle deployed at ${WETHOracle.address} for ${deployResult.receipt.gasUsed}`
 						);
 					}
-				}
-			}
-			try {
-				StableAggregator = await deployments.get("AggregatorInterfaceStable");
-			} catch (error) {
-				log(error.message);
-
-				const deployResult = await deployIfDifferent(
-					["data"],
-					"AggregatorInterfaceStable",
-					{from: deployer, gas: 4000000},
-					"AggregatorInterfaceStable"
-				);
-				StableAggregator = await deployments.get("AggregatorInterfaceStable");
-				if (deployResult.newlyDeployed) {
-					log(
-						`AggregatorInterface deployed at ${StableAggregator.address} for ${deployResult.receipt.gasUsed}`
-					);
-				}
-				try {
-					ChainlinkOracle = await deployments.get("ChainlinkOracleStable");
-				} catch (error) {
-					log(error.message);
-
-					const deployResult = await deployIfDifferent(
-						["data"],
-						"ChainlinkOracleStable",
-						{from: deployer, gas: 4000000},
-						"ChainlinkOracle",
-						StableAggregator.address
-					);
-					ChainlinkOracle = await deployments.get("ChainlinkOracleStable");
-					if (deployResult.newlyDeployed) {
-						log(
-							`Price Feed Oracle deployed at ${ChainlinkOracle.address} for ${deployResult.receipt.gasUsed}`
+					try {
+						DAIOracle = await deployments.get("DAIOracle");
+					} catch (error) {
+						log(error.message);
+						let oracleAddress = process.env.DAI_ORACLE as string;
+						const deployResult = await deployIfDifferent(
+							["data"],
+							"DAIOracle",
+							{from: deployer, gas: 4000000},
+							"ChainlinkOracle",
+							oracleAddress
 						);
+						DAIOracle = await deployments.get("DAIOracle");
+						if (deployResult.newlyDeployed) {
+							log(
+								`Price Feed Oracle deployed at ${DAIOracle.address} for ${deployResult.receipt.gasUsed}`
+							);
+						}
 					}
 				}
 			}

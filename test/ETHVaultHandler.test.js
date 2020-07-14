@@ -28,17 +28,18 @@ describe("TCAP.x WETH Token Handler", async function () {
 		const TCAPX = await ethers.getContractFactory("TCAPX");
 		tcapInstance = await TCAPX.deploy("TCAP.X", "TCAPX", 18);
 		await tcapInstance.deployed();
-		const wethVault = await ethers.getContractFactory("WETHTokenHandler");
+		const wethVault = await ethers.getContractFactory("VaultHandler");
 		wethTokenHandler = await wethVault.deploy();
 		await wethTokenHandler.deployed();
 		expect(wethTokenHandler.address).properAddress;
-		const oracle = await ethers.getContractFactory("Oracle");
+		const oracle = await ethers.getContractFactory("TcapOracle");
 		const collateralOracle = await ethers.getContractFactory("ChainlinkOracle");
 		const aggregator = await ethers.getContractFactory("AggregatorInterface");
 		let aggregatorInstance = await aggregator.deploy();
 		const totalMarketCap = ethersProvider.utils.parseEther("251300189107");
-		tcapOracleInstance = await oracle.deploy(totalMarketCap);
+		tcapOracleInstance = await oracle.deploy();
 		await tcapOracleInstance.deployed();
+		tcapOracleInstance.setLatestAnswer(totalMarketCap);
 		priceOracleInstance = await collateralOracle.deploy(aggregatorInstance.address);
 		await priceOracleInstance.deployed();
 		await tcapInstance.addTokenHandler(wethTokenHandler.address);
@@ -142,7 +143,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 
 	it("...should return the token price", async () => {
 		let tcapxPrice = await wethTokenHandler.TCAPXPrice();
-		let totalMarketCap = await tcapOracleInstance.price();
+		let totalMarketCap = await tcapOracleInstance.getLatestAnswer();
 		let result = totalMarketCap.div(divisor);
 		expect(tcapxPrice).to.eq(result);
 	});

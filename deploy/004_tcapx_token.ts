@@ -1,11 +1,7 @@
 import {buidlerArguments} from "@nomiclabs/buidler";
 require("dotenv").config();
 module.exports = async ({getNamedAccounts, deployments}: any) => {
-	if (
-		buidlerArguments.network === "goerli" ||
-		buidlerArguments.network === "ganache" ||
-		buidlerArguments.network === "buidlerevm"
-	) {
+	if (buidlerArguments.network === "rinkeby" || buidlerArguments.network === "ganache") {
 		const {deployIfDifferent, log} = deployments;
 		const {deployer} = await getNamedAccounts();
 		const name = process.env.NAME;
