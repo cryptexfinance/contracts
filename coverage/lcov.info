@@ -221,10 +221,10 @@ FN:10,setLatestAnswer
 FN:14,getLatestAnswer
 FNF:2
 FNH:2
-FNDA:9,setLatestAnswer
-FNDA:108,getLatestAnswer
-DA:11,9
-DA:15,108
+FNDA:12,setLatestAnswer
+FNDA:109,getLatestAnswer
+DA:11,12
+DA:15,109
 LF:2
 LH:2
 BRF:0
