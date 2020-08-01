@@ -13,6 +13,8 @@ import "./oracles/TcapOracle.sol";
 import "./oracles/ChainlinkOracle.sol";
 
 
+// import "@nomiclabs/buidler/console.sol";
+
 /**
  * @title TCAP.X Vault Handler
  * @author Cristian Espinoza
@@ -38,6 +40,10 @@ abstract contract IVaultHandler is
   event LogSetDivisor(address indexed _owner, uint256 _divisor);
   event LogSetRatio(address indexed _owner, uint256 _ratio);
   event LogSetBurnFee(address indexed _owner, uint256 _burnFee);
+  event LogSetLiquidationPenalty(
+    address indexed _owner,
+    uint256 _liquidationPenalty
+  );
   event LogEnableWhitelist(address indexed _owner, bool _enable);
   event LogCreateVault(address indexed _owner, uint256 indexed _id);
   event LogAddCollateral(
@@ -52,6 +58,12 @@ abstract contract IVaultHandler is
   );
   event LogMint(address indexed _owner, uint256 indexed _id, uint256 _amount);
   event LogBurn(address indexed _owner, uint256 indexed _id, uint256 _amount);
+  event LogLiquidateVault(
+    uint256 indexed _vaultId,
+    address indexed _liquidator,
+    uint256 _liquidationCollateral,
+    uint256 _reward
+  );
   event LogRetrieveFees(address indexed _owner, uint256 _amount);
 
   using SafeMath for uint256;
@@ -86,6 +98,8 @@ abstract contract IVaultHandler is
   uint256 public ratio;
   /** @dev Fee charged when burning TCAP.X Tokens */
   uint256 public burnFee;
+  /** @dev Penalty charged when an account gets liquidated */
+  uint256 public liquidationPenalty;
   /** @dev Flag that allows any users to create vaults*/
   bool public whitelistEnabled;
   mapping(address => uint256) public vaultToUser;
@@ -187,6 +201,20 @@ abstract contract IVaultHandler is
   function setBurnFee(uint256 _burnFee) public virtual onlyOwner {
     burnFee = _burnFee;
     emit LogSetBurnFee(msg.sender, _burnFee);
+  }
+
+  /**
+   * @notice Sets the liquidation penalty % charged on liquidation
+   * @param _liquidationPenalty uint
+   * @dev Only owner can call it
+   */
+  function setLiquidationPenalty(uint256 _liquidationPenalty)
+    public
+    virtual
+    onlyOwner
+  {
+    liquidationPenalty = _liquidationPenalty;
+    emit LogSetLiquidationPenalty(msg.sender, _liquidationPenalty);
   }
 
   /**
@@ -314,13 +342,40 @@ abstract contract IVaultHandler is
     vaultExists
     whenNotPaused
   {
-    Vault storage vault = vaults[vaultToUser[msg.sender]];
-    uint256 fee = getFee(_amount);
-    require(vault.Debt >= _amount, "Amount greater than debt");
-    require(fee == msg.value, "Burn fee different than required");
-    vault.Debt = vault.Debt.sub(_amount);
-    TCAPXToken.burn(msg.sender, _amount);
+    Vault memory vault = vaults[vaultToUser[msg.sender]];
+    _burnFee(_amount);
+    _burn(vault.Id, _amount);
     emit LogBurn(msg.sender, vault.Id, _amount);
+  }
+
+  /**
+   * @notice Allow users to liquidate vaults with low collateral ratio
+   * @param _vaultId to liquidate
+   */
+  function liquidateVault(uint256 _vaultId, uint256 requiredCollateral)
+    public
+    payable
+    nonReentrant
+    whenNotPaused
+  {
+    Vault storage vault = vaults[_vaultId];
+    require(vault.Id != 0, "No Vault created");
+    uint256 vaultRatio = getVaultRatio(vault.Id);
+    require(vaultRatio < ratio, "Vault is not liquidable");
+    uint256 req = requiredLiquidationCollateral(vault.Id);
+    require(
+      requiredCollateral == req,
+      "Liquidation amount different than required"
+    );
+    uint256 reward = liquidationReward(vault.Id);
+    _burnFee(requiredCollateral);
+
+    _burn(vault.Id, requiredCollateral);
+    vault.Collateral = vault.Collateral.sub(reward);
+    collateralContract.transfer(msg.sender, reward);
+    vaultRatio = getVaultRatio(vault.Id);
+    require(vaultRatio >= ratio, "Vault Ratio is less than min ratio");
+    emit LogLiquidateVault(vault.Id, msg.sender, req, reward);
   }
 
   /**
@@ -378,13 +433,44 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Returns the vault object
-   * @param _id Id of the vault
-   * @return id the vault
-   * @return collateral added
-   * @return owner of the vault
-   * @return debt of the vault
+   * @notice Returns the minimal required TCAP.X to liquidate a Vault
+   * @param _vaultId of the vault to liquidate
+   * @return collateral required of the TCAPX Token
    */
+  function requiredLiquidationCollateral(uint256 _vaultId)
+    public
+    virtual
+    view
+    returns (uint256 collateral)
+  {
+    Vault memory vault = vaults[_vaultId];
+    uint256 tcapPrice = TCAPXPrice();
+    uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
+    collateral = vault.Debt.sub(
+      (vault.Collateral.mul(collateralPrice).mul(100)).div(
+        tcapPrice.mul(ratio + liquidationPenalty)
+      )
+    );
+  }
+
+  /**
+   * @notice Returns the minimal required TCAP.X to liquidate a Vault
+   * @param _vaultId of the vault to liquidate
+   * @return reward for liquidating Vault
+   */
+  function liquidationReward(uint256 _vaultId)
+    public
+    virtual
+    view
+    returns (uint256 reward)
+  {
+    uint256 req = requiredLiquidationCollateral(_vaultId);
+    uint256 tcapPrice = TCAPXPrice();
+    uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
+    reward = (((req.mul(liquidationPenalty.add(1))).div(100)).mul(tcapPrice))
+      .div(collateralPrice);
+  }
+
   function getVault(uint256 _id)
     public
     virtual
@@ -400,13 +486,6 @@ abstract contract IVaultHandler is
     return (vault.Id, vault.Collateral, vault.Owner, vault.Debt);
   }
 
-  /**
-   * @notice Returns the current collateralization ratio
-   * @dev is multiplied by 100 to cancel the wei value of the tcapx price
-   * @dev ratio is not 100% accurate as decimals precisions is complicated
-   * @param _vaultId uint of the vault
-   * @return currentRatio
-   */
   function getVaultRatio(uint256 _vaultId)
     public
     virtual
@@ -426,16 +505,22 @@ abstract contract IVaultHandler is
     }
   }
 
-  /**
-   * @notice Calculates the burn fee for a specified amount
-   * @param _amount uint to calculate from
-   * @dev it's divided by 100 to cancel the wei value of the tcapx price
-   * @return fee
-   */
   function getFee(uint256 _amount) public virtual view returns (uint256 fee) {
     uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
     fee = (TCAPXPrice().mul(_amount).mul(burnFee)).div(100).div(
       collateralPrice
     );
+  }
+
+  function _burnFee(uint256 _amount) private {
+    uint256 fee = getFee(_amount);
+    require(fee == msg.value, "Burn fee different than required");
+  }
+
+  function _burn(uint256 _vaultId, uint256 _amount) private {
+    Vault storage vault = vaults[_vaultId];
+    require(vault.Debt >= _amount, "Amount greater than debt");
+    vault.Debt = vault.Debt.sub(_amount);
+    TCAPXToken.burn(msg.sender, _amount);
   }
 }
