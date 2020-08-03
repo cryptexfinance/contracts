@@ -3,24 +3,26 @@ var ethersProvider = require("ethers");
 
 describe("TCAP.x WETH Token Handler", async function () {
 	let wethTokenHandler, wethTokenInstance, tcapInstance, tcapOracleInstance, priceOracleInstance;
-	let [owner, addr1, addr2, addr3] = [];
+	let [owner, addr1, addr2, addr3, lq] = [];
 	let accounts = [];
 	let divisor = "10000000000";
 	let ratio = "150";
 	let burnFee = "1";
+	let liquidationPenalty = "10";
 
 	before("Set Accounts", async () => {
-		let [acc0, acc1, acc3, acc4] = await ethers.getSigners();
+		let [acc0, acc1, acc3, acc4, acc5] = await ethers.getSigners();
 		owner = acc0;
 		addr1 = acc1;
 		addr2 = acc3;
 		addr3 = acc4;
-
+		lq = acc5;
 		if (owner && addr1) {
 			accounts.push(await owner.getAddress());
 			accounts.push(await addr1.getAddress());
 			accounts.push(await addr2.getAddress());
 			accounts.push(await addr3.getAddress());
+			accounts.push(await lq.getAddress());
 		}
 	});
 
@@ -123,6 +125,17 @@ describe("TCAP.x WETH Token Handler", async function () {
 			.withArgs(accounts[0], burnFee);
 		let currentBurnFee = await wethTokenHandler.burnFee();
 		expect(currentBurnFee).to.eq(burnFee);
+	});
+
+	it("...should set the liquidation penalty", async () => {
+		await expect(wethTokenHandler.connect(addr1).setLiquidationPenalty(0)).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(wethTokenHandler.connect(owner).setLiquidationPenalty(liquidationPenalty))
+			.to.emit(wethTokenHandler, "LogSetLiquidationPenalty")
+			.withArgs(accounts[0], liquidationPenalty);
+		let currentLiquidationPenalty = await wethTokenHandler.liquidationPenalty();
+		expect(currentLiquidationPenalty).to.eq(liquidationPenalty);
 	});
 
 	it("...should remove the investors requirement flag", async () => {
@@ -269,7 +282,6 @@ describe("TCAP.x WETH Token Handler", async function () {
 		const bigAmount = ethersProvider.utils.parseEther("100375");
 		let balance = await wethTokenInstance.balanceOf(accounts[1]);
 		expect(balance).to.eq(0);
-		ratio = await wethTokenHandler.getVaultRatio(1);
 
 		await expect(wethTokenHandler.connect(addr3).removeCollateral(amount)).to.be.revertedWith(
 			"No Vault created"
@@ -380,6 +392,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 		const ethHighAmount = ethersProvider.utils.parseEther("50");
 		const reqAmount2 = await wethTokenHandler.requiredCollateral(amount2);
 		const ethAmount = await wethTokenHandler.getFee(amount);
+		const ethAmount2 = await wethTokenHandler.getFee(bigAmount);
 
 		await expect(wethTokenHandler.connect(addr3).burn(amount)).to.be.revertedWith(
 			"No Vault created"
@@ -388,7 +401,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 			"Burn fee different than required"
 		);
 		await expect(
-			wethTokenHandler.connect(addr1).burn(bigAmount, {value: ethAmount})
+			wethTokenHandler.connect(addr1).burn(bigAmount, {value: ethAmount2})
 		).to.be.revertedWith("Amount greater than debt");
 		await expect(
 			wethTokenHandler.connect(addr1).burn(amount, {value: ethHighAmount})
@@ -409,7 +422,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 	});
 
 	it("...should update change the collateral ratio", async () => {
-		ratio = await wethTokenHandler.getVaultRatio(1);
+		let ratio = await wethTokenHandler.getVaultRatio(1);
 		expect(ratio).to.eq(0);
 	});
 
@@ -439,6 +452,97 @@ describe("TCAP.x WETH Token Handler", async function () {
 		ethBalance = await ethers.provider.getBalance(wethTokenHandler.address);
 		expect(ethBalance).to.eq(0);
 	});
-	xit("...should allow users to liquidate investors", async () => {});
-	xit("LIQUIDATION CONFIGURATION TESTS", async () => {});
+
+	it("...should test liquidation requirements", async () => {
+		//Prepare for liquidation tests
+		let amount = ethersProvider.utils.parseEther("10");
+
+		const reqAmount = await wethTokenHandler.requiredCollateral(
+			ethersProvider.utils.parseEther("11")
+		);
+
+		//liquidated
+		await wethTokenHandler.connect(owner).addInvestor(accounts[4]);
+		await wethTokenHandler.connect(lq).createVault();
+		await wethTokenInstance.mint(accounts[4], reqAmount);
+		await wethTokenInstance.connect(lq).approve(wethTokenHandler.address, reqAmount);
+		await wethTokenHandler.connect(lq).addCollateral(reqAmount);
+		await wethTokenHandler.connect(lq).mint(amount);
+		await expect(wethTokenHandler.connect(addr3).liquidateVault(99, 0)).to.be.revertedWith(
+			"No Vault created"
+		);
+		await expect(wethTokenHandler.connect(addr3).liquidateVault(2, 0)).to.be.revertedWith(
+			"Vault is not liquidable"
+		);
+		const totalMarketCap = ethersProvider.utils.parseEther("351300189107");
+		await tcapOracleInstance.connect(owner).setLatestAnswer(totalMarketCap);
+	});
+
+	it("...should get the required collateral for liquidation", async () => {
+		let reqLiquidation = await wethTokenHandler.requiredLiquidationCollateral(2);
+		let liquidationPenalty = await wethTokenHandler.liquidationPenalty();
+		let ratio = await wethTokenHandler.ratio();
+		let collateralPrice = await priceOracleInstance.getLatestAnswer();
+		let tcapPrice = await wethTokenHandler.TCAPXPrice();
+		let vault = await wethTokenHandler.getVault(2);
+
+		let result = vault[1]
+			.mul(collateralPrice)
+			.mul(100)
+			.div(tcapPrice.mul(ratio.add(liquidationPenalty)));
+		result = vault[3].sub(result);
+		expect(result).to.eq(reqLiquidation);
+	});
+
+	it("...should get the liquidation reward", async () => {
+		let reqLiquidation = await wethTokenHandler.requiredLiquidationCollateral(2);
+		let liquidationReward = await wethTokenHandler.liquidationReward(2);
+		let liquidationPenalty = await wethTokenHandler.liquidationPenalty();
+		let collateralPrice = await priceOracleInstance.getLatestAnswer();
+		let tcapPrice = await wethTokenHandler.TCAPXPrice();
+
+		let result = reqLiquidation.mul(liquidationPenalty.add(1)).div(100);
+		result = result.mul(tcapPrice).div(collateralPrice);
+		expect(result).to.eq(liquidationReward);
+	});
+	it("...should allow users to liquidate investors on vault ratio less than ratio", async () => {
+		//liquidator setup
+		let liquidatorAmount = ethersProvider.utils.parseEther("20");
+		const reqLiquidatorAmount = await wethTokenHandler.requiredCollateral(
+			ethersProvider.utils.parseEther("110")
+		);
+		await wethTokenHandler.connect(addr3).createVault();
+		await wethTokenInstance.mint(accounts[3], reqLiquidatorAmount);
+		await wethTokenInstance.connect(addr3).approve(wethTokenHandler.address, reqLiquidatorAmount);
+		await wethTokenHandler.connect(addr3).addCollateral(reqLiquidatorAmount);
+		await wethTokenHandler.connect(addr3).mint(liquidatorAmount);
+
+		let liquidationReward = await wethTokenHandler.liquidationReward(2);
+		let reqLiquidation = await wethTokenHandler.requiredLiquidationCollateral(2);
+		let tcapBalance = await tcapInstance.balanceOf(accounts[3]);
+		let collateralBalance = await wethTokenInstance.balanceOf(accounts[3]);
+		let vault = await wethTokenHandler.getVault(2);
+		const burnAmount = await wethTokenHandler.getFee(reqLiquidation);
+		await expect(
+			wethTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation)
+		).to.be.revertedWith("Burn fee different than required");
+		await expect(
+			wethTokenHandler.connect(addr3).liquidateVault(2, 1, {value: burnAmount})
+		).to.be.revertedWith("Liquidation amount different than required");
+		await expect(
+			wethTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation, {value: burnAmount})
+		)
+			.to.emit(wethTokenHandler, "LogLiquidateVault")
+			.withArgs(2, accounts[3], reqLiquidation, liquidationReward);
+
+		let vaultRatio = await wethTokenHandler.getVaultRatio(2);
+		let newTcapBalance = await tcapInstance.balanceOf(accounts[3]);
+		let newCollateralBalance = await wethTokenInstance.balanceOf(accounts[3]);
+		let updatedVault = await wethTokenHandler.getVault(2);
+		expect(updatedVault[1]).to.eq(vault[1].sub(liquidationReward));
+		expect(updatedVault[3]).to.eq(vault[3].sub(reqLiquidation));
+		expect(newCollateralBalance).to.eq(collateralBalance.add(liquidationReward));
+		expect(tcapBalance).to.eq(newTcapBalance.add(reqLiquidation)); //increase earnings
+		expect(vaultRatio).to.be.gte(parseInt(ratio)); // set vault back to ratio
+	});
 });

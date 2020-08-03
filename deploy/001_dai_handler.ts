@@ -12,7 +12,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 				const deployResult = await deployIfDifferent(
 					["data"],
 					"DAIVaultHandler",
-					{from: deployer, gas: 5000000},
+					{from: deployer, gas: 8000000},
 					"VaultHandler"
 				);
 				handlerContract = await deployments.get("DAIVaultHandler");

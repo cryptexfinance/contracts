@@ -12,6 +12,7 @@ module.exports = async ({deployments}: any) => {
 		let divisor = process.env.DIVISOR as string;
 		let ratio = process.env.RATIO as string;
 		let burnFee = process.env.BURN_FEE as string;
+		let liquidationPenalty = process.env.LIQUIDATION_PENALTY as string;
 		let whitelistString = process.env.WHITELIST as string;
 		let whitelist = true;
 		if (whitelistString == "false") {
@@ -72,6 +73,11 @@ module.exports = async ({deployments}: any) => {
 		await dai.setBurnFee(burnFee);
 		await btc.setBurnFee(burnFee);
 		await weth.setBurnFee(burnFee);
+
+		console.log("setting liquidation penalty", liquidationPenalty);
+		await dai.setLiquidationPenalty(liquidationPenalty);
+		await btc.setLiquidationPenalty(liquidationPenalty);
+		await weth.setLiquidationPenalty(liquidationPenalty);
 
 		console.log("setting TCAP oracle", tcapOracle.address);
 		await dai.setTCAPOracle(tcapOracle.address);
