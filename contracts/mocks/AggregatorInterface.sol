@@ -3,7 +3,7 @@ pragma solidity >=0.6.0;
 
 
 contract AggregatorInterface {
-  int256 value = 23974000000;
+  int256 value = 39752768946;
 
   function latestAnswer() public virtual view returns (int256) {
     return value;

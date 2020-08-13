@@ -12,8 +12,8 @@ import "./TCAPX.sol";
 import "./oracles/TcapOracle.sol";
 import "./oracles/ChainlinkOracle.sol";
 
+import "@nomiclabs/buidler/console.sol";
 
-// import "@nomiclabs/buidler/console.sol";
 
 /**
  * @title TCAP.X Vault Handler
@@ -351,6 +351,7 @@ abstract contract IVaultHandler is
   /**
    * @notice Allow users to liquidate vaults with low collateral ratio
    * @param _vaultId to liquidate
+   * TODO: do something about undercollateralized account
    */
   function liquidateVault(uint256 _vaultId, uint256 requiredCollateral)
     public
@@ -369,12 +370,9 @@ abstract contract IVaultHandler is
     );
     uint256 reward = liquidationReward(vault.Id);
     _burnFee(requiredCollateral);
-
     _burn(vault.Id, requiredCollateral);
     vault.Collateral = vault.Collateral.sub(reward);
     collateralContract.transfer(msg.sender, reward);
-    vaultRatio = getVaultRatio(vault.Id);
-    require(vaultRatio >= ratio, "Vault Ratio is less than min ratio");
     emit LogLiquidateVault(vault.Id, msg.sender, req, reward);
   }
 
@@ -446,29 +444,33 @@ abstract contract IVaultHandler is
     Vault memory vault = vaults[_vaultId];
     uint256 tcapPrice = TCAPXPrice();
     uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
-    collateral = vault.Debt.sub(
-      (vault.Collateral.mul(collateralPrice).mul(100)).div(
-        tcapPrice.mul(ratio + liquidationPenalty)
-      )
+    uint256 collateralTcap = (vault.Collateral.mul(collateralPrice)).div(
+      tcapPrice
     );
+    uint256 reqDividend = (
+      ((vault.Debt.mul(ratio)).div(100)).sub(collateralTcap)
+    )
+      .mul(100);
+    uint256 reqDivisor = ratio.sub(liquidationPenalty.add(100));
+    collateral = reqDividend.div(reqDivisor);
   }
 
   /**
    * @notice Returns the minimal required TCAP.X to liquidate a Vault
    * @param _vaultId of the vault to liquidate
-   * @return reward for liquidating Vault
+   * @return rewardCollateral for liquidating Vault
    */
   function liquidationReward(uint256 _vaultId)
     public
     virtual
     view
-    returns (uint256 reward)
+    returns (uint256 rewardCollateral)
   {
     uint256 req = requiredLiquidationCollateral(_vaultId);
     uint256 tcapPrice = TCAPXPrice();
     uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
-    reward = (((req.mul(liquidationPenalty.add(1))).div(100)).mul(tcapPrice))
-      .div(collateralPrice);
+    uint256 reward = (req.mul(liquidationPenalty.add(100))).div(100);
+    rewardCollateral = (reward.mul(tcapPrice)).div(collateralPrice);
   }
 
   function getVault(uint256 _id)
