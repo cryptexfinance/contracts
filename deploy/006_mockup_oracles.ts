@@ -1,5 +1,6 @@
 import {buidlerArguments} from "@nomiclabs/buidler";
 require("dotenv").config();
+//TODO: TCAP Oracle shouldn't change
 module.exports = async ({getNamedAccounts, deployments}: any) => {
 	if (buidlerArguments.network === "rinkeby" || buidlerArguments.network === "ganache") {
 		const {deployIfDifferent, log} = deployments;

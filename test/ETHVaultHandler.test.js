@@ -38,7 +38,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 		const collateralOracle = await ethers.getContractFactory("ChainlinkOracle");
 		const aggregator = await ethers.getContractFactory("AggregatorInterface");
 		let aggregatorInstance = await aggregator.deploy();
-		const totalMarketCap = ethersProvider.utils.parseEther("251300189107");
+		const totalMarketCap = ethersProvider.utils.parseEther("328488279516");
 		tcapOracleInstance = await oracle.deploy();
 		await tcapOracleInstance.deployed();
 		tcapOracleInstance.setLatestAnswer(totalMarketCap);
@@ -474,7 +474,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 		await expect(wethTokenHandler.connect(addr3).liquidateVault(2, 0)).to.be.revertedWith(
 			"Vault is not liquidable"
 		);
-		const totalMarketCap = ethersProvider.utils.parseEther("351300189107");
+		const totalMarketCap = ethersProvider.utils.parseEther("368488279516");
 		await tcapOracleInstance.connect(owner).setLatestAnswer(totalMarketCap);
 	});
 
@@ -485,12 +485,10 @@ describe("TCAP.x WETH Token Handler", async function () {
 		let collateralPrice = await priceOracleInstance.getLatestAnswer();
 		let tcapPrice = await wethTokenHandler.TCAPXPrice();
 		let vault = await wethTokenHandler.getVault(2);
-
-		let result = vault[1]
-			.mul(collateralPrice)
-			.mul(100)
-			.div(tcapPrice.mul(ratio.add(liquidationPenalty)));
-		result = vault[3].sub(result);
+		let collateralTcap = vault[1].mul(collateralPrice).div(tcapPrice);
+		let reqDividend = vault[3].mul(ratio).div(100).sub(collateralTcap).mul(100);
+		let reqDivisor = ratio.sub(liquidationPenalty.add(100));
+		let result = reqDividend.div(reqDivisor);
 		expect(result).to.eq(reqLiquidation);
 	});
 
@@ -501,11 +499,28 @@ describe("TCAP.x WETH Token Handler", async function () {
 		let collateralPrice = await priceOracleInstance.getLatestAnswer();
 		let tcapPrice = await wethTokenHandler.TCAPXPrice();
 
-		let result = reqLiquidation.mul(liquidationPenalty.add(1)).div(100);
+		let result = reqLiquidation.mul(liquidationPenalty.add(100)).div(100);
 		result = result.mul(tcapPrice).div(collateralPrice);
 		expect(result).to.eq(liquidationReward);
 	});
+
+	it("...should allow liquidators to return profits", async () => {
+		const divisor = ethersProvider.utils.parseEther("1");
+		const liquidationReward = await wethTokenHandler.liquidationReward(2);
+		const reqLiquidation = await wethTokenHandler.requiredLiquidationCollateral(2);
+		const tcapPrice = await wethTokenHandler.TCAPXPrice();
+		const collateralPrice = await priceOracleInstance.getLatestAnswer();
+		const rewardUSD = liquidationReward.mul(collateralPrice).div(divisor);
+		const collateralUSD = reqLiquidation.mul(tcapPrice).div(divisor);
+		expect(rewardUSD).to.be.gte(
+			collateralUSD,
+			"reward should be greater than collateral paid to liquidate"
+		);
+	});
 	it("...should allow users to liquidate investors on vault ratio less than ratio", async () => {
+		let vaultRatio = await wethTokenHandler.getVaultRatio(2);
+		let ethBalance = await ethers.provider.getBalance(wethTokenHandler.address);
+
 		//liquidator setup
 		let liquidatorAmount = ethersProvider.utils.parseEther("20");
 		const reqLiquidatorAmount = await wethTokenHandler.requiredCollateral(
@@ -535,10 +550,12 @@ describe("TCAP.x WETH Token Handler", async function () {
 			.to.emit(wethTokenHandler, "LogLiquidateVault")
 			.withArgs(2, accounts[3], reqLiquidation, liquidationReward);
 
-		let vaultRatio = await wethTokenHandler.getVaultRatio(2);
+		vaultRatio = await wethTokenHandler.getVaultRatio(2);
 		let newTcapBalance = await tcapInstance.balanceOf(accounts[3]);
 		let newCollateralBalance = await wethTokenInstance.balanceOf(accounts[3]);
 		let updatedVault = await wethTokenHandler.getVault(2);
+		let currentEthBalance = await ethers.provider.getBalance(wethTokenHandler.address);
+		expect(ethBalance.add(burnAmount)).to.eq(currentEthBalance);
 		expect(updatedVault[1]).to.eq(vault[1].sub(liquidationReward));
 		expect(updatedVault[3]).to.eq(vault[3].sub(reqLiquidation));
 		expect(newCollateralBalance).to.eq(collateralBalance.add(liquidationReward));
