@@ -77,8 +77,8 @@ abstract contract IVaultHandler is
   struct Vault {
     uint256 Id;
     uint256 Collateral;
-    address Owner;
     uint256 Debt;
+    address Owner;
   }
   /** @dev TCAP Token Address */
   TCAPX public TCAPXToken;

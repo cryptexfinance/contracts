@@ -19,6 +19,10 @@ const config: BuidlerConfig = {
 	},
 	solc: {
 		version: "0.6.8",
+		optimizer: {
+			enabled: true,
+			runs: 200,
+		},
 	},
 	networks: {
 		buidlerevm: {},
