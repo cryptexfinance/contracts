@@ -253,7 +253,7 @@ abstract contract IVaultHandler is
     require(vaultToUser[msg.sender] == 0, "Vault already created");
     uint256 id = counter.current();
     vaultToUser[msg.sender] = id;
-    Vault memory vault = Vault(id, 0, msg.sender, 0);
+    Vault memory vault = Vault(id, 0, 0, msg.sender);
     vaults[id] = vault;
     counter.increment();
     emit LogCreateVault(msg.sender, id);
@@ -319,7 +319,7 @@ abstract contract IVaultHandler is
     whenNotPaused
   {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
-    uint256 requiredCollateral = requiredCollateral(_amount); // TODO: rename to collateral for mint
+    uint256 requiredCollateral = requiredCollateral(_amount);
     require(vault.Collateral >= requiredCollateral, "Not enough collateral");
     vault.Debt = vault.Debt.add(_amount);
     require(
