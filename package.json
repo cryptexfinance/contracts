@@ -7,7 +7,7 @@
 	"author": "@crisgarner",
 	"scripts": {
 		"build": "npm run typechain",
-		"test": "npx buidler test ./test/ETHVaultHandler.test.js",
+		"test": "npx buidler test",
 		"coverage": "npx buidler coverage",
 		"typechain": "npx buidler compile && typechain --outDir typechain --target ethers 'artifacts/*.json'",
 		"deploy": "npx buidler deploy"

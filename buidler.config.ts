@@ -46,7 +46,7 @@ const config: BuidlerConfig = {
 	gasReporter: {
 		enabled: process.env.REPORT_GAS == "true" ? true : false,
 		currency: "USD",
-		gasPrice: 21,
+		gasPrice: 152,
 		coinmarketcap: process.env.COIN_API as string,
 	},
 };

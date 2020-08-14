@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for contracts/mocks/PriceFeed.sol</title>
+    <title>Code coverage report for contracts/mocks/WBTC.sol</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -16,13 +16,13 @@
 <div class='wrapper'>
   <div class='pad1'>
     <h1>
-      <a href="../../index.html">all files</a> / <a href="index.html">contracts/mocks/</a> PriceFeed.sol
+      <a href="../../index.html">all files</a> / <a href="index.html">contracts/mocks/</a> WBTC.sol
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
         <span class="strong">0% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>0/4</span>
+        <span class='fraction'>0/2</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
@@ -32,12 +32,12 @@
       <div class='fl pad1y space-right2'>
         <span class="strong">0% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>0/2</span>
+        <span class='fraction'>0/3</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">0% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>0/4</span>
+        <span class='fraction'>0/2</span>
       </div>
     </div>
   </div>
@@ -62,21 +62,11 @@
 17
 18
 19
-20
-21
-22
-23
-24</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+20</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -85,31 +75,29 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: UNLICENSED
+/** @notice this contract is for tests only */
+&nbsp;
 pragma solidity ^0.6.8;
 &nbsp;
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 &nbsp;
-contract PriceFeed {
-  uint256 val;
-  uint32 public zzz;
-  address public med;
 &nbsp;
-<span class="fstat-no" title="function not covered" >  function read() public view returns (bytes32) </span>{
-<span class="cstat-no" title="statement not covered" >    return bytes32(val);</span>
+contract WBTC is ERC20 {
+  co</span>nstructor() public ERC20("Mockup WBTC", "mWBTC"<span class="fstat-no" title="function not covered" >) {}
+&nbsp;
+<span class="fstat-no" title="function not covered" >  function mint(address _account, uint256 _amount) public </span>{
+<span class="cstat-no" title="statement not covered" >    _mint(_account, _amount)</span>;
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  function post(</span>
-    uint256 val_,
-    uint32 zzz_,
-    address med_
-  ) public virtual {
-<span class="cstat-no" title="statement not covered" >    val = val_</span>;
-<span class="cstat-no" title="statement not covered" >    zzz = zzz_</span>;
-<span class="cstat-no" title="statement not covered" >    med = med_</span>;
+<span class="fstat-no" title="function not covered" >  function burn(address _account, uint256 _amount) public </span>{
+<span class="cstat-no" title="statement not covered" >    _burn(_account, _amount)</span>;
   }
 }
 &nbsp;</pre></td></tr>

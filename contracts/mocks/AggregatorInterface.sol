@@ -9,22 +9,6 @@ contract AggregatorInterface {
     return value;
   }
 
-  function latestTimestamp() public virtual view returns (uint256) {
-    return 0;
-  }
-
-  function latestRound() public virtual view returns (uint256) {
-    return 0;
-  }
-
-  function getAnswer(uint256 roundId) public virtual view returns (int256) {
-    return 0;
-  }
-
-  function getTimestamp(uint256 roundId) public virtual view returns (uint256) {
-    return 0;
-  }
-
   event AnswerUpdated(
     int256 indexed current,
     uint256 indexed roundId,

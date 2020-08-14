@@ -562,4 +562,42 @@ describe("TCAP.x WETH Token Handler", async function () {
 		expect(tcapBalance).to.eq(newTcapBalance.add(reqLiquidation)); //increase earnings
 		expect(vaultRatio).to.be.gte(parseInt(ratio)); // set vault back to ratio
 	});
+
+	it("...should allow owner to pause contract", async () => {
+		await expect(wethTokenHandler.connect(addr1).pause()).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(wethTokenHandler.connect(owner).pause())
+			.to.emit(wethTokenHandler, "Paused")
+			.withArgs(accounts[0]);
+		let paused = await wethTokenHandler.paused();
+		expect(paused).to.eq(true);
+	});
+
+	it("... shouldn't allow contract calls if contract is paused", async () => {
+		await expect(wethTokenHandler.connect(addr1).createVault()).to.be.revertedWith(
+			"Pausable: paused"
+		);
+		await expect(wethTokenHandler.connect(addr1).addCollateral(0)).to.be.revertedWith(
+			"Pausable: paused"
+		);
+		await expect(wethTokenHandler.connect(addr1).mint(0)).to.be.revertedWith("Pausable: paused");
+		await expect(wethTokenHandler.connect(addr1).removeCollateral(0)).to.be.revertedWith(
+			"Pausable: paused"
+		);
+	});
+
+	it("...should allow owner to unpause contract", async () => {
+		await expect(wethTokenHandler.connect(addr1).unpause()).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(wethTokenHandler.connect(owner).unpause())
+			.to.emit(wethTokenHandler, "Unpaused")
+			.withArgs(accounts[0]);
+		let paused = await wethTokenHandler.paused();
+		expect(paused).to.eq(false);
+		await expect(wethTokenHandler.connect(addr1).removeCollateral(0))
+			.to.emit(wethTokenHandler, "LogRemoveCollateral")
+			.withArgs(accounts[1], 1, 0);
+	});
 });

@@ -3,5 +3,10 @@ module.exports = {
 	providerOptions: {
 		mnemonic: "fetch local valve black attend double eye excite planet primary install allow",
 	},
-	skipFiles: ["/mocks/Oracle.sol", "/mocks/Stablecoin.sol", "/mocks/"],
+	skipFiles: [
+		"/oracles/ChainlinkOracle.sol",
+		"/mocks/Oracle.sol",
+		"/mocks/Stablecoin.sol",
+		"/mocks/",
+	],
 };

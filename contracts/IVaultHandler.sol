@@ -12,8 +12,8 @@ import "./TCAPX.sol";
 import "./oracles/TcapOracle.sol";
 import "./oracles/ChainlinkOracle.sol";
 
-import "@nomiclabs/buidler/console.sol";
 
+// import "@nomiclabs/buidler/console.sol";
 
 /**
  * @title TCAP.X Vault Handler
@@ -514,12 +514,12 @@ abstract contract IVaultHandler is
     );
   }
 
-  function _burnFee(uint256 _amount) private {
+  function _burnFee(uint256 _amount) internal {
     uint256 fee = getFee(_amount);
     require(fee == msg.value, "Burn fee different than required");
   }
 
-  function _burn(uint256 _vaultId, uint256 _amount) private {
+  function _burn(uint256 _vaultId, uint256 _amount) internal {
     Vault storage vault = vaults[_vaultId];
     require(vault.Debt >= _amount, "Amount greater than debt");
     vault.Debt = vault.Debt.sub(_amount);
