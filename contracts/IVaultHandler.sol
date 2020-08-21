@@ -37,6 +37,10 @@ abstract contract IVaultHandler is
     address indexed _owner,
     ChainlinkOracle _priceOracle
   );
+  event LogSetETHPriceOracle(
+    address indexed _owner,
+    ChainlinkOracle _priceOracle
+  );
   event LogSetDivisor(address indexed _owner, uint256 _divisor);
   event LogSetRatio(address indexed _owner, uint256 _ratio);
   event LogSetBurnFee(address indexed _owner, uint256 _burnFee);
@@ -88,6 +92,8 @@ abstract contract IVaultHandler is
   ERC20 public collateralContract;
   /** @dev Collateral Oracle Address*/
   ChainlinkOracle public collateralPriceOracle;
+  /** @dev Collateral Oracle Address*/
+  ChainlinkOracle public ETHPriceOracle;
 
   /**
    * @notice divisor value to set the TCAP.X price
@@ -171,6 +177,16 @@ abstract contract IVaultHandler is
   {
     collateralPriceOracle = _collateral;
     emit LogSetCollateralPriceOracle(msg.sender, _collateral);
+  }
+
+  /**
+   * @notice Sets the address of the oracle contract for the ETH price feed
+   * @param _ethPriceOracle address
+   * @dev Only owner can call it
+   */
+  function setETHPriceOracle(ChainlinkOracle _ethPriceOracle) public onlyOwner {
+    ETHPriceOracle = _ethPriceOracle;
+    emit LogSetETHPriceOracle(msg.sender, _ethPriceOracle);
   }
 
   /**
@@ -508,10 +524,8 @@ abstract contract IVaultHandler is
   }
 
   function getFee(uint256 _amount) public virtual view returns (uint256 fee) {
-    uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
-    fee = (TCAPXPrice().mul(_amount).mul(burnFee)).div(100).div(
-      collateralPrice
-    );
+    uint256 ethPrice = ETHPriceOracle.getLatestAnswer();
+    fee = (TCAPXPrice().mul(_amount).mul(burnFee)).div(100).div(ethPrice);
   }
 
   function _burnFee(uint256 _amount) internal {

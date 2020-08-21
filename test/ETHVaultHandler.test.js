@@ -71,6 +71,18 @@ describe("TCAP.x WETH Token Handler", async function () {
 		expect(currentOracle).to.eq(tcapOracleInstance.address);
 	});
 
+	it("...should set the eth feed oracle", async () => {
+		//Same as Collateral as we are using ETH and WETH
+		await expect(wethTokenHandler.connect(addr1).setETHPriceOracle(accounts[1])).to.be.revertedWith(
+			"Ownable: caller is not the owner"
+		);
+		await expect(wethTokenHandler.connect(owner).setETHPriceOracle(priceOracleInstance.address))
+			.to.emit(wethTokenHandler, "LogSetETHPriceOracle")
+			.withArgs(accounts[0], priceOracleInstance.address);
+		let currentPriceOracle = await wethTokenHandler.ETHPriceOracle();
+		expect(currentPriceOracle).to.eq(priceOracleInstance.address);
+	});
+
 	it("...should set the collateral feed oracle", async () => {
 		await expect(
 			wethTokenHandler.connect(addr1).setCollateralPriceOracle(accounts[1])
