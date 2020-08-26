@@ -9,11 +9,10 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "./TCAPX.sol";
-import "./oracles/TcapOracle.sol";
 import "./oracles/ChainlinkOracle.sol";
 
+import "@nomiclabs/buidler/console.sol";
 
-// import "@nomiclabs/buidler/console.sol";
 
 /**
  * @title TCAP.X Vault Handler
@@ -28,7 +27,7 @@ abstract contract IVaultHandler is
 {
   /** @dev Logs all the calls of the functions. */
   event LogSetTCAPXContract(address indexed _owner, TCAPX _token);
-  event LogSetTCAPOracle(address indexed _owner, TcapOracle _oracle);
+  event LogSetTCAPOracle(address indexed _owner, ChainlinkOracle _oracle);
   event LogSetCollateralContract(
     address indexed _owner,
     ERC20 _collateralContract
@@ -87,7 +86,7 @@ abstract contract IVaultHandler is
   /** @dev TCAP Token Address */
   TCAPX public TCAPXToken;
   /** @dev Total Market Cap Oracle */
-  TcapOracle public tcapOracle;
+  ChainlinkOracle public tcapOracle;
   /** @dev Collateral Token Address*/
   ERC20 public collateralContract;
   /** @dev Collateral Oracle Address*/
@@ -147,7 +146,7 @@ abstract contract IVaultHandler is
    * @param _oracle address
    * @dev Only owner can call it
    */
-  function setTCAPOracle(TcapOracle _oracle) public virtual onlyOwner {
+  function setTCAPOracle(ChainlinkOracle _oracle) public virtual onlyOwner {
     tcapOracle = _oracle;
     emit LogSetTCAPOracle(msg.sender, _oracle);
   }

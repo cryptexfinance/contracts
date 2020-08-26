@@ -2,7 +2,12 @@ var expect = require("chai").expect;
 var ethersProvider = require("ethers");
 
 describe("TCAP.x WETH Token Handler", async function () {
-	let wethTokenHandler, wethTokenInstance, tcapInstance, tcapOracleInstance, priceOracleInstance;
+	let wethTokenHandler,
+		wethTokenInstance,
+		tcapInstance,
+		tcapOracleInstance,
+		priceOracleInstance,
+		aggregatorTCAPInstance;
 	let [owner, addr1, addr2, addr3, lq] = [];
 	let accounts = [];
 	let divisor = "10000000000";
@@ -34,15 +39,14 @@ describe("TCAP.x WETH Token Handler", async function () {
 		wethTokenHandler = await wethVault.deploy();
 		await wethTokenHandler.deployed();
 		expect(wethTokenHandler.address).properAddress;
-		const oracle = await ethers.getContractFactory("TcapOracle");
 		const collateralOracle = await ethers.getContractFactory("ChainlinkOracle");
+		const oracle = await ethers.getContractFactory("ChainlinkOracle");
 		const aggregator = await ethers.getContractFactory("AggregatorInterface");
+		const aggregatorTcap = await ethers.getContractFactory("AggregatorInterfaceTCAP");
 		let aggregatorInstance = await aggregator.deploy();
-		const totalMarketCap = ethersProvider.utils.parseEther("328488279516");
-		tcapOracleInstance = await oracle.deploy();
-		await tcapOracleInstance.deployed();
-		tcapOracleInstance.setLatestAnswer(totalMarketCap);
+		aggregatorTCAPInstance = await aggregatorTcap.deploy();
 		priceOracleInstance = await collateralOracle.deploy(aggregatorInstance.address);
+		tcapOracleInstance = await oracle.deploy(aggregatorTCAPInstance.address);
 		await priceOracleInstance.deployed();
 		await tcapInstance.addTokenHandler(wethTokenHandler.address);
 		const weth = await ethers.getContractFactory("WETH");
@@ -486,8 +490,8 @@ describe("TCAP.x WETH Token Handler", async function () {
 		await expect(wethTokenHandler.connect(addr3).liquidateVault(2, 0)).to.be.revertedWith(
 			"Vault is not liquidable"
 		);
-		const totalMarketCap = ethersProvider.utils.parseEther("368488279516");
-		await tcapOracleInstance.connect(owner).setLatestAnswer(totalMarketCap);
+		const totalMarketCap = "43129732288636297500";
+		await aggregatorTCAPInstance.connect(owner).setLatestAnswer(totalMarketCap);
 	});
 
 	it("...should get the required collateral for liquidation", async () => {
