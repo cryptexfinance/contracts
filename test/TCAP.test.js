@@ -1,7 +1,7 @@
 var expect = require("chai").expect;
 var ethersProvider = require("ethers");
 
-describe("TCAP.x Token", async function () {
+describe("TCAP Token", async function () {
 	let tcapInstance;
 	let [owner, addr1, handler, handler2] = [];
 	let accounts = [];
@@ -23,8 +23,8 @@ describe("TCAP.x Token", async function () {
 
 	it("...should deploy the contract", async () => {
 		let cap = ethers.utils.parseEther("100");
-		const TCAPX = await ethers.getContractFactory("TCAPX");
-		tcapInstance = await TCAPX.deploy("TCAP.X", "TCAPX", cap);
+		const TCAP = await ethers.getContractFactory("TCAP");
+		tcapInstance = await TCAP.deploy("Total Market Cap Token", "TCAP", cap);
 		await tcapInstance.deployed();
 		expect(tcapInstance.address).properAddress;
 	});
@@ -36,8 +36,8 @@ describe("TCAP.x Token", async function () {
 		const defaultOwner = await tcapInstance.owner();
 		const cap = await tcapInstance.cap();
 		expect(defaultOwner).to.eq(accounts[0]);
-		expect(symbol).to.eq("TCAPX", "Symbol should equal TCAPX");
-		expect(name).to.eq("TCAP.X");
+		expect(symbol).to.eq("TCAP", "Symbol should equal TCAP");
+		expect(name).to.eq("Total Market Cap Token");
 		expect(decimals).to.eq(18, "Decimals should be 18");
 		expect(cap).to.eq(ethers.utils.parseEther("100"), "Cap should be 100 Tokens");
 	});

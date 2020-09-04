@@ -1,7 +1,7 @@
 var expect = require("chai").expect;
 var ethersProvider = require("ethers");
 
-describe("TCAP.x WETH Token Handler", async function () {
+describe("WETH Vault", async function () {
 	let wethTokenHandler,
 		wethTokenInstance,
 		tcapInstance,
@@ -32,8 +32,8 @@ describe("TCAP.x WETH Token Handler", async function () {
 	});
 
 	it("...should deploy the contract", async () => {
-		const TCAPX = await ethers.getContractFactory("TCAPX");
-		tcapInstance = await TCAPX.deploy("TCAP.X", "TCAPX", 18);
+		const TCAP = await ethers.getContractFactory("TCAP");
+		tcapInstance = await TCAP.deploy("Total Market Cap Token", "TCAP", 18);
 		await tcapInstance.deployed();
 		const wethVault = await ethers.getContractFactory("VaultHandler");
 		wethTokenHandler = await wethVault.deploy();
@@ -53,15 +53,15 @@ describe("TCAP.x WETH Token Handler", async function () {
 		wethTokenInstance = await weth.deploy();
 	});
 
-	it("...should set the tcap.x contract", async () => {
-		await expect(wethTokenHandler.connect(addr1).setTCAPXContract(accounts[1])).to.be.revertedWith(
+	it("...should set the TCAP Token contract", async () => {
+		await expect(wethTokenHandler.connect(addr1).setTCAPContract(accounts[1])).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(wethTokenHandler.connect(owner).setTCAPXContract(tcapInstance.address))
-			.to.emit(wethTokenHandler, "LogSetTCAPXContract")
+		await expect(wethTokenHandler.connect(owner).setTCAPContract(tcapInstance.address))
+			.to.emit(wethTokenHandler, "LogSetTCAPContract")
 			.withArgs(accounts[0], tcapInstance.address);
-		let currentTCAPX = await wethTokenHandler.TCAPXToken();
-		expect(currentTCAPX).to.eq(tcapInstance.address);
+		let currentTCAP = await wethTokenHandler.TCAPToken();
+		expect(currentTCAP).to.eq(tcapInstance.address);
 	});
 
 	it("...should set the oracle contract", async () => {
@@ -171,10 +171,10 @@ describe("TCAP.x WETH Token Handler", async function () {
 	});
 
 	it("...should return the token price", async () => {
-		let tcapxPrice = await wethTokenHandler.TCAPXPrice();
+		let tcapPrice = await wethTokenHandler.TCAPPrice();
 		let totalMarketCap = await tcapOracleInstance.getLatestAnswer();
 		let result = totalMarketCap.div(divisor);
-		expect(tcapxPrice).to.eq(result);
+		expect(tcapPrice).to.eq(result);
 	});
 
 	it("...should allow owner to add investor to whitelist", async () => {
@@ -334,7 +334,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 		let amount = ethersProvider.utils.parseEther("1");
 		const reqAmount = await wethTokenHandler.requiredCollateral(amount);
 		const ethPrice = await priceOracleInstance.getLatestAnswer();
-		const tcapPrice = await wethTokenHandler.TCAPXPrice();
+		const tcapPrice = await wethTokenHandler.TCAPPrice();
 		const ratio = await wethTokenHandler.ratio();
 		let result = tcapPrice.mul(amount).mul(ratio).div(100).div(ethPrice);
 		expect(reqAmount).to.eq(result);
@@ -348,8 +348,8 @@ describe("TCAP.x WETH Token Handler", async function () {
 		const reqAmount2 = await wethTokenHandler.requiredCollateral(amount2);
 
 		await wethTokenInstance.mint(accounts[1], reqAmount2);
-		let tcapxBalance = await tcapInstance.balanceOf(accounts[1]);
-		expect(tcapxBalance).to.eq(0);
+		let tcapBalance = await tcapInstance.balanceOf(accounts[1]);
+		expect(tcapBalance).to.eq(0);
 		await wethTokenInstance.connect(addr1).approve(wethTokenHandler.address, reqAmount2);
 		await wethTokenHandler.connect(addr1).addCollateral(reqAmount2);
 		await expect(wethTokenHandler.connect(addr3).mint(amount)).to.be.revertedWith(
@@ -361,8 +361,8 @@ describe("TCAP.x WETH Token Handler", async function () {
 		await expect(wethTokenHandler.connect(addr1).mint(amount))
 			.to.emit(wethTokenHandler, "LogMint")
 			.withArgs(accounts[1], 1, amount);
-		tcapxBalance = await tcapInstance.balanceOf(accounts[1]);
-		expect(tcapxBalance).to.eq(amount);
+		tcapBalance = await tcapInstance.balanceOf(accounts[1]);
+		expect(tcapBalance).to.eq(amount);
 		vault = await wethTokenHandler.getVault(1);
 		expect(vault[0]).to.eq(1);
 		expect(vault[1]).to.eq(reqAmount2);
@@ -390,7 +390,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 	it("...should calculate the burn fee", async () => {
 		let amount = ethersProvider.utils.parseEther("10");
 		let divisor = 100;
-		let tcapPrice = await wethTokenHandler.TCAPXPrice();
+		let tcapPrice = await wethTokenHandler.TCAPPrice();
 		let ethPrice = await priceOracleInstance.getLatestAnswer();
 		let result = tcapPrice.mul(amount).div(divisor).div(ethPrice);
 		let fee = await wethTokenHandler.getFee(amount);
@@ -425,8 +425,8 @@ describe("TCAP.x WETH Token Handler", async function () {
 		await expect(wethTokenHandler.connect(addr1).burn(amount, {value: ethAmount}))
 			.to.emit(wethTokenHandler, "LogBurn")
 			.withArgs(accounts[1], 1, amount);
-		let tcapxBalance = await tcapInstance.balanceOf(accounts[1]);
-		expect(tcapxBalance).to.eq(0);
+		let tcapBalance = await tcapInstance.balanceOf(accounts[1]);
+		expect(tcapBalance).to.eq(0);
 		vault = await wethTokenHandler.getVault(1);
 		expect(vault[0]).to.eq(1);
 		expect(vault[1]).to.eq(reqAmount2);
@@ -499,7 +499,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 		let liquidationPenalty = await wethTokenHandler.liquidationPenalty();
 		let ratio = await wethTokenHandler.ratio();
 		let collateralPrice = await priceOracleInstance.getLatestAnswer();
-		let tcapPrice = await wethTokenHandler.TCAPXPrice();
+		let tcapPrice = await wethTokenHandler.TCAPPrice();
 		let vault = await wethTokenHandler.getVault(2);
 		let collateralTcap = vault[1].mul(collateralPrice).div(tcapPrice);
 		let reqDividend = vault[3].mul(ratio).div(100).sub(collateralTcap).mul(100);
@@ -513,7 +513,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 		let liquidationReward = await wethTokenHandler.liquidationReward(2);
 		let liquidationPenalty = await wethTokenHandler.liquidationPenalty();
 		let collateralPrice = await priceOracleInstance.getLatestAnswer();
-		let tcapPrice = await wethTokenHandler.TCAPXPrice();
+		let tcapPrice = await wethTokenHandler.TCAPPrice();
 
 		let result = reqLiquidation.mul(liquidationPenalty.add(100)).div(100);
 		result = result.mul(tcapPrice).div(collateralPrice);
@@ -524,7 +524,7 @@ describe("TCAP.x WETH Token Handler", async function () {
 		const divisor = ethersProvider.utils.parseEther("1");
 		const liquidationReward = await wethTokenHandler.liquidationReward(2);
 		const reqLiquidation = await wethTokenHandler.requiredLiquidationCollateral(2);
-		const tcapPrice = await wethTokenHandler.TCAPXPrice();
+		const tcapPrice = await wethTokenHandler.TCAPPrice();
 		const collateralPrice = await priceOracleInstance.getLatestAnswer();
 		const rewardUSD = liquidationReward.mul(collateralPrice).div(divisor);
 		const collateralUSD = reqLiquidation.mul(tcapPrice).div(divisor);

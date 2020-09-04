@@ -6,11 +6,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 
 /**
- * @title TCAP.X
+ * @title Total Market Cap Token
  * @author Cristian Espinoza
  * @notice ERC20 token on the Ethereum Blockchain that provides total exposure to the cryptocurrency sector
  */
-contract TCAPX is ERC20, Ownable {
+contract TCAP is ERC20, Ownable {
   /** @dev Logs all the calls of the functions. */
   event LogAddTokenHandler(address indexed _owner, address _tokenHandler);
   event LogSetCap(address indexed _owner, uint256 _amount);
@@ -45,7 +45,7 @@ contract TCAPX is ERC20, Ownable {
   }
 
   /**
-   * @notice Mints TCAPX Tokens
+   * @notice Mints TCAP Tokens
    * @param _account address of the receiver of tokens
    * @param _amount uint of tokens to mint
    * @dev Only handler can call it
@@ -55,7 +55,7 @@ contract TCAPX is ERC20, Ownable {
   }
 
   /**
-   * @notice Burns TCAPX Tokens
+   * @notice Burns TCAP Tokens
    * @param _account address of the receiver of tokens
    * @param _amount uint of tokens to burn
    * @dev Only handler can call it
