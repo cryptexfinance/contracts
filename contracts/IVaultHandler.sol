@@ -9,15 +9,15 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "./TCAP.sol";
+import "./Orchestrator.sol";
 import "./oracles/ChainlinkOracle.sol";
 
 import "@nomiclabs/buidler/console.sol";
 
-
 /**
- * @title TCAP.X Vault Handler
+ * @title TCAP Vault Handler
  * @author Cristian Espinoza
- * @notice Contract in charge of handling the TCAP.X Token and stake
+ * @notice Contract in charge of handling the TCAP Token and stake
  */
 abstract contract IVaultHandler is
   Ownable,
@@ -126,10 +126,35 @@ abstract contract IVaultHandler is
   }
 
   /** @dev counter starts in one as 0 is reserved for empty objects */
-  constructor() public {
+  constructor(Orchestrator orchestrator) public {
     whitelistEnabled = true;
     counter.increment();
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    transferOwnership(address(orchestrator));
+  }
+
+  function initialize(
+    uint256 _divisor,
+    uint256 _ratio,
+    uint256 _burnFee,
+    uint256 _liquidationPenalty,
+    bool _whitelistEnabled,
+    address _tcapOracle,
+    TCAP _tcapAddress,
+    address _collateralAddress,
+    address _collateralOracle,
+    address _ethOracle
+  ) public virtual onlyOwner {
+    divisor = _divisor;
+    ratio = _ratio;
+    burnFee = _burnFee;
+    liquidationPenalty = _liquidationPenalty;
+    whitelistEnabled = _whitelistEnabled;
+    tcapOracle = ChainlinkOracle(_tcapOracle);
+    collateralContract = ERC20(_collateralAddress);
+    collateralPriceOracle = ChainlinkOracle(_collateralOracle);
+    ETHPriceOracle = ChainlinkOracle(_ethOracle);
+    TCAPToken = _tcapAddress;
   }
 
   /**

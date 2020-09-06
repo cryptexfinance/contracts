@@ -5,7 +5,6 @@ import "@chainlink/contracts/src/v0.6/interfaces/AggregatorInterface.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/SafeCast.sol";
 
-
 contract ChainlinkOracle is Ownable {
   AggregatorInterface internal ref;
 
