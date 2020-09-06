@@ -7,7 +7,8 @@ describe("WETH Vault", async function () {
 		tcapInstance,
 		tcapOracleInstance,
 		priceOracleInstance,
-		aggregatorTCAPInstance;
+		aggregatorTCAPInstance,
+		orchestratorInstance;
 	let [owner, addr1, addr2, addr3, lq] = [];
 	let accounts = [];
 	let divisor = "10000000000";
@@ -32,11 +33,16 @@ describe("WETH Vault", async function () {
 	});
 
 	it("...should deploy the contract", async () => {
+		const orchestrator = await ethers.getContractFactory("Orchestrator");
+		orchestratorInstance = await orchestrator.deploy();
+		await orchestratorInstance.deployed();
+		expect(orchestratorInstance.address).properAddress;
+
 		const TCAP = await ethers.getContractFactory("TCAP");
 		tcapInstance = await TCAP.deploy("Total Market Cap Token", "TCAP", 18);
 		await tcapInstance.deployed();
 		const wethVault = await ethers.getContractFactory("VaultHandler");
-		wethTokenHandler = await wethVault.deploy();
+		wethTokenHandler = await wethVault.deploy(orchestratorInstance.address);
 		await wethTokenHandler.deployed();
 		expect(wethTokenHandler.address).properAddress;
 		const collateralOracle = await ethers.getContractFactory("ChainlinkOracle");
@@ -53,6 +59,25 @@ describe("WETH Vault", async function () {
 		wethTokenInstance = await weth.deploy();
 	});
 
+	it("...should allow orchestrator to initialize the contract", async () => {
+		await expect(
+			wethTokenHandler.initializeVault(
+				ethVaultInstance.address,
+				divisor,
+				ratio,
+				burnFee,
+				liquidationPenalty,
+				whitelistEnabled,
+				tcapOracle,
+				tcapAddress,
+				collateralAddress,
+				collateralOracle,
+				ethOracle
+			)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+	});
+
+	//TODO:Move set to timelock
 	it("...should set the TCAP Token contract", async () => {
 		await expect(wethTokenHandler.connect(addr1).setTCAPContract(accounts[1])).to.be.revertedWith(
 			"Ownable: caller is not the owner"
