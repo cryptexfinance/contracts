@@ -1,5 +1,7 @@
 var expect = require("chai").expect;
 var ethersProvider = require("ethers");
+const bre = require("@nomiclabs/buidler");
+const {formatBytes32String} = require("ethers/lib/utils");
 
 describe("Orchestrator Contract", async function () {
 	let orchestratorInstance, tcapInstance, ethVaultInstance, btcVaultInstance;
@@ -12,6 +14,14 @@ describe("Orchestrator Contract", async function () {
 	let whitelistEnabled = false;
 	let tcapOracle = (tcapAddress = collateralAddress = collateralOracle = ethOracle =
 		ethersProvider.constants.AddressZero);
+	const THREE_DAYS = 259200;
+	const TWO_DAYS = 172800;
+
+	const fns = {
+		DIVISOR: 0,
+		RATIO: 1,
+		BURNFEE: 2,
+	};
 
 	before("Set Accounts", async () => {
 		let [acc0, acc1, acc3, acc4, acc5] = await ethers.getSigners();
@@ -122,5 +132,61 @@ describe("Orchestrator Contract", async function () {
 				ethOracle
 			)
 		).to.be.revertedWith("Not a valid vault");
+	});
+
+	it("...should allow to unlock timelock for a function", async () => {
+		await expect(
+			orchestratorInstance.connect(addr1).unlockVaultFunction(fns.DIVISOR)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		await orchestratorInstance.unlockVaultFunction(fns.DIVISOR);
+		expect(await orchestratorInstance.timelock(fns.DIVISOR)).to.not.eq(0);
+		expect(Date.now()).to.lte((await orchestratorInstance.timelock(fns.DIVISOR)).mul(1000));
+
+		await expect(orchestratorInstance.setDivisor(ethVaultInstance.address, 0)).to.be.revertedWith(
+			"Function is timelocked"
+		);
+		//fast-forward
+		bre.network.provider.send("evm_increaseTime", [TWO_DAYS]);
+		await expect(orchestratorInstance.setDivisor(ethVaultInstance.address, 0)).to.be.revertedWith(
+			"Function is timelocked"
+		); //fast-forward
+		bre.network.provider.send("evm_increaseTime", [TWO_DAYS]);
+		await orchestratorInstance.setDivisor(ethVaultInstance.address, divisor);
+	});
+
+	xit("...should allow to unlock timelock for all function", async () => {});
+
+	it("...should allow to lock again a function", async () => {
+		await expect(
+			orchestratorInstance.connect(addr1).lockVaultFunction(fns.DIVISOR)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		await orchestratorInstance.lockVaultFunction(fns.DIVISOR);
+		expect(await orchestratorInstance.timelock(fns.DIVISOR)).to.eq(0);
+	});
+
+	xit("...should allow to lock again all function", async () => {});
+
+	it("...should set vault divisor", async () => {
+		let divisor = "20000000000";
+
+		await expect(orchestratorInstance.setDivisor(ethVaultInstance.address, 0)).to.be.revertedWith(
+			"Function is timelocked"
+		);
+		await orchestratorInstance.unlockVaultFunction(fns.DIVISOR);
+		//fast-forward
+		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
+
+		await expect(
+			orchestratorInstance.connect(addr1).setDivisor(ethVaultInstance.address, 0)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		await expect(
+			orchestratorInstance.setDivisor(ethersProvider.constants.AddressZero, 0)
+		).to.be.revertedWith("Not a valid vault");
+
+		await orchestratorInstance.setDivisor(ethVaultInstance.address, divisor);
+		expect(divisor).to.eq(await ethVaultInstance.divisor());
 	});
 });

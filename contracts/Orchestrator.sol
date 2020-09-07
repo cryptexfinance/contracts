@@ -8,18 +8,39 @@
 pragma solidity ^0.6.8;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/introspection/ERC165Checker.sol";
 import "./IVaultHandler.sol";
 import "./TCAP.sol";
-import "@openzeppelin/contracts/introspection/ERC165Checker.sol";
 
 //DEBUG
 import "@nomiclabs/buidler/console.sol";
 
 contract Orchestrator is Ownable {
+  enum VaultFunctions {DIVISOR, RATIO, BURNFEE}
   mapping(IVaultHandler => bool) public initialized;
+  mapping(VaultFunctions => uint256) public timelock;
+  uint256 private constant _TIMELOCK = 3 days;
+
+  bytes4 private constant _INTERFACE_ID_IVAULT = 0x0ba9e3a8;
+
+  modifier notLocked(VaultFunctions _fn) {
+    require(
+      timelock[_fn] != 0 && timelock[_fn] <= now,
+      "Function is timelocked"
+    );
+    _;
+  }
+
+  modifier validVault(IVaultHandler _vault) {
+    require(
+      ERC165Checker.supportsInterface(address(_vault), _INTERFACE_ID_IVAULT),
+      "Not a valid vault"
+    );
+    _;
+  }
 
   function initializeVault(
-    IVaultHandler vault,
+    IVaultHandler _vault,
     uint256 _divisor,
     uint256 _ratio,
     uint256 _burnFee,
@@ -30,13 +51,9 @@ contract Orchestrator is Ownable {
     address _collateralAddress,
     address _collateralOracle,
     address _ethOracle
-  ) public onlyOwner {
-    require(!initialized[vault], "Contract already initialized");
-    require(
-      ERC165Checker.supportsInterface(address(vault), 0x0ba9e3a8),
-      "Not a valid vault"
-    );
-    vault.initialize(
+  ) public onlyOwner validVault(_vault) {
+    require(!initialized[_vault], "Contract already initialized");
+    _vault.initialize(
       _divisor,
       _ratio,
       _burnFee,
@@ -48,7 +65,28 @@ contract Orchestrator is Ownable {
       _collateralOracle,
       _ethOracle
     );
-    initialized[vault] = true;
+    initialized[_vault] = true;
+  }
+
+  //unlock timelock
+  function unlockVaultFunction(VaultFunctions _fn) public onlyOwner {
+    timelock[_fn] = now + _TIMELOCK;
+  }
+
+  //unlock timelock for all
+
+  //lock timelock
+  function lockVaultFunction(VaultFunctions _fn) public onlyOwner {
+    timelock[_fn] = 0;
+  }
+
+  function setDivisor(IVaultHandler _vault, uint256 _divisor)
+    public
+    onlyOwner
+    validVault(_vault)
+    notLocked(VaultFunctions.DIVISOR)
+  {
+    _vault.setDivisor(_divisor);
   }
 
   // // 0x0ba9e3a8
