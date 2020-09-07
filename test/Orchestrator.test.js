@@ -64,40 +64,28 @@ describe("Orchestrator Contract", async function () {
 				)
 		).to.be.revertedWith("Ownable: caller is not the owner");
 
-		await expect(
-			orchestratorInstance.initializeVault(
-				ethVaultInstance.address,
-				divisor,
-				ratio,
-				burnFee,
-				liquidationPenalty,
-				whitelistEnabled,
-				tcapOracle,
-				tcapAddress,
-				collateralAddress,
-				collateralOracle,
-				ethOracle
-			)
+		await orchestratorInstance.initializeVault(
+			ethVaultInstance.address,
+			divisor,
+			ratio,
+			burnFee,
+			liquidationPenalty,
+			whitelistEnabled,
+			tcapOracle,
+			tcapAddress,
+			collateralAddress,
+			collateralOracle,
+			ethOracle
 		);
-		let currentDivisor = await ethVaultInstance.divisor();
-		let currentRatio = await ethVaultInstance.ratio();
-		let currentBurnFee = await ethVaultInstance.burnFee();
-		let currentLiquidaionPenalty = await ethVaultInstance.liquidationPenalty();
-		let currentWhitelist = await ethVaultInstance.whitelistEnabled();
-		let currentTcapOracle = await ethVaultInstance.tcapOracle();
-		let currentTcap = await ethVaultInstance.TCAPToken();
-		let currentCollateral = await ethVaultInstance.collateralContract();
-		let currentCollateralOracle = await ethVaultInstance.collateralPriceOracle();
-		let currentEthOracle = await ethVaultInstance.ETHPriceOracle();
-		expect(currentDivisor).to.eq(divisor);
-		expect(currentRatio).to.eq(ratio);
-		expect(currentBurnFee).to.eq(burnFee);
-		expect(currentLiquidaionPenalty).to.eq(liquidationPenalty);
-		expect(currentWhitelist).to.eq(whitelistEnabled);
-		expect(currentTcapOracle).to.eq(tcapOracle);
-		expect(currentTcap).to.eq(tcapAddress);
-		expect(currentCollateral).to.eq(collateralAddress);
-		expect(currentCollateralOracle).to.eq(collateralOracle);
-		expect(currentEthOracle).to.eq(ethOracle);
+		expect(divisor).to.eq(await ethVaultInstance.divisor());
+		expect(ratio).to.eq(await ethVaultInstance.ratio());
+		expect(burnFee).to.eq(await ethVaultInstance.burnFee());
+		expect(liquidationPenalty).to.eq(await ethVaultInstance.liquidationPenalty());
+		expect(whitelistEnabled).to.eq(await ethVaultInstance.whitelistEnabled());
+		expect(tcapOracle).to.eq(await ethVaultInstance.tcapOracle());
+		expect(tcapAddress).to.eq(await ethVaultInstance.TCAPToken());
+		expect(collateralAddress).to.eq(await ethVaultInstance.collateralContract());
+		expect(collateralOracle).to.eq(await ethVaultInstance.collateralPriceOracle());
+		expect(ethOracle).to.eq(await ethVaultInstance.ETHPriceOracle());
 	});
 });
