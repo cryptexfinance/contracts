@@ -88,4 +88,39 @@ describe("Orchestrator Contract", async function () {
 		expect(collateralOracle).to.eq(await ethVaultInstance.collateralPriceOracle());
 		expect(ethOracle).to.eq(await ethVaultInstance.ETHPriceOracle());
 	});
+	it("...shouldn't allow a vault to initialize more than once", async () => {
+		await expect(
+			orchestratorInstance.initializeVault(
+				ethVaultInstance.address,
+				divisor,
+				ratio,
+				burnFee,
+				liquidationPenalty,
+				whitelistEnabled,
+				tcapOracle,
+				tcapAddress,
+				collateralAddress,
+				collateralOracle,
+				ethOracle
+			)
+		).to.be.revertedWith("Contract already initialized");
+	});
+
+	it("...shouldn't allow to initialize a non vault contract", async () => {
+		await expect(
+			orchestratorInstance.initializeVault(
+				ethersProvider.constants.AddressZero,
+				divisor,
+				ratio,
+				burnFee,
+				liquidationPenalty,
+				whitelistEnabled,
+				tcapOracle,
+				tcapAddress,
+				collateralAddress,
+				collateralOracle,
+				ethOracle
+			)
+		).to.be.revertedWith("Not a valid vault");
+	});
 });

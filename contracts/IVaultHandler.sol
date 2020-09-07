@@ -8,11 +8,17 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/introspection/IERC165.sol";
 import "./TCAP.sol";
 import "./Orchestrator.sol";
 import "./oracles/ChainlinkOracle.sol";
 
+//DEBUG
 import "@nomiclabs/buidler/console.sol";
+
+//TODO: add introspection for TCAP
+//TODO: add introspection for chainlink
+//TODO: add introspection for Orchestrator
 
 /**
  * @title TCAP Vault Handler
@@ -23,7 +29,8 @@ abstract contract IVaultHandler is
   Ownable,
   AccessControl,
   ReentrancyGuard,
-  Pausable
+  Pausable,
+  IERC165
 {
   /** @dev Logs all the calls of the functions. */
   event LogSetTCAPContract(address indexed _owner, TCAP _token);
@@ -77,7 +84,6 @@ abstract contract IVaultHandler is
 
   bytes32 public constant INVESTOR_ROLE = keccak256("INVESTOR_ROLE");
 
-  //TODO: can be moved to Library
   struct Vault {
     uint256 Id;
     uint256 Collateral;
@@ -124,6 +130,26 @@ abstract contract IVaultHandler is
     require(vaultToUser[msg.sender] != 0, "No Vault created");
     _;
   }
+
+  /*
+   * initialize.selector ^
+   * setTCAPContract.selector ^
+   * setTCAPOracle.selector ^
+   * setCollateralContract.selector ^
+   * setCollateralPriceOracle.selector ^
+   * setETHPriceOracle.selector ^
+   * setDivisor.selector ^
+   * setRatio.selector ^
+   * setBurnFee.selector ^
+   * setLiquidationPenalty.selector ^
+   * enableWhitelist.selector  =>  0x0ba9e3a8
+   */
+  bytes4 private constant _INTERFACE_ID_IVAULT = 0x0ba9e3a8;
+
+  /*
+   * bytes4(keccak256('supportsInterface(bytes4)')) == 0x01ffc9a7
+   */
+  bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
 
   /** @dev counter starts in one as 0 is reserved for empty objects */
   constructor(Orchestrator orchestrator) public {
@@ -563,5 +589,16 @@ abstract contract IVaultHandler is
     require(vault.Debt >= _amount, "Amount greater than debt");
     vault.Debt = vault.Debt.sub(_amount);
     TCAPToken.burn(msg.sender, _amount);
+  }
+
+  //Supports interface
+  function supportsInterface(bytes4 interfaceId)
+    external
+    override
+    view
+    returns (bool)
+  {
+    return (interfaceId == _INTERFACE_ID_IVAULT ||
+      interfaceId == _INTERFACE_ID_ERC165);
   }
 }
