@@ -3,13 +3,14 @@ pragma solidity ^0.6.8;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/introspection/IERC165.sol";
 
 /**
  * @title Total Market Cap Token
  * @author Cristian Espinoza
  * @notice ERC20 token on the Ethereum Blockchain that provides total exposure to the cryptocurrency sector
  */
-contract TCAP is ERC20, Ownable {
+contract TCAP is ERC20, Ownable, IERC165 {
   /** @dev Logs all the calls of the functions. */
   event LogAddTokenHandler(address indexed _owner, address _tokenHandler);
   event LogSetCap(address indexed _owner, uint256 _amount);
@@ -18,6 +19,22 @@ contract TCAP is ERC20, Ownable {
   uint256 public cap;
   bool public capEnabled = false;
   mapping(address => bool) public tokenHandlers;
+
+  /*
+   * mint.selector ^
+   * burn.selector ^
+   * setCap.selector ^
+   * enableCap.selector ^
+   * transfer.selector ^
+   * transferFrom.selector ^
+   * approve.selector =>  0xa9ccee51
+   */
+  bytes4 private constant _INTERFACE_ID_TCAP = 0xa9ccee51;
+
+  /*
+   * bytes4(keccak256('supportsInterface(bytes4)')) == 0x01ffc9a7
+   */
+  bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
 
   constructor(
     string memory _name,
@@ -98,5 +115,16 @@ contract TCAP is ERC20, Ownable {
       // When minting tokens
       require(totalSupply().add(amount) <= cap, "ERC20: cap exceeded");
     }
+  }
+
+  //Supports interface
+  function supportsInterface(bytes4 interfaceId)
+    external
+    override
+    view
+    returns (bool)
+  {
+    return (interfaceId == _INTERFACE_ID_TCAP ||
+      interfaceId == _INTERFACE_ID_ERC165);
   }
 }

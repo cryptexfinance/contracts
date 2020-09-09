@@ -3,6 +3,10 @@
 //initialize values
 // add vault to tcap
 // handle timelocks and security
+// retrive funds
+// should check oracle address
+// should check tcap address
+// should check vault address
 
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.6.8;
@@ -11,17 +15,31 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/introspection/ERC165Checker.sol";
 import "./IVaultHandler.sol";
 import "./TCAP.sol";
+import "./oracles/ChainlinkOracle.sol";
 
 //DEBUG
 import "@nomiclabs/buidler/console.sol";
 
 contract Orchestrator is Ownable {
-  enum VaultFunctions {DIVISOR, RATIO, BURNFEE}
+  enum VaultFunctions {
+    DIVISOR,
+    RATIO,
+    BURNFEE,
+    LIQUIDATION,
+    WHITELIST,
+    TCAP,
+    TCAPORACLE,
+    COLLATERAL,
+    COLLATERALORACLE,
+    ETHORACLE
+  }
   mapping(IVaultHandler => bool) public initialized;
   mapping(VaultFunctions => uint256) public timelock;
   uint256 private constant _TIMELOCK = 3 days;
 
   bytes4 private constant _INTERFACE_ID_IVAULT = 0x0ba9e3a8;
+  bytes4 private constant _INTERFACE_ID_TCAP = 0xa9ccee51;
+  bytes4 private constant _INTERFACE_ID_CHAINLINK_ORACLE = 0x85be402b;
 
   modifier notLocked(VaultFunctions _fn) {
     require(
@@ -39,6 +57,36 @@ contract Orchestrator is Ownable {
     _;
   }
 
+  modifier validTCAP(TCAP _tcap) {
+    require(
+      ERC165Checker.supportsInterface(address(_tcap), _INTERFACE_ID_TCAP),
+      "Not a valid TCAP ERC20"
+    );
+    _;
+  }
+
+  modifier validChainlinkOracle(address _oracle) {
+    require(
+      ERC165Checker.supportsInterface(
+        address(_oracle),
+        _INTERFACE_ID_CHAINLINK_ORACLE
+      ),
+      "Not a valid Chainlink Oracle"
+    );
+    _;
+  }
+
+  //CREATED as STACK IS TO DEEP ON INITIALIZE
+  function _validChainlinkOracle(address _oracle) private {
+    require(
+      ERC165Checker.supportsInterface(
+        address(_oracle),
+        _INTERFACE_ID_CHAINLINK_ORACLE
+      ),
+      "Not a valid Chainlink Oracle"
+    );
+  }
+
   function initializeVault(
     IVaultHandler _vault,
     uint256 _divisor,
@@ -51,8 +99,11 @@ contract Orchestrator is Ownable {
     address _collateralAddress,
     address _collateralOracle,
     address _ethOracle
-  ) public onlyOwner validVault(_vault) {
+  ) public onlyOwner validVault(_vault) validTCAP(_tcapAddress) {
     require(!initialized[_vault], "Contract already initialized");
+    _validChainlinkOracle(_tcapOracle);
+    _validChainlinkOracle(_collateralOracle);
+    _validChainlinkOracle(_ethOracle);
     _vault.initialize(
       _divisor,
       _ratio,
@@ -76,33 +127,82 @@ contract Orchestrator is Ownable {
   //unlock timelock for all
 
   //lock timelock
-  function lockVaultFunction(VaultFunctions _fn) public onlyOwner {
+  function _lockVaultFunction(VaultFunctions _fn) private {
     timelock[_fn] = 0;
+  }
+
+  //lock timelock
+  function lockVaultFunction(VaultFunctions _fn) public onlyOwner {
+    _lockVaultFunction(_fn);
   }
 
   function setDivisor(IVaultHandler _vault, uint256 _divisor)
     public
     onlyOwner
-    validVault(_vault)
     notLocked(VaultFunctions.DIVISOR)
+    validVault(_vault)
   {
     _vault.setDivisor(_divisor);
+    _lockVaultFunction(VaultFunctions.DIVISOR);
   }
 
-  // // 0x0ba9e3a8
+  function setRatio(IVaultHandler _vault, uint256 _ratio)
+    public
+    onlyOwner
+    notLocked(VaultFunctions.RATIO)
+    validVault(_vault)
+  {
+    _vault.setRatio(_ratio);
+    _lockVaultFunction(VaultFunctions.RATIO);
+  }
+
+  function setBurnFee(IVaultHandler _vault, uint256 _burnFee)
+    public
+    onlyOwner
+    notLocked(VaultFunctions.BURNFEE)
+    validVault(_vault)
+  {
+    _vault.setBurnFee(_burnFee);
+    _lockVaultFunction(VaultFunctions.BURNFEE);
+  }
+
+  function setLiquidationPenalty(
+    IVaultHandler _vault,
+    uint256 _liquidationPenalty
+  ) public onlyOwner notLocked(VaultFunctions.LIQUIDATION) validVault(_vault) {
+    _vault.setLiquidationPenalty(_liquidationPenalty);
+    _lockVaultFunction(VaultFunctions.LIQUIDATION);
+  }
+
+  function setWhitelist(IVaultHandler _vault, bool _whitelist)
+    public
+    onlyOwner
+    notLocked(VaultFunctions.WHITELIST)
+    validVault(_vault)
+  {
+    _vault.enableWhitelist(_whitelist);
+    _lockVaultFunction(VaultFunctions.WHITELIST);
+  }
+
+  function setTCAP(IVaultHandler _vault, TCAP _tcap)
+    public
+    onlyOwner
+    notLocked(VaultFunctions.TCAP)
+    validVault(_vault)
+    validTCAP(_tcap)
+  {
+    _vault.setTCAPContract(_tcap);
+    _lockVaultFunction(VaultFunctions.TCAP);
+  }
+
+  // // 0x85be402b
   // function calcStoreInterfaceId() external view returns (bytes4) {
-  //   IVaultHandler i;
-  //   bytes4 x = i.initialize.selector ^
-  //     i.setTCAPContract.selector ^
-  //     i.setTCAPOracle.selector ^
-  //     i.setCollateralContract.selector ^
-  //     i.setCollateralPriceOracle.selector ^
-  //     i.setETHPriceOracle.selector ^
-  //     i.setDivisor.selector ^
-  //     i.setRatio.selector ^
-  //     i.setBurnFee.selector ^
-  //     i.setLiquidationPenalty.selector ^
-  //     i.enableWhitelist.selector;
+  //   ChainlinkOracle i;
+  //   bytes4 x = i.setReferenceContract.selector ^
+  //     i.getLatestAnswer.selector ^
+  //     i.getLatestTimestamp.selector ^
+  //     i.getPreviousAnswer.selector ^
+  //     i.getPreviousTimestamp.selector;
   //   console.logBytes4(x);
   // }
 }
