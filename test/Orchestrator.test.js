@@ -415,4 +415,40 @@ describe("Orchestrator Contract", async function () {
 			orchestratorInstance.setTCAP(ethVaultInstance.address, ethersProvider.constants.AddressZero)
 		).to.be.revertedWith("Function is timelocked");
 	});
+
+	it("...should set vault TCAP Oracle Contract", async () => {
+		let tcapOracle = collateralOracle;
+		await expect(
+			orchestratorInstance.setTCAPOracle(ethVaultInstance.address, tcapOracle)
+		).to.be.revertedWith("Function is timelocked");
+		await orchestratorInstance.unlockVaultFunction(fns.TCAPORACLE);
+		//fast-forward
+		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
+
+		await expect(
+			orchestratorInstance
+				.connect(addr1)
+				.setTCAPOracle(ethVaultInstance.address, ethersProvider.constants.AddressZero)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		await expect(
+			orchestratorInstance.setTCAPOracle(ethersProvider.constants.AddressZero, tcapOracle)
+		).to.be.revertedWith("Not a valid vault");
+
+		await expect(
+			orchestratorInstance.setTCAPOracle(
+				ethVaultInstance.address,
+				ethersProvider.constants.AddressZero
+			)
+		).to.be.revertedWith("Not a valid Chainlink Oracle");
+
+		await orchestratorInstance.setTCAPOracle(ethVaultInstance.address, tcapOracle);
+		expect(tcapOracle).to.eq(await ethVaultInstance.tcapOracle());
+		await expect(
+			orchestratorInstance.setTCAPOracle(
+				ethVaultInstance.address,
+				ethersProvider.constants.AddressZero
+			)
+		).to.be.revertedWith("Function is timelocked");
+	});
 });

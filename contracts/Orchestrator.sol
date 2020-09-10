@@ -77,7 +77,7 @@ contract Orchestrator is Ownable {
   }
 
   //CREATED as STACK IS TO DEEP ON INITIALIZE
-  function _validChainlinkOracle(address _oracle) private {
+  function _validChainlinkOracle(address _oracle) private view {
     require(
       ERC165Checker.supportsInterface(
         address(_oracle),
@@ -193,6 +193,17 @@ contract Orchestrator is Ownable {
   {
     _vault.setTCAPContract(_tcap);
     _lockVaultFunction(VaultFunctions.TCAP);
+  }
+
+  function setTCAPOracle(IVaultHandler _vault, address _tcapOracle)
+    public
+    onlyOwner
+    notLocked(VaultFunctions.TCAPORACLE)
+    validVault(_vault)
+    validChainlinkOracle(_tcapOracle)
+  {
+    _vault.setTCAPOracle(ChainlinkOracle(_tcapOracle));
+    _lockVaultFunction(VaultFunctions.TCAPORACLE);
   }
 
   // // 0x85be402b
