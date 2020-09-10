@@ -8,6 +8,11 @@
 // should check tcap address
 // should check vault address
 
+//tcap
+//add handlers
+//set cap
+//enable cap
+
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.6.8;
 
