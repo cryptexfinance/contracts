@@ -1,7 +1,6 @@
 var expect = require("chai").expect;
 var ethersProvider = require("ethers");
 const bre = require("@nomiclabs/buidler");
-const {formatBytes32String} = require("ethers/lib/utils");
 
 describe("Orchestrator Contract", async function () {
 	let orchestratorInstance, tcapInstance, tcapInstance2, ethVaultInstance;
@@ -74,6 +73,10 @@ describe("Orchestrator Contract", async function () {
 		chainlinkInstance = await oracle.deploy(aggregatorInstance.address);
 		await chainlinkInstance.deployed();
 		ethOracle = chainlinkInstance.address;
+		//Collateral
+		const weth = await ethers.getContractFactory("WETH");
+		let wethTokenInstance = await weth.deploy();
+		collateralAddress = wethTokenInstance.address;
 	});
 
 	it("...should set the owner", async () => {
@@ -450,5 +453,125 @@ describe("Orchestrator Contract", async function () {
 				ethersProvider.constants.AddressZero
 			)
 		).to.be.revertedWith("Function is timelocked");
+	});
+
+	it("...should set vault Collateral Contract", async () => {
+		const weth = await ethers.getContractFactory("WETH");
+		let wethTokenInstance = await weth.deploy();
+		let collateralContract = wethTokenInstance.address;
+		await expect(
+			orchestratorInstance.setCollateral(ethVaultInstance.address, collateralContract)
+		).to.be.revertedWith("Function is timelocked");
+		await orchestratorInstance.unlockVaultFunction(fns.COLLATERAL);
+		//fast-forward
+		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
+
+		await expect(
+			orchestratorInstance
+				.connect(addr1)
+				.setCollateral(ethVaultInstance.address, ethersProvider.constants.AddressZero)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		await expect(
+			orchestratorInstance.setCollateral(ethersProvider.constants.AddressZero, collateralContract)
+		).to.be.revertedWith("Not a valid vault");
+
+		await orchestratorInstance.setCollateral(ethVaultInstance.address, collateralContract);
+		expect(collateralContract).to.eq(await ethVaultInstance.collateralContract());
+		await expect(
+			orchestratorInstance.setCollateral(
+				ethVaultInstance.address,
+				ethersProvider.constants.AddressZero
+			)
+		).to.be.revertedWith("Function is timelocked");
+	});
+
+	it("...should set vault Collateral Oracle Contract", async () => {
+		let collateralOracle = ethOracle;
+		await expect(
+			orchestratorInstance.setCollateralOracle(ethVaultInstance.address, collateralOracle)
+		).to.be.revertedWith("Function is timelocked");
+		await orchestratorInstance.unlockVaultFunction(fns.COLLATERALORACLE);
+		//fast-forward
+		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
+
+		await expect(
+			orchestratorInstance
+				.connect(addr1)
+				.setCollateralOracle(ethVaultInstance.address, ethersProvider.constants.AddressZero)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		await expect(
+			orchestratorInstance.setCollateralOracle(
+				ethersProvider.constants.AddressZero,
+				collateralOracle
+			)
+		).to.be.revertedWith("Not a valid vault");
+
+		await expect(
+			orchestratorInstance.setCollateralOracle(
+				ethVaultInstance.address,
+				ethersProvider.constants.AddressZero
+			)
+		).to.be.revertedWith("Not a valid Chainlink Oracle");
+
+		await orchestratorInstance.setCollateralOracle(ethVaultInstance.address, collateralOracle);
+		expect(collateralOracle).to.eq(await ethVaultInstance.collateralPriceOracle());
+		await expect(
+			orchestratorInstance.setCollateralOracle(
+				ethVaultInstance.address,
+				ethersProvider.constants.AddressZero
+			)
+		).to.be.revertedWith("Function is timelocked");
+	});
+
+	it("...should set vault ETH Oracle Contract", async () => {
+		let ethOracle = tcapOracle;
+		await expect(
+			orchestratorInstance.setETHOracle(ethVaultInstance.address, ethOracle)
+		).to.be.revertedWith("Function is timelocked");
+		await orchestratorInstance.unlockVaultFunction(fns.ETHORACLE);
+		//fast-forward
+		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
+
+		await expect(
+			orchestratorInstance
+				.connect(addr1)
+				.setETHOracle(ethVaultInstance.address, ethersProvider.constants.AddressZero)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		await expect(
+			orchestratorInstance.setETHOracle(ethersProvider.constants.AddressZero, ethOracle)
+		).to.be.revertedWith("Not a valid vault");
+
+		await expect(
+			orchestratorInstance.setETHOracle(
+				ethVaultInstance.address,
+				ethersProvider.constants.AddressZero
+			)
+		).to.be.revertedWith("Not a valid Chainlink Oracle");
+
+		await orchestratorInstance.setETHOracle(ethVaultInstance.address, ethOracle);
+		expect(ethOracle).to.eq(await ethVaultInstance.ETHPriceOracle());
+		await expect(
+			orchestratorInstance.setETHOracle(
+				ethVaultInstance.address,
+				ethersProvider.constants.AddressZero
+			)
+		).to.be.revertedWith("Function is timelocked");
+	});
+
+	it("...should be able to call retrieve funds", async () => {
+		await expect(
+			orchestratorInstance.connect(addr1).retrieveFees(ethVaultInstance.address)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		await expect(
+			orchestratorInstance.retrieveFees(ethersProvider.constants.AddressZero)
+		).to.be.revertedWith("Not a valid vault");
+
+		await expect(orchestratorInstance.retrieveFees(ethVaultInstance.address))
+			.to.emit(ethVaultInstance, "LogRetrieveFees")
+			.withArgs(orchestratorInstance.address, 0);
 	});
 });

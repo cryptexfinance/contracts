@@ -21,6 +21,7 @@ import "@openzeppelin/contracts/introspection/ERC165Checker.sol";
 import "./IVaultHandler.sol";
 import "./TCAP.sol";
 import "./oracles/ChainlinkOracle.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 //DEBUG
 import "@nomiclabs/buidler/console.sol";
@@ -40,6 +41,7 @@ contract Orchestrator is Ownable {
   }
   mapping(IVaultHandler => bool) public initialized;
   mapping(VaultFunctions => uint256) public timelock;
+  //timelock value, timelock value == value
   uint256 private constant _TIMELOCK = 3 days;
 
   bytes4 private constant _INTERFACE_ID_IVAULT = 0x0ba9e3a8;
@@ -209,6 +211,51 @@ contract Orchestrator is Ownable {
   {
     _vault.setTCAPOracle(ChainlinkOracle(_tcapOracle));
     _lockVaultFunction(VaultFunctions.TCAPORACLE);
+  }
+
+  function setCollateral(IVaultHandler _vault, ERC20 _collateral)
+    public
+    onlyOwner
+    notLocked(VaultFunctions.COLLATERAL)
+    validVault(_vault)
+  {
+    _vault.setCollateralContract(_collateral);
+    _lockVaultFunction(VaultFunctions.COLLATERAL);
+  }
+
+  function setCollateralOracle(IVaultHandler _vault, address _collateralOracle)
+    public
+    onlyOwner
+    notLocked(VaultFunctions.COLLATERALORACLE)
+    validVault(_vault)
+    validChainlinkOracle(_collateralOracle)
+  {
+    _vault.setCollateralPriceOracle(ChainlinkOracle(_collateralOracle));
+    _lockVaultFunction(VaultFunctions.COLLATERALORACLE);
+  }
+
+  function setETHOracle(IVaultHandler _vault, address _ethOracles)
+    public
+    onlyOwner
+    notLocked(VaultFunctions.ETHORACLE)
+    validVault(_vault)
+    validChainlinkOracle(_ethOracles)
+  {
+    _vault.setETHPriceOracle(ChainlinkOracle(_ethOracles));
+    _lockVaultFunction(VaultFunctions.ETHORACLE);
+  }
+
+  function retrieveFees(IVaultHandler _vault)
+    public
+    onlyOwner
+    validVault(_vault)
+  {
+    _vault.retrieveFees();
+  }
+
+  receive() external payable {
+    uint256 amount = address(this).balance;
+    payable(owner()).transfer(amount);
   }
 
   // // 0x85be402b
