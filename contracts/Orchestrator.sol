@@ -7,6 +7,8 @@
 // should check oracle address
 // should check tcap address
 // should check vault address
+// pause contracts
+// un pause contracts
 
 //tcap
 //add handlers
@@ -245,7 +247,7 @@ contract Orchestrator is Ownable {
     _lockVaultFunction(VaultFunctions.ETHORACLE);
   }
 
-  function retrieveFees(IVaultHandler _vault)
+  function retrieveVaultFees(IVaultHandler _vault)
     public
     onlyOwner
     validVault(_vault)
@@ -253,10 +255,12 @@ contract Orchestrator is Ownable {
     _vault.retrieveFees();
   }
 
-  receive() external payable {
+  function retrieveFees() public onlyOwner {
     uint256 amount = address(this).balance;
     payable(owner()).transfer(amount);
   }
+
+  receive() external payable {}
 
   // // 0x85be402b
   // function calcStoreInterfaceId() external view returns (bytes4) {
