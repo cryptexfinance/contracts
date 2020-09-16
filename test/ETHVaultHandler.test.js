@@ -446,14 +446,14 @@ describe("WETH Vault", async function () {
 		await expect(wethTokenHandler.connect(addr1).pause()).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(wethTokenHandler.connect(owner).pause())
+		await expect(orchestratorInstance.connect(owner).pauseVault(wethTokenHandler.address))
 			.to.emit(wethTokenHandler, "Paused")
-			.withArgs(accounts[0]);
+			.withArgs(orchestratorInstance.address);
 		let paused = await wethTokenHandler.paused();
 		expect(paused).to.eq(true);
 	});
 
-	it("... shouldn't allow contract calls if contract is paused", async () => {
+	it("...shouldn't allow contract calls if contract is paused", async () => {
 		await expect(wethTokenHandler.connect(addr1).createVault()).to.be.revertedWith(
 			"Pausable: paused"
 		);
@@ -470,9 +470,9 @@ describe("WETH Vault", async function () {
 		await expect(wethTokenHandler.connect(addr1).unpause()).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(wethTokenHandler.connect(owner).unpause())
+		await expect(orchestratorInstance.connect(owner).unpauseVault(wethTokenHandler.address))
 			.to.emit(wethTokenHandler, "Unpaused")
-			.withArgs(accounts[0]);
+			.withArgs(orchestratorInstance.address);
 		let paused = await wethTokenHandler.paused();
 		expect(paused).to.eq(false);
 		await expect(wethTokenHandler.connect(addr1).removeCollateral(0))

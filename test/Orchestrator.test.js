@@ -238,8 +238,6 @@ describe("Orchestrator Contract", async function () {
 		await orchestratorInstance.setDivisor(ethVaultInstance.address, divisor);
 	});
 
-	xit("...should allow to unlock timelock for all function", async () => {});
-
 	it("...should allow to lock again a function", async () => {
 		await expect(
 			orchestratorInstance.connect(addr1).lockVaultFunction(fns.DIVISOR)
@@ -248,8 +246,6 @@ describe("Orchestrator Contract", async function () {
 		await orchestratorInstance.lockVaultFunction(fns.DIVISOR);
 		expect(await orchestratorInstance.timelock(fns.DIVISOR)).to.eq(0);
 	});
-
-	xit("...should allow to lock again all function", async () => {});
 
 	it("...should set vault divisor", async () => {
 		let divisor = "20000000000";
@@ -523,6 +519,32 @@ describe("Orchestrator Contract", async function () {
 				ethersProvider.constants.AddressZero
 			)
 		).to.be.revertedWith("Function is timelocked");
+	});
+
+	it("...should pause the Vault", async () => {
+		await expect(
+			orchestratorInstance.connect(addr1).pauseVault(ethVaultInstance.address)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		await expect(
+			orchestratorInstance.pauseVault(ethersProvider.constants.AddressZero)
+		).to.be.revertedWith("Not a valid vault");
+
+		await orchestratorInstance.pauseVault(ethVaultInstance.address);
+		expect(true).to.eq(await ethVaultInstance.paused());
+	});
+
+	it("...should unpause the vault", async () => {
+		await expect(
+			orchestratorInstance.connect(addr1).unpauseVault(ethVaultInstance.address)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		await expect(
+			orchestratorInstance.unpauseVault(ethersProvider.constants.AddressZero)
+		).to.be.revertedWith("Not a valid vault");
+
+		await orchestratorInstance.unpauseVault(ethVaultInstance.address);
+		expect(false).to.eq(await ethVaultInstance.paused());
 	});
 
 	it("...should be able to retrieve funds from vault", async () => {

@@ -45,7 +45,7 @@ contract Orchestrator is Ownable {
   //timelock value, timelock value == value
   uint256 private constant _TIMELOCK = 3 days;
 
-  bytes4 private constant _INTERFACE_ID_IVAULT = 0xfb83296c;
+  bytes4 private constant _INTERFACE_ID_IVAULT = 0x409e4a0f;
   bytes4 private constant _INTERFACE_ID_TCAP = 0xa9ccee51;
   bytes4 private constant _INTERFACE_ID_CHAINLINK_ORACLE = 0x85be402b;
 
@@ -234,6 +234,22 @@ contract Orchestrator is Ownable {
     _lockVaultFunction(VaultFunctions.ETHORACLE);
   }
 
+  function pauseVault(IVaultHandler _vault)
+    public
+    onlyOwner
+    validVault(_vault)
+  {
+    _vault.pause();
+  }
+
+  function unpauseVault(IVaultHandler _vault)
+    public
+    onlyOwner
+    validVault(_vault)
+  {
+    _vault.unpause();
+  }
+
   function retrieveVaultFees(IVaultHandler _vault)
     public
     onlyOwner
@@ -249,7 +265,7 @@ contract Orchestrator is Ownable {
 
   receive() external payable {}
 
-  // // 0xfb83296c
+  // // // 0xfb83296c
   // function calcStoreInterfaceId() external view returns (bytes4) {
   //   IVaultHandler i;
   //   bytes4 x = i.initialize.selector ^
@@ -261,7 +277,9 @@ contract Orchestrator is Ownable {
   //     i.setDivisor.selector ^
   //     i.setRatio.selector ^
   //     i.setBurnFee.selector ^
-  //     i.setLiquidationPenalty.selector;
+  //     i.setLiquidationPenalty.selector ^
+  //     i.pause.selector ^
+  //     i.unpause.selector;
   //   console.logBytes4(x);
   // }
 }

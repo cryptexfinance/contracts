@@ -130,9 +130,11 @@ abstract contract IVaultHandler is
    * setDivisor.selector ^
    * setRatio.selector ^
    * setBurnFee.selector ^
-   * setLiquidationPenalty.selector =>  0xfb83296c
+   * setLiquidationPenalty.selector ^
+   * i.pause.selector ^
+   * i.unpause.selector =>  0x409e4a0f
    */
-  bytes4 private constant _INTERFACE_ID_IVAULT = 0xfb83296c;
+  bytes4 private constant _INTERFACE_ID_IVAULT = 0x409e4a0f;
 
   /*
    * bytes4(keccak256('supportsInterface(bytes4)')) == 0x01ffc9a7
