@@ -54,7 +54,6 @@ abstract contract IVaultHandler is
     address indexed _owner,
     uint256 _liquidationPenalty
   );
-  event LogEnableWhitelist(address indexed _owner, bool _enable);
   event LogCreateVault(address indexed _owner, uint256 indexed _id);
   event LogAddCollateral(
     address indexed _owner,
@@ -112,18 +111,8 @@ abstract contract IVaultHandler is
   uint256 public burnFee;
   /** @dev Penalty charged when an account gets liquidated */
   uint256 public liquidationPenalty;
-  /** @dev Flag that allows any users to create vaults*/
-  bool public whitelistEnabled;
   mapping(address => uint256) public vaultToUser;
   mapping(uint256 => Vault) public vaults;
-
-  /** @notice Throws if called by any account other than the investor. */
-  modifier onlyInvestor() {
-    if (whitelistEnabled) {
-      require(hasRole(INVESTOR_ROLE, msg.sender), "Caller is not investor");
-    }
-    _;
-  }
 
   /** @notice Throws if vault hasn't been created. */
   modifier vaultExists() {
@@ -141,10 +130,9 @@ abstract contract IVaultHandler is
    * setDivisor.selector ^
    * setRatio.selector ^
    * setBurnFee.selector ^
-   * setLiquidationPenalty.selector ^
-   * enableWhitelist.selector  =>  0x0ba9e3a8
+   * setLiquidationPenalty.selector =>  0xfb83296c
    */
-  bytes4 private constant _INTERFACE_ID_IVAULT = 0x0ba9e3a8;
+  bytes4 private constant _INTERFACE_ID_IVAULT = 0xfb83296c;
 
   /*
    * bytes4(keccak256('supportsInterface(bytes4)')) == 0x01ffc9a7
@@ -153,7 +141,6 @@ abstract contract IVaultHandler is
 
   /** @dev counter starts in one as 0 is reserved for empty objects */
   constructor(Orchestrator orchestrator) public {
-    whitelistEnabled = true;
     counter.increment();
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     transferOwnership(address(orchestrator));
@@ -164,7 +151,6 @@ abstract contract IVaultHandler is
     uint256 _ratio,
     uint256 _burnFee,
     uint256 _liquidationPenalty,
-    bool _whitelistEnabled,
     address _tcapOracle,
     TCAP _tcapAddress,
     address _collateralAddress,
@@ -175,7 +161,6 @@ abstract contract IVaultHandler is
     ratio = _ratio;
     burnFee = _burnFee;
     liquidationPenalty = _liquidationPenalty;
-    whitelistEnabled = _whitelistEnabled;
     tcapOracle = ChainlinkOracle(_tcapOracle);
     collateralContract = ERC20(_collateralAddress);
     collateralPriceOracle = ChainlinkOracle(_collateralOracle);
@@ -285,38 +270,10 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Sets the flag to true in order to allow only investor to use the contract
-   * @param _enable uint
-   * @dev Only owner can call it
-   */
-  function enableWhitelist(bool _enable) public virtual onlyOwner {
-    whitelistEnabled = _enable;
-    emit LogEnableWhitelist(msg.sender, whitelistEnabled);
-  }
-
-  /**
-   * @notice Add the investor role to an address
-   * @param _investor address
-   * @dev Only owner can call it
-   */
-  function addInvestor(address _investor) public virtual onlyOwner {
-    grantRole(INVESTOR_ROLE, _investor);
-  }
-
-  /**
-   * @notice Remove the investor role from an address
-   * @param _investor address
-   * @dev Only owner can call it
-   */
-  function removeInvestor(address _investor) public virtual onlyOwner {
-    revokeRole(INVESTOR_ROLE, _investor);
-  }
-
-  /**
    * @notice Creates a Vault
    * @dev Only whitelisted can call it
    */
-  function createVault() public virtual onlyInvestor whenNotPaused {
+  function createVault() public virtual whenNotPaused {
     require(vaultToUser[msg.sender] == 0, "Vault already created");
     uint256 id = counter.current();
     vaultToUser[msg.sender] = id;
@@ -334,7 +291,6 @@ abstract contract IVaultHandler is
   function addCollateral(uint256 _amount)
     public
     virtual
-    onlyInvestor
     nonReentrant
     vaultExists
     whenNotPaused

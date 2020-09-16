@@ -10,7 +10,6 @@ describe("Orchestrator Contract", async function () {
 	let ratio = "150";
 	let burnFee = "1";
 	let liquidationPenalty = "10";
-	let whitelistEnabled = false;
 	let tcapOracle = (collateralAddress = collateralOracle = ethOracle =
 		ethersProvider.constants.AddressZero);
 	const THREE_DAYS = 259200;
@@ -21,12 +20,11 @@ describe("Orchestrator Contract", async function () {
 		RATIO: 1,
 		BURNFEE: 2,
 		LIQUIDATION: 3,
-		WHITELIST: 4,
-		TCAP: 5,
-		TCAPORACLE: 6,
-		COLLATERAL: 7,
-		COLLATERALORACLE: 8,
-		ETHORACLE: 9,
+		TCAP: 4,
+		TCAPORACLE: 5,
+		COLLATERAL: 6,
+		COLLATERALORACLE: 7,
+		ETHORACLE: 8,
 	};
 
 	before("Set Accounts", async () => {
@@ -92,7 +90,6 @@ describe("Orchestrator Contract", async function () {
 				ratio,
 				burnFee,
 				liquidationPenalty,
-				whitelistEnabled,
 				tcapOracle,
 				tcapInstance.address,
 				collateralAddress,
@@ -108,7 +105,6 @@ describe("Orchestrator Contract", async function () {
 				ratio,
 				burnFee,
 				liquidationPenalty,
-				whitelistEnabled,
 				ethersProvider.constants.AddressZero,
 				tcapInstance.address,
 				collateralAddress,
@@ -124,7 +120,6 @@ describe("Orchestrator Contract", async function () {
 				ratio,
 				burnFee,
 				liquidationPenalty,
-				whitelistEnabled,
 				tcapOracle,
 				ethersProvider.constants.AddressZero,
 				collateralAddress,
@@ -140,7 +135,6 @@ describe("Orchestrator Contract", async function () {
 				ratio,
 				burnFee,
 				liquidationPenalty,
-				whitelistEnabled,
 				tcapOracle,
 				tcapInstance.address,
 				collateralAddress,
@@ -156,7 +150,6 @@ describe("Orchestrator Contract", async function () {
 				ratio,
 				burnFee,
 				liquidationPenalty,
-				whitelistEnabled,
 				tcapOracle,
 				tcapInstance.address,
 				collateralAddress,
@@ -176,7 +169,6 @@ describe("Orchestrator Contract", async function () {
 					ratio,
 					burnFee,
 					liquidationPenalty,
-					whitelistEnabled,
 					tcapOracle,
 					tcapInstance.address,
 					collateralAddress,
@@ -191,7 +183,6 @@ describe("Orchestrator Contract", async function () {
 			ratio,
 			burnFee,
 			liquidationPenalty,
-			whitelistEnabled,
 			tcapOracle,
 			tcapInstance.address,
 			collateralAddress,
@@ -202,7 +193,6 @@ describe("Orchestrator Contract", async function () {
 		expect(ratio).to.eq(await ethVaultInstance.ratio());
 		expect(burnFee).to.eq(await ethVaultInstance.burnFee());
 		expect(liquidationPenalty).to.eq(await ethVaultInstance.liquidationPenalty());
-		expect(whitelistEnabled).to.eq(await ethVaultInstance.whitelistEnabled());
 		expect(tcapOracle).to.eq(await ethVaultInstance.tcapOracle());
 		expect(tcapInstance.address).to.eq(await ethVaultInstance.TCAPToken());
 		expect(collateralAddress).to.eq(await ethVaultInstance.collateralContract());
@@ -217,7 +207,6 @@ describe("Orchestrator Contract", async function () {
 				ratio,
 				burnFee,
 				liquidationPenalty,
-				whitelistEnabled,
 				tcapOracle,
 				tcapInstance.address,
 				collateralAddress,
@@ -364,40 +353,15 @@ describe("Orchestrator Contract", async function () {
 		).to.be.revertedWith("Function is timelocked");
 	});
 
-	it("...should enable vault whitelist", async () => {
-		let whitelist = true;
-
-		await expect(
-			orchestratorInstance.setWhitelist(ethVaultInstance.address, false)
-		).to.be.revertedWith("Function is timelocked");
-		await orchestratorInstance.unlockVaultFunction(fns.WHITELIST);
-		//fast-forward
-		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
-
-		await expect(
-			orchestratorInstance.connect(addr1).setWhitelist(ethVaultInstance.address, false)
-		).to.be.revertedWith("Ownable: caller is not the owner");
-
-		await expect(
-			orchestratorInstance.setWhitelist(ethersProvider.constants.AddressZero, false)
-		).to.be.revertedWith("Not a valid vault");
-
-		await orchestratorInstance.setWhitelist(ethVaultInstance.address, whitelist);
-		expect(whitelist).to.eq(await ethVaultInstance.whitelistEnabled());
-		await expect(
-			orchestratorInstance.setWhitelist(ethVaultInstance.address, false)
-		).to.be.revertedWith("Function is timelocked");
-	});
-
 	it("...should set vault TCAP Contract", async () => {
 		let tcap = tcapInstance2.address;
 		await expect(orchestratorInstance.setTCAP(ethVaultInstance.address, tcap)).to.be.revertedWith(
 			"Function is timelocked"
 		);
 		await orchestratorInstance.unlockVaultFunction(fns.TCAP);
+
 		//fast-forward
 		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
-
 		await expect(
 			orchestratorInstance
 				.connect(addr1)
@@ -581,6 +545,6 @@ describe("Orchestrator Contract", async function () {
 		);
 
 		//tested on vault
-		await orchestratorInstance.retrieveVaultFees();
+		await orchestratorInstance.retrieveFees();
 	});
 });

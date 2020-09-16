@@ -66,7 +66,6 @@ describe("WETH Vault", async function () {
 			ratio,
 			burnFee,
 			liquidationPenalty,
-			false,
 			tcapOracleInstance.address,
 			tcapInstance.address,
 			wethTokenInstance.address,
@@ -82,46 +81,6 @@ describe("WETH Vault", async function () {
 		expect(tcapPrice).to.eq(result);
 	});
 
-	// it("...should allow owner to add investor to whitelist", async () => {
-	// 	await expect(wethTokenHandler.connect(addr1).addInvestor(accounts[1])).to.be.revertedWith(
-	// 		"Ownable: caller is not the owner"
-	// 	);
-	// 	await expect(wethTokenHandler.connect(owner).addInvestor(accounts[1]))
-	// 		.to.emit(wethTokenHandler, "RoleGranted")
-	// 		.withArgs(
-	// 			ethersProvider.utils.keccak256(ethersProvider.utils.toUtf8Bytes("INVESTOR_ROLE")),
-	// 			accounts[1],
-	// 			accounts[0]
-	// 		);
-	// 	await expect(wethTokenHandler.connect(owner).addInvestor(accounts[2]))
-	// 		.to.emit(wethTokenHandler, "RoleGranted")
-	// 		.withArgs(
-	// 			ethersProvider.utils.keccak256(ethersProvider.utils.toUtf8Bytes("INVESTOR_ROLE")),
-	// 			accounts[2],
-	// 			accounts[0]
-	// 		);
-	// 	await expect(wethTokenHandler.connect(owner).addInvestor(accounts[3]))
-	// 		.to.emit(wethTokenHandler, "RoleGranted")
-	// 		.withArgs(
-	// 			ethersProvider.utils.keccak256(ethersProvider.utils.toUtf8Bytes("INVESTOR_ROLE")),
-	// 			accounts[3],
-	// 			accounts[0]
-	// 		);
-	// });
-
-	// it("...should allow owner to remove investor from whitelist", async () => {
-	// 	await expect(wethTokenHandler.connect(addr1).removeInvestor(accounts[0])).to.be.revertedWith(
-	// 		"Ownable: caller is not the owner"
-	// 	);
-	// 	await expect(wethTokenHandler.connect(owner).removeInvestor(accounts[2]))
-	// 		.to.emit(wethTokenHandler, "RoleRevoked")
-	// 		.withArgs(
-	// 			ethersProvider.utils.keccak256(ethersProvider.utils.toUtf8Bytes("INVESTOR_ROLE")),
-	// 			accounts[2],
-	// 			accounts[0]
-	// 		);
-	// });
-
 	it("...should allow users to create a vault", async () => {
 		let vaultId = await wethTokenHandler.vaultToUser(accounts[1]);
 		expect(vaultId).eq(0);
@@ -130,9 +89,6 @@ describe("WETH Vault", async function () {
 			.withArgs(accounts[1], 1);
 		vaultId = await wethTokenHandler.vaultToUser(accounts[1]);
 		expect(vaultId).eq(1);
-		// await expect(wethTokenHandler.connect(addr2).createVault()).to.be.revertedWith(
-		// 	"Caller is not investor"
-		// );
 		vaultId = await wethTokenHandler.vaultToUser(accounts[2]);
 		expect(vaultId).eq(0);
 		await expect(wethTokenHandler.connect(addr1).createVault()).to.be.revertedWith(
@@ -155,9 +111,6 @@ describe("WETH Vault", async function () {
 
 	it("...should allow iser to stake collateral", async () => {
 		const amount = ethersProvider.utils.parseEther("375");
-		// await expect(wethTokenHandler.connect(addr2).addCollateral(amount)).to.be.revertedWith(
-		// 	"Caller is not investor"
-		// );
 		await expect(wethTokenHandler.connect(addr3).addCollateral(amount)).to.be.revertedWith(
 			"No Vault created"
 		);
@@ -198,7 +151,7 @@ describe("WETH Vault", async function () {
 		expect(balance).to.eq(amount.add(amount));
 	});
 
-	it("...should allow investor to retrieve unused collateral", async () => {
+	it("...should allow user to retrieve unused collateral", async () => {
 		const amount = ethersProvider.utils.parseEther("375");
 		const bigAmount = ethersProvider.utils.parseEther("100375");
 		let balance = await wethTokenInstance.balanceOf(accounts[1]);
@@ -245,7 +198,7 @@ describe("WETH Vault", async function () {
 		expect(reqAmount).to.eq(result);
 	});
 
-	it("...should allow investors to mint tokens", async () => {
+	it("...should allow user to mint tokens", async () => {
 		const amount = ethersProvider.utils.parseEther("10");
 		const amount2 = ethersProvider.utils.parseEther("11");
 		const lowAmount = ethersProvider.utils.parseEther("1");
@@ -285,7 +238,7 @@ describe("WETH Vault", async function () {
 		expect(ratio).to.eq(164);
 	});
 
-	it("...shouln't allow investors to retrieve stake unless debt is paid", async () => {
+	it("...shouln't allow users to retrieve stake unless debt is paid", async () => {
 		let vault = await wethTokenHandler.getVault(1);
 		await expect(wethTokenHandler.connect(addr1).removeCollateral(vault[1])).to.be.revertedWith(
 			"Collateral below min required ratio"
@@ -306,7 +259,7 @@ describe("WETH Vault", async function () {
 		expect(fee).to.eq(result);
 	});
 
-	it("...should allow investors to burn tokens", async () => {
+	it("...should allow users to burn tokens", async () => {
 		const amount = ethersProvider.utils.parseEther("10");
 		const amount2 = ethersProvider.utils.parseEther("11");
 		const bigAmount = ethersProvider.utils.parseEther("100");
@@ -347,7 +300,7 @@ describe("WETH Vault", async function () {
 		expect(ratio).to.eq(0);
 	});
 
-	it("...should allow investors to retrieve stake when debt is paid", async () => {
+	it("...should allow users to retrieve stake when debt is paid", async () => {
 		let vault = await wethTokenHandler.getVault(1);
 		await expect(wethTokenHandler.connect(addr1).removeCollateral(vault[1]))
 			.to.emit(wethTokenHandler, "LogRemoveCollateral")
@@ -389,7 +342,6 @@ describe("WETH Vault", async function () {
 		);
 
 		//liquidated
-		// await wethTokenHandler.connect(owner).addInvestor(accounts[4]);
 		await wethTokenHandler.connect(lq).createVault();
 		await wethTokenInstance.mint(accounts[4], reqAmount);
 		await wethTokenInstance.connect(lq).approve(wethTokenHandler.address, reqAmount);
@@ -444,7 +396,7 @@ describe("WETH Vault", async function () {
 			"reward should be greater than collateral paid to liquidate"
 		);
 	});
-	it("...should allow users to liquidate investors on vault ratio less than ratio", async () => {
+	it("...should allow users to liquidate users on vault ratio less than ratio", async () => {
 		let vaultRatio = await wethTokenHandler.getVaultRatio(2);
 		let ethBalance = await ethers.provider.getBalance(wethTokenHandler.address);
 

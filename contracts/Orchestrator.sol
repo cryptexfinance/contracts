@@ -34,7 +34,6 @@ contract Orchestrator is Ownable {
     RATIO,
     BURNFEE,
     LIQUIDATION,
-    WHITELIST,
     TCAP,
     TCAPORACLE,
     COLLATERAL,
@@ -46,7 +45,7 @@ contract Orchestrator is Ownable {
   //timelock value, timelock value == value
   uint256 private constant _TIMELOCK = 3 days;
 
-  bytes4 private constant _INTERFACE_ID_IVAULT = 0x0ba9e3a8;
+  bytes4 private constant _INTERFACE_ID_IVAULT = 0xfb83296c;
   bytes4 private constant _INTERFACE_ID_TCAP = 0xa9ccee51;
   bytes4 private constant _INTERFACE_ID_CHAINLINK_ORACLE = 0x85be402b;
 
@@ -102,7 +101,6 @@ contract Orchestrator is Ownable {
     uint256 _ratio,
     uint256 _burnFee,
     uint256 _liquidationPenalty,
-    bool _whitelistEnabled,
     address _tcapOracle,
     TCAP _tcapAddress,
     address _collateralAddress,
@@ -118,7 +116,6 @@ contract Orchestrator is Ownable {
       _ratio,
       _burnFee,
       _liquidationPenalty,
-      _whitelistEnabled,
       _tcapOracle,
       _tcapAddress,
       _collateralAddress,
@@ -181,16 +178,6 @@ contract Orchestrator is Ownable {
   ) public onlyOwner notLocked(VaultFunctions.LIQUIDATION) validVault(_vault) {
     _vault.setLiquidationPenalty(_liquidationPenalty);
     _lockVaultFunction(VaultFunctions.LIQUIDATION);
-  }
-
-  function setWhitelist(IVaultHandler _vault, bool _whitelist)
-    public
-    onlyOwner
-    notLocked(VaultFunctions.WHITELIST)
-    validVault(_vault)
-  {
-    _vault.enableWhitelist(_whitelist);
-    _lockVaultFunction(VaultFunctions.WHITELIST);
   }
 
   function setTCAP(IVaultHandler _vault, TCAP _tcap)
@@ -262,14 +249,19 @@ contract Orchestrator is Ownable {
 
   receive() external payable {}
 
-  // // 0x85be402b
+  // // 0xfb83296c
   // function calcStoreInterfaceId() external view returns (bytes4) {
-  //   ChainlinkOracle i;
-  //   bytes4 x = i.setReferenceContract.selector ^
-  //     i.getLatestAnswer.selector ^
-  //     i.getLatestTimestamp.selector ^
-  //     i.getPreviousAnswer.selector ^
-  //     i.getPreviousTimestamp.selector;
+  //   IVaultHandler i;
+  //   bytes4 x = i.initialize.selector ^
+  //     i.setTCAPContract.selector ^
+  //     i.setTCAPOracle.selector ^
+  //     i.setCollateralContract.selector ^
+  //     i.setCollateralPriceOracle.selector ^
+  //     i.setETHPriceOracle.selector ^
+  //     i.setDivisor.selector ^
+  //     i.setRatio.selector ^
+  //     i.setBurnFee.selector ^
+  //     i.setLiquidationPenalty.selector;
   //   console.logBytes4(x);
   // }
 }
