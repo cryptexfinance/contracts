@@ -41,6 +41,7 @@ describe("Orchestrator Contract", async function () {
 			accounts.push(await acc5.getAddress());
 		}
 	});
+	//TODO: print logs on sets
 
 	it("...should deploy the contract", async () => {
 		const orchestrator = await ethers.getContractFactory("Orchestrator");
@@ -568,5 +569,59 @@ describe("Orchestrator Contract", async function () {
 
 		//tested on vault
 		await orchestratorInstance.retrieveFees();
+	});
+
+	it("...should enable the TCAP cap", async () => {
+		await expect(
+			orchestratorInstance.connect(addr1).enableTCAPCap(tcapInstance.address)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		await expect(
+			orchestratorInstance.enableTCAPCap(ethersProvider.constants.AddressZero)
+		).to.be.revertedWith("Not a valid tcap contract");
+
+		await expect(orchestratorInstance.enableTCAPCap(tcapInstance.address))
+			.to.emit(tcapInstance, "LogEnableCap")
+			.withArgs(orchestratorInstance.address, 0);
+	});
+
+	it("...should set the TCAP cap", async () => {
+		await expect(
+			orchestratorInstance.connect(addr1).setTCAPCap(tcapInstance.address, 0)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		await expect(
+			orchestratorInstance.setTCAPCap(ethersProvider.constants.AddressZero, 100)
+		).to.be.revertedWith("Not a valid tcap contract");
+
+		await expect(orchestratorInstance.setTCAPCap(tcapInstance.address, 100))
+			.to.emit(ethVaultInstance, "LogSetCap")
+			.withArgs(orchestratorInstance.address, 100);
+	});
+
+	it("...should add vault to TCAP token", async () => {
+		await expect(
+			orchestratorInstance
+				.connect(addr1)
+				.retrieveVaultFees(tcapInstance.address, ethVaultInstance.address)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		await expect(
+			orchestratorInstance.retrieveVaultFees(
+				ethersProvider.constants.AddressZero,
+				ethVaultInstance.address
+			)
+		).to.be.revertedWith("Not a valid tcap contract");
+
+		await expect(
+			orchestratorInstance.retrieveVaultFees(
+				tcapInstance.address,
+				ethersProvider.constants.AddressZero
+			)
+		).to.be.revertedWith("Not a valid vault");
+
+		await expect(orchestratorInstance.retrieveVaultFees(ethVaultInstance.address))
+			.to.emit(ethVaultInstance, "LogAddTokenHandler")
+			.withArgs(orchestratorInstance.address, ethVaultInstance.address);
 	});
 });
