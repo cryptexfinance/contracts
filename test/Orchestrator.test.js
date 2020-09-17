@@ -55,9 +55,19 @@ describe("Orchestrator Contract", async function () {
 		expect(ethVaultInstance.address).properAddress;
 		//TCAP
 		const TCAP = await ethers.getContractFactory("TCAP");
-		tcapInstance = await TCAP.deploy("Total Market Cap Token", "TCAP", 18);
+		tcapInstance = await TCAP.deploy(
+			"Total Market Cap Token",
+			"TCAP",
+			18,
+			orchestratorInstance.address
+		);
 		await tcapInstance.deployed();
-		tcapInstance2 = await TCAP.deploy("Total Market Cap Token", "TCAP2", 18);
+		tcapInstance2 = await TCAP.deploy(
+			"Total Market Cap Token",
+			"TCAP2",
+			18,
+			orchestratorInstance.address
+		);
 		await tcapInstance2.deployed();
 		//Chainlink Oracles
 		const aggregator = await ethers.getContractFactory("AggregatorInterface");
@@ -573,16 +583,16 @@ describe("Orchestrator Contract", async function () {
 
 	it("...should enable the TCAP cap", async () => {
 		await expect(
-			orchestratorInstance.connect(addr1).enableTCAPCap(tcapInstance.address)
+			orchestratorInstance.connect(addr1).enableTCAPCap(tcapInstance.address, true)
 		).to.be.revertedWith("Ownable: caller is not the owner");
 
 		await expect(
-			orchestratorInstance.enableTCAPCap(ethersProvider.constants.AddressZero)
-		).to.be.revertedWith("Not a valid tcap contract");
+			orchestratorInstance.enableTCAPCap(ethersProvider.constants.AddressZero, true)
+		).to.be.revertedWith("Not a valid TCAP ERC20");
 
-		await expect(orchestratorInstance.enableTCAPCap(tcapInstance.address))
+		await expect(orchestratorInstance.enableTCAPCap(tcapInstance.address, true))
 			.to.emit(tcapInstance, "LogEnableCap")
-			.withArgs(orchestratorInstance.address, 0);
+			.withArgs(orchestratorInstance.address, true);
 	});
 
 	it("...should set the TCAP cap", async () => {
@@ -592,10 +602,10 @@ describe("Orchestrator Contract", async function () {
 
 		await expect(
 			orchestratorInstance.setTCAPCap(ethersProvider.constants.AddressZero, 100)
-		).to.be.revertedWith("Not a valid tcap contract");
+		).to.be.revertedWith("Not a valid TCAP ERC20");
 
 		await expect(orchestratorInstance.setTCAPCap(tcapInstance.address, 100))
-			.to.emit(ethVaultInstance, "LogSetCap")
+			.to.emit(tcapInstance, "LogSetCap")
 			.withArgs(orchestratorInstance.address, 100);
 	});
 
@@ -603,25 +613,22 @@ describe("Orchestrator Contract", async function () {
 		await expect(
 			orchestratorInstance
 				.connect(addr1)
-				.retrieveVaultFees(tcapInstance.address, ethVaultInstance.address)
+				.addTCAPVault(tcapInstance.address, ethVaultInstance.address)
 		).to.be.revertedWith("Ownable: caller is not the owner");
 
 		await expect(
-			orchestratorInstance.retrieveVaultFees(
+			orchestratorInstance.addTCAPVault(
 				ethersProvider.constants.AddressZero,
 				ethVaultInstance.address
 			)
-		).to.be.revertedWith("Not a valid tcap contract");
+		).to.be.revertedWith("Not a valid TCAP ERC20");
 
 		await expect(
-			orchestratorInstance.retrieveVaultFees(
-				tcapInstance.address,
-				ethersProvider.constants.AddressZero
-			)
+			orchestratorInstance.addTCAPVault(tcapInstance.address, ethersProvider.constants.AddressZero)
 		).to.be.revertedWith("Not a valid vault");
 
-		await expect(orchestratorInstance.retrieveVaultFees(ethVaultInstance.address))
-			.to.emit(ethVaultInstance, "LogAddTokenHandler")
+		await expect(orchestratorInstance.addTCAPVault(tcapInstance.address, ethVaultInstance.address))
+			.to.emit(tcapInstance, "LogAddTokenHandler")
 			.withArgs(orchestratorInstance.address, ethVaultInstance.address);
 	});
 });

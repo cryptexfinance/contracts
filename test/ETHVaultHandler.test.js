@@ -39,7 +39,12 @@ describe("WETH Vault", async function () {
 		expect(orchestratorInstance.address).properAddress;
 
 		const TCAP = await ethers.getContractFactory("TCAP");
-		tcapInstance = await TCAP.deploy("Total Market Cap Token", "TCAP", 18);
+		tcapInstance = await TCAP.deploy(
+			"Total Market Cap Token",
+			"TCAP",
+			18,
+			orchestratorInstance.address
+		);
 		await tcapInstance.deployed();
 		const wethVault = await ethers.getContractFactory("VaultHandler");
 		wethTokenHandler = await wethVault.deploy(orchestratorInstance.address);
@@ -54,7 +59,7 @@ describe("WETH Vault", async function () {
 		priceOracleInstance = await collateralOracle.deploy(aggregatorInstance.address);
 		tcapOracleInstance = await oracle.deploy(aggregatorTCAPInstance.address);
 		await priceOracleInstance.deployed();
-		await tcapInstance.addTokenHandler(wethTokenHandler.address);
+		await orchestratorInstance.addTCAPVault(tcapInstance.address, wethTokenHandler.address);
 		const weth = await ethers.getContractFactory("WETH");
 		wethTokenInstance = await weth.deploy();
 

@@ -142,10 +142,10 @@ abstract contract IVaultHandler is
   bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
 
   /** @dev counter starts in one as 0 is reserved for empty objects */
-  constructor(Orchestrator orchestrator) public {
+  constructor(Orchestrator _orchestrator) public {
     counter.increment();
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-    transferOwnership(address(orchestrator));
+    transferOwnership(address(_orchestrator));
   }
 
   function initialize(

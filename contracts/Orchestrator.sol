@@ -263,23 +263,44 @@ contract Orchestrator is Ownable {
     payable(owner()).transfer(amount);
   }
 
+  function enableTCAPCap(TCAP _tcap, bool _enable)
+    public
+    onlyOwner
+    validTCAP(_tcap)
+  {
+    _tcap.enableCap(_enable);
+  }
+
+  function setTCAPCap(TCAP _tcap, uint256 _cap)
+    public
+    onlyOwner
+    validTCAP(_tcap)
+  {
+    _tcap.setCap(_cap);
+  }
+
+  function addTCAPVault(TCAP _tcap, IVaultHandler _vault)
+    public
+    onlyOwner
+    validTCAP(_tcap)
+    validVault(_vault)
+  {
+    _tcap.addTokenHandler(address(_vault));
+  }
+
   receive() external payable {}
 
-  // // // 0xfb83296c
+  // // // 0xa9ccee51
   // function calcStoreInterfaceId() external view returns (bytes4) {
-  //   IVaultHandler i;
-  //   bytes4 x = i.initialize.selector ^
-  //     i.setTCAPContract.selector ^
-  //     i.setTCAPOracle.selector ^
-  //     i.setCollateralContract.selector ^
-  //     i.setCollateralPriceOracle.selector ^
-  //     i.setETHPriceOracle.selector ^
-  //     i.setDivisor.selector ^
-  //     i.setRatio.selector ^
-  //     i.setBurnFee.selector ^
-  //     i.setLiquidationPenalty.selector ^
-  //     i.pause.selector ^
-  //     i.unpause.selector;
+  //   TCAP i;
+  //   bytes4 x = i.mint.selector ^
+  //     i.burn.selector ^
+  //     i.setCap.selector ^
+  //     i.enableCap.selector ^
+  //     i.transfer.selector ^
+  //     i.transferFrom.selector ^
+  //     i.approve.selector ^
+  //     i.addTokenHandler.selector;
   //   console.logBytes4(x);
   // }
 }

@@ -3,6 +3,9 @@ var ethersProvider = require("ethers");
 
 describe("TCAP Token", async function () {
 	let tcapInstance;
+	let orchestratorInstance;
+	let ethVaultInstance;
+	let ethVaultInstance2;
 	let [owner, addr1, handler, handler2] = [];
 	let accounts = [];
 
@@ -22,11 +25,29 @@ describe("TCAP Token", async function () {
 	});
 
 	it("...should deploy the contract", async () => {
+		const orchestrator = await ethers.getContractFactory("Orchestrator");
+		orchestratorInstance = await orchestrator.deploy();
+		await orchestratorInstance.deployed();
+		expect(orchestratorInstance.address).properAddress;
+
 		let cap = ethers.utils.parseEther("100");
 		const TCAP = await ethers.getContractFactory("TCAP");
-		tcapInstance = await TCAP.deploy("Total Market Cap Token", "TCAP", cap);
+		tcapInstance = await TCAP.deploy(
+			"Total Market Cap Token",
+			"TCAP",
+			cap,
+			orchestratorInstance.address
+		);
 		await tcapInstance.deployed();
 		expect(tcapInstance.address).properAddress;
+
+		//vault
+		const wethVault = await ethers.getContractFactory("VaultHandler");
+		ethVaultInstance = await wethVault.deploy(orchestratorInstance.address);
+		await ethVaultInstance.deployed();
+
+		ethVaultInstance2 = await wethVault.deploy(orchestratorInstance.address);
+		await ethVaultInstance2.deployed();
 	});
 
 	it("...should set the correct initial values", async () => {
@@ -35,7 +56,7 @@ describe("TCAP Token", async function () {
 		const decimals = await tcapInstance.decimals();
 		const defaultOwner = await tcapInstance.owner();
 		const cap = await tcapInstance.cap();
-		expect(defaultOwner).to.eq(accounts[0]);
+		expect(defaultOwner).to.eq(orchestratorInstance.address);
 		expect(symbol).to.eq("TCAP", "Symbol should equal TCAP");
 		expect(name).to.eq("Total Market Cap Token");
 		expect(decimals).to.eq(18, "Decimals should be 18");
@@ -54,9 +75,9 @@ describe("TCAP Token", async function () {
 		await expect(tcapInstance.connect(addr1).setCap(0)).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(tcapInstance.connect(owner).setCap(cap))
+		await expect(orchestratorInstance.connect(owner).setTCAPCap(tcapInstance.address, cap))
 			.to.emit(tcapInstance, "LogSetCap")
-			.withArgs(accounts[0], cap);
+			.withArgs(orchestratorInstance.address, cap);
 		let currentCap = await tcapInstance.cap();
 		expect(currentCap).to.eq(cap);
 	});
@@ -65,9 +86,9 @@ describe("TCAP Token", async function () {
 		await expect(tcapInstance.connect(addr1).enableCap(true)).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(tcapInstance.connect(owner).enableCap(true))
+		await expect(orchestratorInstance.connect(owner).enableTCAPCap(tcapInstance.address, true))
 			.to.emit(tcapInstance, "LogEnableCap")
-			.withArgs(accounts[0], true);
+			.withArgs(orchestratorInstance.address, true);
 		let enableCap = await tcapInstance.capEnabled();
 		expect(enableCap).to.eq(true);
 	});
@@ -97,91 +118,33 @@ describe("TCAP Token", async function () {
 		await expect(tcapInstance.connect(addr1).addTokenHandler(accounts[1])).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(tcapInstance.connect(owner).addTokenHandler(accounts[2]))
+		await expect(
+			orchestratorInstance
+				.connect(owner)
+				.addTCAPVault(tcapInstance.address, ethVaultInstance.address)
+		)
 			.to.emit(tcapInstance, "LogAddTokenHandler")
-			.withArgs(accounts[0], accounts[2]);
-		let currentHandler = await tcapInstance.tokenHandlers(accounts[2]);
+			.withArgs(orchestratorInstance.address, ethVaultInstance.address);
+		let currentHandler = await tcapInstance.tokenHandlers(ethVaultInstance.address);
 		expect(currentHandler).to.eq(true);
-		await expect(tcapInstance.connect(owner).addTokenHandler(accounts[3]))
+		await expect(
+			orchestratorInstance
+				.connect(owner)
+				.addTCAPVault(tcapInstance.address, ethVaultInstance2.address)
+		)
 			.to.emit(tcapInstance, "LogAddTokenHandler")
-			.withArgs(accounts[0], accounts[3]);
-		currentHandler = await tcapInstance.tokenHandlers(accounts[3]);
+			.withArgs(orchestratorInstance.address, ethVaultInstance2.address);
+		currentHandler = await tcapInstance.tokenHandlers(ethVaultInstance2.address);
 		expect(currentHandler).to.eq(true);
-	});
-
-	it("...should allow Handler to mint tokens", async () => {
-		const amount = ethersProvider.utils.parseEther("100");
-		await expect(tcapInstance.connect(handler).mint(accounts[1], amount))
-			.to.emit(tcapInstance, "Transfer")
-			.withArgs(ethersProvider.constants.AddressZero, accounts[1], amount);
-		let balance = await tcapInstance.balanceOf(accounts[1]);
-		expect(balance).to.eq(amount);
-		let totalSupply = await tcapInstance.totalSupply();
-		expect(totalSupply).to.eq(amount);
-		await expect(tcapInstance.connect(handler2).mint(accounts[4], amount))
-			.to.emit(tcapInstance, "Transfer")
-			.withArgs(ethersProvider.constants.AddressZero, accounts[4], amount);
-		balance = await tcapInstance.balanceOf(accounts[4]);
-		expect(balance).to.eq(amount);
-		totalSupply = await tcapInstance.totalSupply();
-		expect(totalSupply).to.eq(amount.add(amount));
-	});
-
-	it("...should allow users to transfer", async () => {
-		const amount = ethersProvider.utils.parseEther("100");
-		const bigAmount = ethersProvider.utils.parseEther("10000");
-		await expect(tcapInstance.connect(owner).transfer(accounts[1], amount)).to.be.revertedWith(
-			"ERC20: transfer amount exceeds balance"
-		);
-		await expect(tcapInstance.connect(addr1).transfer(accounts[0], bigAmount)).to.be.revertedWith(
-			"ERC20: transfer amount exceeds balance"
-		);
-		await expect(tcapInstance.connect(addr1).transfer(accounts[0], amount))
-			.to.emit(tcapInstance, "Transfer")
-			.withArgs(accounts[1], accounts[0], amount);
-		let balance = await tcapInstance.balanceOf(accounts[1]);
-		expect(balance).to.eq(0);
-		balance = await tcapInstance.balanceOf(accounts[0]);
-		expect(balance).to.eq(amount);
-	});
-
-	it("...should allow Handler to burn tokens", async () => {
-		const amount = ethersProvider.utils.parseEther("100");
-		const bigAmount = ethersProvider.utils.parseEther("10000");
-		await expect(tcapInstance.connect(handler).burn(accounts[0], bigAmount)).to.be.revertedWith(
-			"ERC20: burn amount exceeds balance"
-		);
-		await expect(tcapInstance.connect(handler).burn(accounts[1], amount)).to.be.revertedWith(
-			"ERC20: burn amount exceeds balance"
-		);
-		await expect(tcapInstance.connect(handler).burn(accounts[0], amount))
-			.to.emit(tcapInstance, "Transfer")
-			.withArgs(accounts[0], ethersProvider.constants.AddressZero, amount);
-		let balance = await tcapInstance.balanceOf(accounts[0]);
-		expect(balance).to.eq(0);
-		await expect(tcapInstance.connect(handler2).burn(accounts[4], amount))
-			.to.emit(tcapInstance, "Transfer")
-			.withArgs(accounts[4], ethersProvider.constants.AddressZero, amount);
-		balance = await tcapInstance.balanceOf(accounts[4]);
-		expect(balance).to.eq(0);
-		const totalSupply = await tcapInstance.totalSupply();
-		expect(totalSupply).to.eq(0);
-	});
-
-	it("...shouldn't allow Handlers to mint tokens above cap", async () => {
-		let amount = ethers.utils.parseEther("10000000");
-		await expect(tcapInstance.connect(handler).mint(accounts[0], amount)).to.be.revertedWith(
-			"ERC20: cap exceeded"
-		);
 	});
 
 	it("...should disable the token cap", async () => {
-		await expect(tcapInstance.connect(addr1).enableCap(0)).to.be.revertedWith(
+		await expect(tcapInstance.connect(addr1).enableCap(false)).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(tcapInstance.connect(owner).enableCap(false))
+		await expect(orchestratorInstance.connect(owner).enableTCAPCap(tcapInstance.address, false))
 			.to.emit(tcapInstance, "LogEnableCap")
-			.withArgs(accounts[0], false);
+			.withArgs(orchestratorInstance.address, false);
 		let enableCap = await tcapInstance.capEnabled();
 		expect(enableCap).to.eq(false);
 	});

@@ -4,6 +4,7 @@ pragma solidity ^0.6.8;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/introspection/IERC165.sol";
+import "./Orchestrator.sol";
 
 /**
  * @title Total Market Cap Token
@@ -39,9 +40,11 @@ contract TCAP is ERC20, Ownable, IERC165 {
   constructor(
     string memory _name,
     string memory _symbol,
-    uint256 _cap
+    uint256 _cap,
+    Orchestrator _orchestrator
   ) public ERC20(_name, _symbol) {
     cap = _cap;
+    transferOwnership(address(_orchestrator));
   }
 
   /** @notice Throws if called by any account other than the handler. */
