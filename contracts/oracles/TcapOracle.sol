@@ -3,7 +3,6 @@ pragma solidity ^0.6.8;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-
 contract TcapOracle is Ownable {
   uint256 internal tcap;
 

@@ -41,10 +41,6 @@ const config: BuidlerConfig = {
 		},
 	},
 	etherscan: {
-		// The url for the Etherscan API you want to use.
-		url: process.env.ETHERSCAN_URL as string,
-		// Your API key for Etherscan
-		// Obtain one at https://etherscan.io/
 		apiKey: process.env.ETHERSCAN_API_KEY as string,
 	},
 	gasReporter: {

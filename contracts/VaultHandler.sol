@@ -2,13 +2,13 @@
 pragma solidity ^0.6.8;
 
 import "./IVaultHandler.sol";
-
+import "./Orchestrator.sol";
 
 /**
- * @title TCAP.X ETH Vault
+ * @title TCAP Vault
  * @author Cristian Espinoza
- * @notice Contract in charge of handling the TCAP.X Vault and stake using ETH as Collateral
+ * @notice Contract in charge of handling the TCAP Vault and stake using a Collateral ERC20
  */
 contract VaultHandler is IVaultHandler {
-
+  constructor(Orchestrator orchestrator) public IVaultHandler(orchestrator) {}
 }

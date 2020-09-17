@@ -8,25 +8,32 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
-import "./TCAPX.sol";
+import "@openzeppelin/contracts/introspection/IERC165.sol";
+import "./TCAP.sol";
+import "./Orchestrator.sol";
 import "./oracles/ChainlinkOracle.sol";
 
+//DEBUG
 import "@nomiclabs/buidler/console.sol";
 
+//TODO: add introspection for TCAP
+//TODO: add introspection for chainlink
+//TODO: add introspection for Orchestrator
 
 /**
- * @title TCAP.X Vault Handler
+ * @title TCAP Vault Handler
  * @author Cristian Espinoza
- * @notice Contract in charge of handling the TCAP.X Token and stake
+ * @notice Contract in charge of handling the TCAP Token and stake
  */
 abstract contract IVaultHandler is
   Ownable,
   AccessControl,
   ReentrancyGuard,
-  Pausable
+  Pausable,
+  IERC165
 {
   /** @dev Logs all the calls of the functions. */
-  event LogSetTCAPXContract(address indexed _owner, TCAPX _token);
+  event LogSetTCAPContract(address indexed _owner, TCAP _token);
   event LogSetTCAPOracle(address indexed _owner, ChainlinkOracle _oracle);
   event LogSetCollateralContract(
     address indexed _owner,
@@ -47,7 +54,6 @@ abstract contract IVaultHandler is
     address indexed _owner,
     uint256 _liquidationPenalty
   );
-  event LogEnableWhitelist(address indexed _owner, bool _enable);
   event LogCreateVault(address indexed _owner, uint256 indexed _id);
   event LogAddCollateral(
     address indexed _owner,
@@ -84,7 +90,7 @@ abstract contract IVaultHandler is
     address Owner;
   }
   /** @dev TCAP Token Address */
-  TCAPX public TCAPXToken;
+  TCAP public TCAPToken;
   /** @dev Total Market Cap Oracle */
   ChainlinkOracle public tcapOracle;
   /** @dev Collateral Token Address*/
@@ -105,18 +111,8 @@ abstract contract IVaultHandler is
   uint256 public burnFee;
   /** @dev Penalty charged when an account gets liquidated */
   uint256 public liquidationPenalty;
-  /** @dev Flag that allows any users to create vaults*/
-  bool public whitelistEnabled;
   mapping(address => uint256) public vaultToUser;
   mapping(uint256 => Vault) public vaults;
-
-  /** @notice Throws if called by any account other than the investor. */
-  modifier onlyInvestor() {
-    if (whitelistEnabled) {
-      require(hasRole(INVESTOR_ROLE, msg.sender), "Caller is not investor");
-    }
-    _;
-  }
 
   /** @notice Throws if vault hasn't been created. */
   modifier vaultExists() {
@@ -124,21 +120,64 @@ abstract contract IVaultHandler is
     _;
   }
 
+  /*
+   * initialize.selector ^
+   * setTCAPContract.selector ^
+   * setTCAPOracle.selector ^
+   * setCollateralContract.selector ^
+   * setCollateralPriceOracle.selector ^
+   * setETHPriceOracle.selector ^
+   * setDivisor.selector ^
+   * setRatio.selector ^
+   * setBurnFee.selector ^
+   * setLiquidationPenalty.selector ^
+   * i.pause.selector ^
+   * i.unpause.selector =>  0x409e4a0f
+   */
+  bytes4 private constant _INTERFACE_ID_IVAULT = 0x409e4a0f;
+
+  /*
+   * bytes4(keccak256('supportsInterface(bytes4)')) == 0x01ffc9a7
+   */
+  bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
+
   /** @dev counter starts in one as 0 is reserved for empty objects */
-  constructor() public {
-    whitelistEnabled = true;
+  constructor(Orchestrator _orchestrator) public {
     counter.increment();
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    transferOwnership(address(_orchestrator));
+  }
+
+  function initialize(
+    uint256 _divisor,
+    uint256 _ratio,
+    uint256 _burnFee,
+    uint256 _liquidationPenalty,
+    address _tcapOracle,
+    TCAP _tcapAddress,
+    address _collateralAddress,
+    address _collateralOracle,
+    address _ethOracle
+  ) public virtual onlyOwner {
+    divisor = _divisor;
+    ratio = _ratio;
+    burnFee = _burnFee;
+    liquidationPenalty = _liquidationPenalty;
+    tcapOracle = ChainlinkOracle(_tcapOracle);
+    collateralContract = ERC20(_collateralAddress);
+    collateralPriceOracle = ChainlinkOracle(_collateralOracle);
+    ETHPriceOracle = ChainlinkOracle(_ethOracle);
+    TCAPToken = _tcapAddress;
   }
 
   /**
-   * @notice Sets the address of the TCAPX ERC20 contract
-   * @param _TCAPXToken address
+   * @notice Sets the address of the TCAP ERC20 contract
+   * @param _TCAPToken address
    * @dev Only owner can call it
    */
-  function setTCAPXContract(TCAPX _TCAPXToken) public virtual onlyOwner {
-    TCAPXToken = _TCAPXToken;
-    emit LogSetTCAPXContract(msg.sender, _TCAPXToken);
+  function setTCAPContract(TCAP _TCAPToken) public virtual onlyOwner {
+    TCAPToken = _TCAPToken;
+    emit LogSetTCAPContract(msg.sender, _TCAPToken);
   }
 
   /**
@@ -233,38 +272,10 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Sets the flag to true in order to allow only investor to use the contract
-   * @param _enable uint
-   * @dev Only owner can call it
-   */
-  function enableWhitelist(bool _enable) public virtual onlyOwner {
-    whitelistEnabled = _enable;
-    emit LogEnableWhitelist(msg.sender, whitelistEnabled);
-  }
-
-  /**
-   * @notice Add the investor role to an address
-   * @param _investor address
-   * @dev Only owner can call it
-   */
-  function addInvestor(address _investor) public virtual onlyOwner {
-    grantRole(INVESTOR_ROLE, _investor);
-  }
-
-  /**
-   * @notice Remove the investor role from an address
-   * @param _investor address
-   * @dev Only owner can call it
-   */
-  function removeInvestor(address _investor) public virtual onlyOwner {
-    revokeRole(INVESTOR_ROLE, _investor);
-  }
-
-  /**
    * @notice Creates a Vault
    * @dev Only whitelisted can call it
    */
-  function createVault() public virtual onlyInvestor whenNotPaused {
+  function createVault() public virtual whenNotPaused {
     require(vaultToUser[msg.sender] == 0, "Vault already created");
     uint256 id = counter.current();
     vaultToUser[msg.sender] = id;
@@ -282,7 +293,6 @@ abstract contract IVaultHandler is
   function addCollateral(uint256 _amount)
     public
     virtual
-    onlyInvestor
     nonReentrant
     vaultExists
     whenNotPaused
@@ -341,7 +351,7 @@ abstract contract IVaultHandler is
       getVaultRatio(vault.Id) >= ratio,
       "Collateral below min required ratio"
     );
-    TCAPXToken.mint(msg.sender, _amount);
+    TCAPToken.mint(msg.sender, _amount);
     emit LogMint(msg.sender, vault.Id, _amount);
   }
 
@@ -415,22 +425,22 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Returns the price of the TCAPX token
-   * @dev TCAPX token is 18 decimals
+   * @notice Returns the price of the TCAP token
+   * @dev TCAP token is 18 decimals
    * @dev oracle totalMarketPrice must be in wei format
-   * @return price of the TCAPX Token
+   * @return price of the TCAP Token
    */
-  function TCAPXPrice() public virtual view returns (uint256 price) {
+  function TCAPPrice() public virtual view returns (uint256 price) {
     uint256 totalMarketPrice = tcapOracle.getLatestAnswer();
     price = totalMarketPrice.div(divisor);
   }
 
   /**
-   * @notice Returns the minimal required collateral to mint TCAPX token
-   * @dev TCAPX token is 18 decimals
+   * @notice Returns the minimal required collateral to mint TCAP token
+   * @dev TCAP token is 18 decimals
    * @dev Is only divided by 100 as eth price comes in wei to cancel the additional 0
    * @param _amount uint amount to mint
-   * @return collateral of the TCAPX Token
+   * @return collateral of the TCAP Token
    */
   function requiredCollateral(uint256 _amount)
     public
@@ -438,7 +448,7 @@ abstract contract IVaultHandler is
     view
     returns (uint256 collateral)
   {
-    uint256 tcapPrice = TCAPXPrice();
+    uint256 tcapPrice = TCAPPrice();
     uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
     collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100)).div(
       collateralPrice
@@ -448,7 +458,7 @@ abstract contract IVaultHandler is
   /**
    * @notice Returns the minimal required TCAP.X to liquidate a Vault
    * @param _vaultId of the vault to liquidate
-   * @return collateral required of the TCAPX Token
+   * @return collateral required of the TCAP Token
    */
   function requiredLiquidationCollateral(uint256 _vaultId)
     public
@@ -457,7 +467,7 @@ abstract contract IVaultHandler is
     returns (uint256 collateral)
   {
     Vault memory vault = vaults[_vaultId];
-    uint256 tcapPrice = TCAPXPrice();
+    uint256 tcapPrice = TCAPPrice();
     uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
     uint256 collateralTcap = (vault.Collateral.mul(collateralPrice)).div(
       tcapPrice
@@ -482,7 +492,7 @@ abstract contract IVaultHandler is
     returns (uint256 rewardCollateral)
   {
     uint256 req = requiredLiquidationCollateral(_vaultId);
-    uint256 tcapPrice = TCAPXPrice();
+    uint256 tcapPrice = TCAPPrice();
     uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
     uint256 reward = (req.mul(liquidationPenalty.add(100))).div(100);
     rewardCollateral = (reward.mul(tcapPrice)).div(collateralPrice);
@@ -516,7 +526,7 @@ abstract contract IVaultHandler is
       uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
       currentRatio = (
         (collateralPrice.mul(vault.Collateral.mul(100))).div(
-          vault.Debt.mul(TCAPXPrice())
+          vault.Debt.mul(TCAPPrice())
         )
       );
     }
@@ -524,7 +534,7 @@ abstract contract IVaultHandler is
 
   function getFee(uint256 _amount) public virtual view returns (uint256 fee) {
     uint256 ethPrice = ETHPriceOracle.getLatestAnswer();
-    fee = (TCAPXPrice().mul(_amount).mul(burnFee)).div(100).div(ethPrice);
+    fee = (TCAPPrice().mul(_amount).mul(burnFee)).div(100).div(ethPrice);
   }
 
   function _burnFee(uint256 _amount) internal {
@@ -536,6 +546,17 @@ abstract contract IVaultHandler is
     Vault storage vault = vaults[_vaultId];
     require(vault.Debt >= _amount, "Amount greater than debt");
     vault.Debt = vault.Debt.sub(_amount);
-    TCAPXToken.burn(msg.sender, _amount);
+    TCAPToken.burn(msg.sender, _amount);
+  }
+
+  //Supports interface
+  function supportsInterface(bytes4 interfaceId)
+    external
+    override
+    view
+    returns (bool)
+  {
+    return (interfaceId == _INTERFACE_ID_IVAULT ||
+      interfaceId == _INTERFACE_ID_ERC165);
   }
 }

@@ -31,7 +31,7 @@ describe("Chainlink Oracle", async function () {
 	});
 
 	it("...should get the oracle answer", async () => {
-		const price = new ethersProvider.utils.BigNumber("39752768946");
+		const price = ethersProvider.BigNumber.from("39752768946");
 		let ethPrice = await chainlinkInstance.getLatestAnswer();
 		expect(ethPrice).to.eq(price.mul(10000000000));
 	});
