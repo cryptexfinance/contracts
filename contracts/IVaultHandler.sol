@@ -14,11 +14,9 @@ import "./Orchestrator.sol";
 import "./oracles/ChainlinkOracle.sol";
 
 //DEBUG
-import "@nomiclabs/buidler/console.sol";
+// import "@nomiclabs/buidler/console.sol";
 
-//TODO: add introspection for TCAP
-//TODO: add introspection for chainlink
-//TODO: add introspection for Orchestrator
+//TODO: Add Formulas on comments
 
 /**
  * @title TCAP Vault Handler
@@ -81,8 +79,6 @@ abstract contract IVaultHandler is
   /** @dev vault id counter */
   Counters.Counter counter;
 
-  bytes32 public constant INVESTOR_ROLE = keccak256("INVESTOR_ROLE");
-
   struct Vault {
     uint256 Id;
     uint256 Collateral;
@@ -101,17 +97,18 @@ abstract contract IVaultHandler is
   ChainlinkOracle public ETHPriceOracle;
 
   /**
-   * @notice divisor value to set the TCAP.X price
+   * @notice divisor value to set the TCAP price
    * @dev Is 1x10^10 so the result is a token with 18 decimals
    */
   uint256 public divisor;
   /** @dev Liquidation Ratio */
   uint256 public ratio;
-  /** @dev Fee charged when burning TCAP.X Tokens */
+  /** @dev Fee charged when burning TCAP Tokens */
   uint256 public burnFee;
   /** @dev Penalty charged when an account gets liquidated */
   uint256 public liquidationPenalty;
   mapping(address => uint256) public vaultToUser;
+  /**@dev Id To Vault */
   mapping(uint256 => Vault) public vaults;
 
   /** @notice Throws if vault hasn't been created. */
@@ -136,9 +133,7 @@ abstract contract IVaultHandler is
    */
   bytes4 private constant _INTERFACE_ID_IVAULT = 0x409e4a0f;
 
-  /*
-   * bytes4(keccak256('supportsInterface(bytes4)')) == 0x01ffc9a7
-   */
+  /* bytes4(keccak256('supportsInterface(bytes4)')) == 0x01ffc9a7 */
   bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
 
   /** @dev counter starts in one as 0 is reserved for empty objects */
@@ -148,6 +143,20 @@ abstract contract IVaultHandler is
     transferOwnership(address(_orchestrator));
   }
 
+  /**
+   * @notice Allows the orchestrator to initialize the contract
+   * @param _divisor uint256
+   * @param _ratio uint256
+   * @param _burnFee uint256
+   * @param _liquidationPenalty uint256
+   * @param _tcapOracle address
+   * @param _tcapAddress address
+   * @param _collateralAddress address
+   * @param _collateralOracle address
+   * @param _ethOracle address
+   * @dev Only owner can call it
+   * @dev can only be called once
+   */
   function initialize(
     uint256 _divisor,
     uint256 _ratio,
@@ -333,7 +342,7 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Mints TCAP.X Tokens staking the collateral
+   * @notice Mints TCAP Tokens staking the collateral
    * @param _amount of tokens to mint
    */
   function mint(uint256 _amount)
@@ -356,7 +365,7 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Burns TCAP.X Tokens freen the staked collateral
+   * @notice Burns TCAP Tokens freen the staked collateral
    * @param _amount of tokens to burn
    */
   function burn(uint256 _amount)
@@ -456,7 +465,7 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Returns the minimal required TCAP.X to liquidate a Vault
+   * @notice Returns the minimal required TCAP to liquidate a Vault
    * @param _vaultId of the vault to liquidate
    * @return collateral required of the TCAP Token
    */
@@ -481,7 +490,7 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Returns the minimal required TCAP.X to liquidate a Vault
+   * @notice Returns the minimal required TCAP to liquidate a Vault
    * @param _vaultId of the vault to liquidate
    * @return rewardCollateral for liquidating Vault
    */
@@ -498,6 +507,11 @@ abstract contract IVaultHandler is
     rewardCollateral = (reward.mul(tcapPrice)).div(collateralPrice);
   }
 
+  /**
+   * @notice Returns the Vault information
+   * @param _id
+   * @return Id, Collateral, Owner, Debt
+   */
   function getVault(uint256 _id)
     public
     virtual
@@ -513,6 +527,11 @@ abstract contract IVaultHandler is
     return (vault.Id, vault.Collateral, vault.Owner, vault.Debt);
   }
 
+  /**
+   * @notice Returns the Collateral Ratio fo the Vault
+   * @param _vaultId
+   * @return currentRatio
+   */
   function getVaultRatio(uint256 _vaultId)
     public
     virtual
@@ -532,16 +551,33 @@ abstract contract IVaultHandler is
     }
   }
 
+  /**
+   * @notice Returns the required fee to burn the TCAP tokens
+   * @param _amount to burn
+   * @return fee
+   */
   function getFee(uint256 _amount) public virtual view returns (uint256 fee) {
     uint256 ethPrice = ETHPriceOracle.getLatestAnswer();
     fee = (TCAPPrice().mul(_amount).mul(burnFee)).div(100).div(ethPrice);
   }
+
+  /**
+   * @notice Returns the required fee to burn the TCAP tokens
+   * @param _amount to burn
+   * @return fee
+   */
+  //todo refactor this
 
   function _burnFee(uint256 _amount) internal {
     uint256 fee = getFee(_amount);
     require(fee == msg.value, "Burn fee different than required");
   }
 
+  /**
+   * @notice Burns an amount of TCAP Tokens
+   * @param _vaultId
+   * @param _amount
+   */
   function _burn(uint256 _vaultId, uint256 _amount) internal {
     Vault storage vault = vaults[_vaultId];
     require(vault.Debt >= _amount, "Amount greater than debt");
@@ -549,7 +585,11 @@ abstract contract IVaultHandler is
     TCAPToken.burn(msg.sender, _amount);
   }
 
-  //Supports interface
+  /**
+   * @notice ERC165 Standard for support of interfaces
+   * @param interfaceId
+   * @return bool
+   */
   function supportsInterface(bytes4 interfaceId)
     external
     override
