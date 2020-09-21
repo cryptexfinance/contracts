@@ -3,7 +3,7 @@ var ethersProvider = require("ethers");
 const bre = require("@nomiclabs/buidler");
 
 describe("Orchestrator Contract", async function () {
-	let orchestratorInstance, tcapInstance, tcapInstance2, ethVaultInstance;
+	let orchestratorInstance, tcapInstance, tcapInstance2, ethVaultInstance, btcVaultInstance;
 	let [owner, addr1, handler, handler2] = [];
 	let accounts = [];
 	let divisor = "10000000000";
@@ -53,6 +53,10 @@ describe("Orchestrator Contract", async function () {
 		ethVaultInstance = await wethVault.deploy(orchestratorInstance.address);
 		await ethVaultInstance.deployed();
 		expect(ethVaultInstance.address).properAddress;
+
+		btcVaultInstance = await wethVault.deploy(orchestratorInstance.address);
+		await btcVaultInstance.deployed();
+		expect(btcVaultInstance.address).properAddress;
 		//TCAP
 		const TCAP = await ethers.getContractFactory("TCAP");
 		tcapInstance = await TCAP.deploy(
@@ -229,12 +233,14 @@ describe("Orchestrator Contract", async function () {
 
 	it("...should allow to unlock timelock for a function", async () => {
 		await expect(
-			orchestratorInstance.connect(addr1).unlockVaultFunction(fns.DIVISOR)
+			orchestratorInstance.connect(addr1).unlockVaultFunction(ethVaultInstance.address, fns.DIVISOR)
 		).to.be.revertedWith("Ownable: caller is not the owner");
 
-		await orchestratorInstance.unlockVaultFunction(fns.DIVISOR);
-		expect(await orchestratorInstance.timelock(fns.DIVISOR)).to.not.eq(0);
-		expect(Date.now()).to.lte((await orchestratorInstance.timelock(fns.DIVISOR)).mul(1000));
+		await orchestratorInstance.unlockVaultFunction(ethVaultInstance.address, fns.DIVISOR);
+		expect(await orchestratorInstance.timelock(ethVaultInstance.address, fns.DIVISOR)).to.not.eq(0);
+		expect(Date.now()).to.lte(
+			(await orchestratorInstance.timelock(ethVaultInstance.address, fns.DIVISOR)).mul(1000)
+		);
 
 		await expect(orchestratorInstance.setDivisor(ethVaultInstance.address, 0)).to.be.revertedWith(
 			"Function is timelocked"
@@ -246,16 +252,19 @@ describe("Orchestrator Contract", async function () {
 		);
 		//fast-forward
 		bre.network.provider.send("evm_increaseTime", [TWO_DAYS]);
+		await expect(orchestratorInstance.setDivisor(btcVaultInstance.address, 0)).to.be.revertedWith(
+			"Function is timelocked"
+		);
 		await orchestratorInstance.setDivisor(ethVaultInstance.address, divisor);
 	});
 
 	it("...should allow to lock again a function", async () => {
 		await expect(
-			orchestratorInstance.connect(addr1).lockVaultFunction(fns.DIVISOR)
+			orchestratorInstance.connect(addr1).lockVaultFunction(ethVaultInstance.address, fns.DIVISOR)
 		).to.be.revertedWith("Ownable: caller is not the owner");
 
-		await orchestratorInstance.lockVaultFunction(fns.DIVISOR);
-		expect(await orchestratorInstance.timelock(fns.DIVISOR)).to.eq(0);
+		await orchestratorInstance.lockVaultFunction(ethVaultInstance.address, fns.DIVISOR);
+		expect(await orchestratorInstance.timelock(ethVaultInstance.address, fns.DIVISOR)).to.eq(0);
 	});
 
 	it("...should set vault divisor", async () => {
@@ -264,7 +273,7 @@ describe("Orchestrator Contract", async function () {
 		await expect(orchestratorInstance.setDivisor(ethVaultInstance.address, 0)).to.be.revertedWith(
 			"Function is timelocked"
 		);
-		await orchestratorInstance.unlockVaultFunction(fns.DIVISOR);
+		await orchestratorInstance.unlockVaultFunction(ethVaultInstance.address, fns.DIVISOR);
 		//fast-forward
 		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
 
@@ -290,7 +299,7 @@ describe("Orchestrator Contract", async function () {
 		await expect(orchestratorInstance.setRatio(ethVaultInstance.address, 0)).to.be.revertedWith(
 			"Function is timelocked"
 		);
-		await orchestratorInstance.unlockVaultFunction(fns.RATIO);
+		await orchestratorInstance.unlockVaultFunction(ethVaultInstance.address, fns.RATIO);
 		//fast-forward
 		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
 
@@ -301,6 +310,10 @@ describe("Orchestrator Contract", async function () {
 		await expect(
 			orchestratorInstance.setRatio(ethersProvider.constants.AddressZero, 0)
 		).to.be.revertedWith("Not a valid vault");
+
+		await expect(orchestratorInstance.setRatio(btcVaultInstance.address, ratio)).to.be.revertedWith(
+			"Function is timelocked"
+		);
 
 		await orchestratorInstance.setRatio(ethVaultInstance.address, ratio);
 		expect(ratio).to.eq(await ethVaultInstance.ratio());
@@ -316,7 +329,7 @@ describe("Orchestrator Contract", async function () {
 		await expect(orchestratorInstance.setBurnFee(ethVaultInstance.address, 0)).to.be.revertedWith(
 			"Function is timelocked"
 		);
-		await orchestratorInstance.unlockVaultFunction(fns.BURNFEE);
+		await orchestratorInstance.unlockVaultFunction(ethVaultInstance.address, fns.BURNFEE);
 		//fast-forward
 		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
 
@@ -341,7 +354,7 @@ describe("Orchestrator Contract", async function () {
 		await expect(
 			orchestratorInstance.setLiquidationPenalty(ethVaultInstance.address, 0)
 		).to.be.revertedWith("Function is timelocked");
-		await orchestratorInstance.unlockVaultFunction(fns.LIQUIDATION);
+		await orchestratorInstance.unlockVaultFunction(ethVaultInstance.address, fns.LIQUIDATION);
 		//fast-forward
 		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
 
@@ -365,7 +378,7 @@ describe("Orchestrator Contract", async function () {
 		await expect(orchestratorInstance.setTCAP(ethVaultInstance.address, tcap)).to.be.revertedWith(
 			"Function is timelocked"
 		);
-		await orchestratorInstance.unlockVaultFunction(fns.TCAP);
+		await orchestratorInstance.unlockVaultFunction(ethVaultInstance.address, fns.TCAP);
 
 		//fast-forward
 		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
@@ -395,7 +408,7 @@ describe("Orchestrator Contract", async function () {
 		await expect(
 			orchestratorInstance.setTCAPOracle(ethVaultInstance.address, tcapOracle)
 		).to.be.revertedWith("Function is timelocked");
-		await orchestratorInstance.unlockVaultFunction(fns.TCAPORACLE);
+		await orchestratorInstance.unlockVaultFunction(ethVaultInstance.address, fns.TCAPORACLE);
 		//fast-forward
 		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
 
@@ -433,7 +446,7 @@ describe("Orchestrator Contract", async function () {
 		await expect(
 			orchestratorInstance.setCollateral(ethVaultInstance.address, collateralContract)
 		).to.be.revertedWith("Function is timelocked");
-		await orchestratorInstance.unlockVaultFunction(fns.COLLATERAL);
+		await orchestratorInstance.unlockVaultFunction(ethVaultInstance.address, fns.COLLATERAL);
 		//fast-forward
 		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
 
@@ -462,7 +475,7 @@ describe("Orchestrator Contract", async function () {
 		await expect(
 			orchestratorInstance.setCollateralOracle(ethVaultInstance.address, collateralOracle)
 		).to.be.revertedWith("Function is timelocked");
-		await orchestratorInstance.unlockVaultFunction(fns.COLLATERALORACLE);
+		await orchestratorInstance.unlockVaultFunction(ethVaultInstance.address, fns.COLLATERALORACLE);
 		//fast-forward
 		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
 
@@ -501,7 +514,7 @@ describe("Orchestrator Contract", async function () {
 		await expect(
 			orchestratorInstance.setETHOracle(ethVaultInstance.address, ethOracle)
 		).to.be.revertedWith("Function is timelocked");
-		await orchestratorInstance.unlockVaultFunction(fns.ETHORACLE);
+		await orchestratorInstance.unlockVaultFunction(ethVaultInstance.address, fns.ETHORACLE);
 		//fast-forward
 		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
 

@@ -509,7 +509,7 @@ abstract contract IVaultHandler is
 
   /**
    * @notice Returns the Vault information
-   * @param _id
+   * @param _id of vault
    * @return Id, Collateral, Owner, Debt
    */
   function getVault(uint256 _id)
@@ -529,7 +529,7 @@ abstract contract IVaultHandler is
 
   /**
    * @notice Returns the Collateral Ratio fo the Vault
-   * @param _vaultId
+   * @param _vaultId id of vault
    * @return currentRatio
    */
   function getVaultRatio(uint256 _vaultId)
@@ -564,9 +564,8 @@ abstract contract IVaultHandler is
   /**
    * @notice Returns the required fee to burn the TCAP tokens
    * @param _amount to burn
-   * @return fee
    */
-  //todo refactor this
+  //TODO refactor this
 
   function _burnFee(uint256 _amount) internal {
     uint256 fee = getFee(_amount);
@@ -575,8 +574,8 @@ abstract contract IVaultHandler is
 
   /**
    * @notice Burns an amount of TCAP Tokens
-   * @param _vaultId
-   * @param _amount
+   * @param _vaultId vault id
+   * @param _amount to burn
    */
   function _burn(uint256 _vaultId, uint256 _amount) internal {
     Vault storage vault = vaults[_vaultId];
@@ -587,7 +586,7 @@ abstract contract IVaultHandler is
 
   /**
    * @notice ERC165 Standard for support of interfaces
-   * @param interfaceId
+   * @param interfaceId bytes of interface
    * @return bool
    */
   function supportsInterface(bytes4 interfaceId)

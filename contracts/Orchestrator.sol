@@ -28,6 +28,11 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 //DEBUG
 import "@nomiclabs/buidler/console.sol";
 
+/**
+ * @title TCAP Orchestrator
+ * @author Cristian Espinoza
+ * @notice Orchestrator contract in charge of managing the settings of the vaults and TCAP token
+ */
 contract Orchestrator is Ownable {
   enum VaultFunctions {
     DIVISOR,
@@ -40,8 +45,10 @@ contract Orchestrator is Ownable {
     COLLATERALORACLE,
     ETHORACLE
   }
+  /**@dev Vault address to initialized bool */
   mapping(IVaultHandler => bool) public initialized;
-  mapping(VaultFunctions => uint256) public timelock;
+  /**@dev Mapping that checks if Function is timelocked */
+  mapping(IVaultHandler => mapping(VaultFunctions => uint256)) public timelock;
   //timelock value, timelock value == value
   uint256 private constant _TIMELOCK = 3 days;
 
@@ -49,9 +56,9 @@ contract Orchestrator is Ownable {
   bytes4 private constant _INTERFACE_ID_TCAP = 0xa9ccee51;
   bytes4 private constant _INTERFACE_ID_CHAINLINK_ORACLE = 0x85be402b;
 
-  modifier notLocked(VaultFunctions _fn) {
+  modifier notLocked(IVaultHandler _vault, VaultFunctions _fn) {
     require(
-      timelock[_fn] != 0 && timelock[_fn] <= now,
+      timelock[_vault][_fn] != 0 && timelock[_vault][_fn] <= now,
       "Function is timelocked"
     );
     _;
@@ -126,112 +133,125 @@ contract Orchestrator is Ownable {
   }
 
   //unlock timelock
-  function unlockVaultFunction(VaultFunctions _fn) public onlyOwner {
-    timelock[_fn] = now + _TIMELOCK;
+  function unlockVaultFunction(IVaultHandler _vault, VaultFunctions _fn)
+    public
+    onlyOwner
+  {
+    timelock[_vault][_fn] = now + _TIMELOCK;
   }
 
   //unlock timelock for all
 
   //lock timelock
-  function _lockVaultFunction(VaultFunctions _fn) private {
-    timelock[_fn] = 0;
+  function _lockVaultFunction(IVaultHandler _vault, VaultFunctions _fn)
+    private
+  {
+    timelock[_vault][_fn] = 0;
   }
 
   //lock timelock
-  function lockVaultFunction(VaultFunctions _fn) public onlyOwner {
-    _lockVaultFunction(_fn);
+  function lockVaultFunction(IVaultHandler _vault, VaultFunctions _fn)
+    public
+    onlyOwner
+  {
+    _lockVaultFunction(_vault, _fn);
   }
 
   function setDivisor(IVaultHandler _vault, uint256 _divisor)
     public
     onlyOwner
-    notLocked(VaultFunctions.DIVISOR)
     validVault(_vault)
+    notLocked(_vault, VaultFunctions.DIVISOR)
   {
     _vault.setDivisor(_divisor);
-    _lockVaultFunction(VaultFunctions.DIVISOR);
+    _lockVaultFunction(_vault, VaultFunctions.DIVISOR);
   }
 
   function setRatio(IVaultHandler _vault, uint256 _ratio)
     public
     onlyOwner
-    notLocked(VaultFunctions.RATIO)
     validVault(_vault)
+    notLocked(_vault, VaultFunctions.RATIO)
   {
     _vault.setRatio(_ratio);
-    _lockVaultFunction(VaultFunctions.RATIO);
+    _lockVaultFunction(_vault, VaultFunctions.RATIO);
   }
 
   function setBurnFee(IVaultHandler _vault, uint256 _burnFee)
     public
     onlyOwner
-    notLocked(VaultFunctions.BURNFEE)
     validVault(_vault)
+    notLocked(_vault, VaultFunctions.BURNFEE)
   {
     _vault.setBurnFee(_burnFee);
-    _lockVaultFunction(VaultFunctions.BURNFEE);
+    _lockVaultFunction(_vault, VaultFunctions.BURNFEE);
   }
 
   function setLiquidationPenalty(
     IVaultHandler _vault,
     uint256 _liquidationPenalty
-  ) public onlyOwner notLocked(VaultFunctions.LIQUIDATION) validVault(_vault) {
+  )
+    public
+    onlyOwner
+    validVault(_vault)
+    notLocked(_vault, VaultFunctions.LIQUIDATION)
+  {
     _vault.setLiquidationPenalty(_liquidationPenalty);
-    _lockVaultFunction(VaultFunctions.LIQUIDATION);
+    _lockVaultFunction(_vault, VaultFunctions.LIQUIDATION);
   }
 
   function setTCAP(IVaultHandler _vault, TCAP _tcap)
     public
     onlyOwner
-    notLocked(VaultFunctions.TCAP)
     validVault(_vault)
+    notLocked(_vault, VaultFunctions.TCAP)
     validTCAP(_tcap)
   {
     _vault.setTCAPContract(_tcap);
-    _lockVaultFunction(VaultFunctions.TCAP);
+    _lockVaultFunction(_vault, VaultFunctions.TCAP);
   }
 
   function setTCAPOracle(IVaultHandler _vault, address _tcapOracle)
     public
     onlyOwner
-    notLocked(VaultFunctions.TCAPORACLE)
     validVault(_vault)
+    notLocked(_vault, VaultFunctions.TCAPORACLE)
     validChainlinkOracle(_tcapOracle)
   {
     _vault.setTCAPOracle(ChainlinkOracle(_tcapOracle));
-    _lockVaultFunction(VaultFunctions.TCAPORACLE);
+    _lockVaultFunction(_vault, VaultFunctions.TCAPORACLE);
   }
 
   function setCollateral(IVaultHandler _vault, ERC20 _collateral)
     public
     onlyOwner
-    notLocked(VaultFunctions.COLLATERAL)
     validVault(_vault)
+    notLocked(_vault, VaultFunctions.COLLATERAL)
   {
     _vault.setCollateralContract(_collateral);
-    _lockVaultFunction(VaultFunctions.COLLATERAL);
+    _lockVaultFunction(_vault, VaultFunctions.COLLATERAL);
   }
 
   function setCollateralOracle(IVaultHandler _vault, address _collateralOracle)
     public
     onlyOwner
-    notLocked(VaultFunctions.COLLATERALORACLE)
     validVault(_vault)
+    notLocked(_vault, VaultFunctions.COLLATERALORACLE)
     validChainlinkOracle(_collateralOracle)
   {
     _vault.setCollateralPriceOracle(ChainlinkOracle(_collateralOracle));
-    _lockVaultFunction(VaultFunctions.COLLATERALORACLE);
+    _lockVaultFunction(_vault, VaultFunctions.COLLATERALORACLE);
   }
 
   function setETHOracle(IVaultHandler _vault, address _ethOracles)
     public
     onlyOwner
-    notLocked(VaultFunctions.ETHORACLE)
     validVault(_vault)
+    notLocked(_vault, VaultFunctions.ETHORACLE)
     validChainlinkOracle(_ethOracles)
   {
     _vault.setETHPriceOracle(ChainlinkOracle(_ethOracles));
-    _lockVaultFunction(VaultFunctions.ETHORACLE);
+    _lockVaultFunction(_vault, VaultFunctions.ETHORACLE);
   }
 
   function pauseVault(IVaultHandler _vault)
