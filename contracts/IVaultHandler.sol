@@ -155,7 +155,7 @@ abstract contract IVaultHandler is
    * @param _collateralOracle address
    * @param _ethOracle address
    * @dev Only owner can call it
-   * @dev can only be called once
+   * @dev Can only be called once
    */
   function initialize(
     uint256 _divisor,
