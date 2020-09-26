@@ -1,20 +1,3 @@
-///Contract that manages the vaults and initilize their data
-///Transfer ownership to orchestrator
-//initialize values
-// add vault to tcap
-// handle timelocks and security
-// retrive funds
-// should check oracle address
-// should check tcap address
-// should check vault address
-// pause contracts
-// un pause contracts
-
-//tcap
-//add handlers
-//set cap
-//enable cap
-
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.6.8;
 
@@ -49,6 +32,9 @@ contract Orchestrator is Ownable {
   mapping(IVaultHandler => bool) public initialized;
   /** @dev Mapping that checks if Function on vault is timelocked */
   mapping(IVaultHandler => mapping(VaultFunctions => uint256)) public timelock;
+  /** @dev Mapping that checks if Function on vault is timelocked */
+  mapping(IVaultHandler => mapping(VaultFunctions => bytes32))
+    public timelockValue;
   /** @dev vault functions are timelocked for 3 days*/
   uint256 private constant _TIMELOCK = 3 days;
 
@@ -62,11 +48,16 @@ contract Orchestrator is Ownable {
    * @param _vault address
    * @param _fn constant identifier
    */
-  modifier notLocked(IVaultHandler _vault, VaultFunctions _fn) {
+  modifier notLocked(
+    IVaultHandler _vault,
+    VaultFunctions _fn,
+    bytes32 _value
+  ) {
     require(
       timelock[_vault][_fn] != 0 && timelock[_vault][_fn] <= now,
       "Function is timelocked"
     );
+    require(timelockValue[_vault][_fn] == _value, "Not defined timelock value");
     _;
   }
 
@@ -176,11 +167,14 @@ contract Orchestrator is Ownable {
    * @dev Only owner can call it
    * @dev Unlock time is = now + _TIMELOCK
    */
-  function unlockVaultFunction(IVaultHandler _vault, VaultFunctions _fn)
-    public
-    onlyOwner
-  {
+  function unlockVaultFunction(
+    IVaultHandler _vault,
+    VaultFunctions _fn,
+    bytes32 _hash
+  ) public onlyOwner {
     timelock[_vault][_fn] = now + _TIMELOCK;
+    timelockValue[_vault][_fn] = _hash;
+    //TODO: log unlock
   }
 
   /**
@@ -193,6 +187,7 @@ contract Orchestrator is Ownable {
     private
   {
     timelock[_vault][_fn] = 0;
+    timelockValue[_vault][_fn] = 0;
   }
 
   /**
@@ -221,7 +216,11 @@ contract Orchestrator is Ownable {
     public
     onlyOwner
     validVault(_vault)
-    notLocked(_vault, VaultFunctions.DIVISOR)
+    notLocked(
+      _vault,
+      VaultFunctions.DIVISOR,
+      keccak256(abi.encodePacked(_divisor))
+    )
   {
     _vault.setDivisor(_divisor);
     _lockVaultFunction(_vault, VaultFunctions.DIVISOR);
@@ -239,7 +238,7 @@ contract Orchestrator is Ownable {
     public
     onlyOwner
     validVault(_vault)
-    notLocked(_vault, VaultFunctions.RATIO)
+    notLocked(_vault, VaultFunctions.RATIO, keccak256(abi.encodePacked(_ratio)))
   {
     _vault.setRatio(_ratio);
     _lockVaultFunction(_vault, VaultFunctions.RATIO);
@@ -257,7 +256,11 @@ contract Orchestrator is Ownable {
     public
     onlyOwner
     validVault(_vault)
-    notLocked(_vault, VaultFunctions.BURNFEE)
+    notLocked(
+      _vault,
+      VaultFunctions.BURNFEE,
+      keccak256(abi.encodePacked(_burnFee))
+    )
   {
     _vault.setBurnFee(_burnFee);
     _lockVaultFunction(_vault, VaultFunctions.BURNFEE);
@@ -278,7 +281,11 @@ contract Orchestrator is Ownable {
     public
     onlyOwner
     validVault(_vault)
-    notLocked(_vault, VaultFunctions.LIQUIDATION)
+    notLocked(
+      _vault,
+      VaultFunctions.LIQUIDATION,
+      keccak256(abi.encodePacked(_liquidationPenalty))
+    )
   {
     _vault.setLiquidationPenalty(_liquidationPenalty);
     _lockVaultFunction(_vault, VaultFunctions.LIQUIDATION);
@@ -296,7 +303,7 @@ contract Orchestrator is Ownable {
     public
     onlyOwner
     validVault(_vault)
-    notLocked(_vault, VaultFunctions.TCAP)
+    notLocked(_vault, VaultFunctions.TCAP, keccak256(abi.encodePacked(_tcap)))
     validTCAP(_tcap)
   {
     _vault.setTCAPContract(_tcap);
@@ -315,7 +322,11 @@ contract Orchestrator is Ownable {
     public
     onlyOwner
     validVault(_vault)
-    notLocked(_vault, VaultFunctions.TCAPORACLE)
+    notLocked(
+      _vault,
+      VaultFunctions.TCAPORACLE,
+      keccak256(abi.encodePacked(_tcapOracle))
+    )
     validChainlinkOracle(_tcapOracle)
   {
     _vault.setTCAPOracle(ChainlinkOracle(_tcapOracle));
@@ -334,7 +345,11 @@ contract Orchestrator is Ownable {
     public
     onlyOwner
     validVault(_vault)
-    notLocked(_vault, VaultFunctions.COLLATERAL)
+    notLocked(
+      _vault,
+      VaultFunctions.COLLATERAL,
+      keccak256(abi.encodePacked(_collateral))
+    )
   {
     _vault.setCollateralContract(_collateral);
     _lockVaultFunction(_vault, VaultFunctions.COLLATERAL);
@@ -352,7 +367,11 @@ contract Orchestrator is Ownable {
     public
     onlyOwner
     validVault(_vault)
-    notLocked(_vault, VaultFunctions.COLLATERALORACLE)
+    notLocked(
+      _vault,
+      VaultFunctions.COLLATERALORACLE,
+      keccak256(abi.encodePacked(_collateralOracle))
+    )
     validChainlinkOracle(_collateralOracle)
   {
     _vault.setCollateralPriceOracle(ChainlinkOracle(_collateralOracle));
@@ -371,7 +390,11 @@ contract Orchestrator is Ownable {
     public
     onlyOwner
     validVault(_vault)
-    notLocked(_vault, VaultFunctions.ETHORACLE)
+    notLocked(
+      _vault,
+      VaultFunctions.ETHORACLE,
+      keccak256(abi.encodePacked(_ethOracles))
+    )
     validChainlinkOracle(_ethOracles)
   {
     _vault.setETHPriceOracle(ChainlinkOracle(_ethOracles));
