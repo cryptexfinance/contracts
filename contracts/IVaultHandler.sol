@@ -117,7 +117,10 @@ abstract contract IVaultHandler is
     _;
   }
 
-  /*
+  /**
+   * @dev the computed interface ID according to ERC-165. The interface ID is a XOR of all
+   * all interface method selectors.
+   * 
    * initialize.selector ^
    * setTCAPContract.selector ^
    * setTCAPOracle.selector ^

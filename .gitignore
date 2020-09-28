@@ -4,6 +4,7 @@ artifacts
 .secret
 package-lock.json
 .env
+coverage/
 
 node_modules/
 cache/

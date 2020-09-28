@@ -9,7 +9,7 @@ import "./Orchestrator.sol";
 /**
  * @title Total Market Cap Token
  * @author Cristian Espinoza
- * @notice ERC20 token on the Ethereum Blockchain that provides total exposure to the cryptocurrency sector
+ * @notice ERC20 token on the Ethereum Blockchain that provides total exposure to the cryptocurrency sector.
  */
 contract TCAP is ERC20, Ownable, IERC165 {
   /** @dev Logs all the calls of the functions. */
@@ -84,8 +84,10 @@ contract TCAP is ERC20, Ownable, IERC165 {
   }
 
   /**
-   * @notice Sets the maximum cap of the token
+   * @notice Sets the maximum capacity of the token.
    * @param _cap value
+   * @dev When capEnabled is true, mint is not allowed to issue tokens that would increase the
+   * total supply above the specified capacity.
    * @dev Only owner can call it
    */
   function setCap(uint256 _cap) public onlyOwner {
@@ -94,8 +96,9 @@ contract TCAP is ERC20, Ownable, IERC165 {
   }
 
   /**
-   * @notice Enables or Disables the Token Cap
+   * @notice Enables or Disables the Token Cap.
    * @param _enable value
+   * @dev When capEnabled is true, minting will not be allowed above the max capacity.
    * @dev Only owner can call it
    */
   function enableCap(bool _enable) public onlyOwner {
