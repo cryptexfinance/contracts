@@ -1,9 +1,9 @@
 {
 	"name": "cryptex-contract",
 	"version": "0.0.1",
-	"description": "TCAP.x Token Contracts",
+	"description": "TCAP Contracts",
 	"main": "index.js",
-	"repository": "https://github.com/crisgarner/tcap.x",
+	"repository": "https://github.com/cryptexglobal/contracts",
 	"author": "@crisgarner",
 	"scripts": {
 		"build": "npm run typechain",

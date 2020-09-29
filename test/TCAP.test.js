@@ -70,29 +70,6 @@ describe("TCAP Token", async function () {
 		expect(balance).to.eq(0, "Balance should be 0");
 	});
 
-	it("...should update the token contract cap", async () => {
-		let cap = ethers.utils.parseEther("10000");
-		await expect(tcapInstance.connect(addr1).setCap(0)).to.be.revertedWith(
-			"Ownable: caller is not the owner"
-		);
-		await expect(orchestratorInstance.connect(owner).setTCAPCap(tcapInstance.address, cap))
-			.to.emit(tcapInstance, "LogSetCap")
-			.withArgs(orchestratorInstance.address, cap);
-		let currentCap = await tcapInstance.cap();
-		expect(currentCap).to.eq(cap);
-	});
-
-	it("...should enable the token cap", async () => {
-		await expect(tcapInstance.connect(addr1).enableCap(true)).to.be.revertedWith(
-			"Ownable: caller is not the owner"
-		);
-		await expect(orchestratorInstance.connect(owner).enableTCAPCap(tcapInstance.address, true))
-			.to.emit(tcapInstance, "LogEnableCap")
-			.withArgs(orchestratorInstance.address, true);
-		let enableCap = await tcapInstance.capEnabled();
-		expect(enableCap).to.eq(true);
-	});
-
 	it("...should allow to approve tokens", async () => {
 		const amount = ethersProvider.utils.parseEther("100");
 		await tcapInstance.connect(owner).approve(accounts[1], amount);
@@ -136,16 +113,5 @@ describe("TCAP Token", async function () {
 			.withArgs(orchestratorInstance.address, ethVaultInstance2.address);
 		currentHandler = await tcapInstance.tokenHandlers(ethVaultInstance2.address);
 		expect(currentHandler).to.eq(true);
-	});
-
-	it("...should disable the token cap", async () => {
-		await expect(tcapInstance.connect(addr1).enableCap(false)).to.be.revertedWith(
-			"Ownable: caller is not the owner"
-		);
-		await expect(orchestratorInstance.connect(owner).enableTCAPCap(tcapInstance.address, false))
-			.to.emit(tcapInstance, "LogEnableCap")
-			.withArgs(orchestratorInstance.address, false);
-		let enableCap = await tcapInstance.capEnabled();
-		expect(enableCap).to.eq(false);
 	});
 });
