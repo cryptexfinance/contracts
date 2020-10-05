@@ -9,6 +9,6 @@ import "./Orchestrator.sol";
  * @author Cristian Espinoza
  * @notice Contract in charge of handling the TCAP Vault and stake using a Collateral ERC20
  */
-contract VaultHandler is IVaultHandler {
+contract ERC20VaultHandler is IVaultHandler {
   constructor(Orchestrator orchestrator) public IVaultHandler(orchestrator) {}
 }

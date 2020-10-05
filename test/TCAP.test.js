@@ -42,7 +42,7 @@ describe("TCAP Token", async function () {
 		expect(tcapInstance.address).properAddress;
 
 		//vault
-		const wethVault = await ethers.getContractFactory("VaultHandler");
+		const wethVault = await ethers.getContractFactory("ERC20VaultHandler");
 		ethVaultInstance = await wethVault.deploy(orchestratorInstance.address);
 		await ethVaultInstance.deployed();
 

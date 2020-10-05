@@ -4,7 +4,7 @@ pragma solidity ^0.6.8;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
@@ -13,8 +13,8 @@ import "./TCAP.sol";
 import "./Orchestrator.sol";
 import "./oracles/ChainlinkOracle.sol";
 
-//DEBUG
-// import "@nomiclabs/buidler/console.sol";
+//TODO: Remove
+import "@nomiclabs/buidler/console.sol";
 
 //TODO: Add Formulas on comments
 
@@ -35,7 +35,7 @@ abstract contract IVaultHandler is
   event LogSetTCAPOracle(address indexed _owner, ChainlinkOracle _oracle);
   event LogSetCollateralContract(
     address indexed _owner,
-    ERC20 _collateralContract
+    IERC20 _collateralContract
   );
   event LogSetCollateralPriceOracle(
     address indexed _owner,
@@ -90,7 +90,7 @@ abstract contract IVaultHandler is
   /** @dev Total Market Cap Oracle */
   ChainlinkOracle public tcapOracle;
   /** @dev Collateral Token Address*/
-  ERC20 public collateralContract;
+  IERC20 public collateralContract;
   /** @dev Collateral Oracle Address*/
   ChainlinkOracle public collateralPriceOracle;
   /** @dev Collateral Oracle Address*/
@@ -120,7 +120,7 @@ abstract contract IVaultHandler is
   /**
    * @dev the computed interface ID according to ERC-165. The interface ID is a XOR of all
    * all interface method selectors.
-   * 
+   *
    * initialize.selector ^
    * setTCAPContract.selector ^
    * setTCAPOracle.selector ^
@@ -176,7 +176,7 @@ abstract contract IVaultHandler is
     burnFee = _burnFee;
     liquidationPenalty = _liquidationPenalty;
     tcapOracle = ChainlinkOracle(_tcapOracle);
-    collateralContract = ERC20(_collateralAddress);
+    collateralContract = IERC20(_collateralAddress);
     collateralPriceOracle = ChainlinkOracle(_collateralOracle);
     ETHPriceOracle = ChainlinkOracle(_ethOracle);
     TCAPToken = _tcapAddress;
@@ -207,7 +207,7 @@ abstract contract IVaultHandler is
    * @param _collateralContract address
    * @dev Only owner can call it
    */
-  function setCollateralContract(ERC20 _collateralContract)
+  function setCollateralContract(IERC20 _collateralContract)
     public
     virtual
     onlyOwner
@@ -285,7 +285,6 @@ abstract contract IVaultHandler is
 
   /**
    * @notice Creates a Vault
-   * @dev Only whitelisted can call it
    */
   function createVault() public virtual whenNotPaused {
     require(vaultToUser[msg.sender] == 0, "Vault already created");
@@ -299,7 +298,6 @@ abstract contract IVaultHandler is
 
   /**
    * @notice Adds collateral to vault
-   * @dev Only whitelisted can call it
    * @param _amount of collateral to add
    */
   function addCollateral(uint256 _amount)
@@ -317,7 +315,7 @@ abstract contract IVaultHandler is
 
   /**
    * @notice Removes not used collateral from collateral
-   * @param _amount of collateral to add
+   * @param _amount of collateral to remove
    */
   function removeCollateral(uint256 _amount)
     public
@@ -380,7 +378,7 @@ abstract contract IVaultHandler is
     whenNotPaused
   {
     Vault memory vault = vaults[vaultToUser[msg.sender]];
-    _burnFee(_amount);
+    _checkBurnFee(_amount);
     _burn(vault.Id, _amount);
     emit LogBurn(msg.sender, vault.Id, _amount);
   }
@@ -406,7 +404,7 @@ abstract contract IVaultHandler is
       "Liquidation amount different than required"
     );
     uint256 reward = liquidationReward(vault.Id);
-    _burnFee(requiredCollateral);
+    _checkBurnFee(requiredCollateral);
     _burn(vault.Id, requiredCollateral);
     vault.Collateral = vault.Collateral.sub(reward);
     collateralContract.transfer(msg.sender, reward);
@@ -568,9 +566,7 @@ abstract contract IVaultHandler is
    * @notice Returns the required fee to burn the TCAP tokens
    * @param _amount to burn
    */
-  //TODO refactor this
-
-  function _burnFee(uint256 _amount) internal {
+  function _checkBurnFee(uint256 _amount) internal {
     uint256 fee = getFee(_amount);
     require(fee == msg.value, "Burn fee different than required");
   }
