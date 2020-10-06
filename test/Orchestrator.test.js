@@ -241,7 +241,11 @@ describe("Orchestrator Contract", async function () {
 				.unlockFunction(ethVaultInstance.address, fns.DIVISOR, divisorHash)
 		).to.be.revertedWith("Ownable: caller is not the owner");
 
-		await orchestratorInstance.unlockFunction(ethVaultInstance.address, fns.DIVISOR, divisorHash);
+		await expect(
+			orchestratorInstance.unlockFunction(ethVaultInstance.address, fns.DIVISOR, divisorHash)
+		)
+			.to.emit(orchestratorInstance, "LogUnlock")
+			.withArgs(ethVaultInstance.address, fns.DIVISOR, divisorHash);
 		expect(await orchestratorInstance.timelock(ethVaultInstance.address, fns.DIVISOR)).to.not.eq(0);
 		expect(await orchestratorInstance.timelockValue(ethVaultInstance.address, fns.DIVISOR)).to.eq(
 			divisorHash

@@ -17,6 +17,9 @@ import "@nomiclabs/buidler/console.sol";
  * @notice Orchestrator contract in charge of managing the settings of the vaults and TCAP token
  */
 contract Orchestrator is Ownable {
+  /** @dev Logs the unlock function. */
+  event LogUnlock(address indexed _contract, Functions _fn, bytes32 _hash);
+
   enum Functions {
     DIVISOR,
     RATIO,
@@ -180,7 +183,7 @@ contract Orchestrator is Ownable {
   ) public onlyOwner {
     timelock[address(_contract)][_fn] = now + _TIMELOCK;
     timelockValue[address(_contract)][_fn] = _hash;
-    //TODO: log unlock
+    emit LogUnlock(_contract, _fn, _hash);
   }
 
   /**

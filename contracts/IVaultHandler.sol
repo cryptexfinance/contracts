@@ -13,9 +13,6 @@ import "./TCAP.sol";
 import "./Orchestrator.sol";
 import "./oracles/ChainlinkOracle.sol";
 
-//TODO: Remove
-import "@nomiclabs/buidler/console.sol";
-
 //TODO: Add Formulas on comments
 
 /**
@@ -396,7 +393,6 @@ abstract contract IVaultHandler is
   /**
    * @notice Allow users to liquidate vaults with low collateral ratio
    * @param _vaultId to liquidate
-   * TODO: do something about undercollateralized account
    */
   function liquidateVault(uint256 _vaultId, uint256 requiredCollateral)
     public

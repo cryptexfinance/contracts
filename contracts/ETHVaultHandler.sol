@@ -5,9 +5,6 @@ import "./IVaultHandler.sol";
 import "./Orchestrator.sol";
 import "./IWETH.sol";
 
-//TODO Remove
-import "@nomiclabs/buidler/console.sol";
-
 /**
  * @title TCAP Vault
  * @author Cristian Espinoza
