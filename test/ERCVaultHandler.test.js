@@ -132,6 +132,11 @@ describe("ERC20 Vault", async function () {
 		await ercTokenInstance.connect(addr1).approve(ercTokenHandler.address, amount);
 		balance = await ercTokenInstance.balanceOf(accounts[1]);
 		expect(balance).to.eq(amount);
+
+		await expect(ercTokenHandler.connect(addr1).addCollateral(0)).to.be.revertedWith(
+			"Value can't be 0"
+		);
+
 		await expect(ercTokenHandler.connect(addr1).addCollateral(amount))
 			.to.emit(ercTokenHandler, "LogAddCollateral")
 			.withArgs(accounts[1], 1, amount);
@@ -167,6 +172,9 @@ describe("ERC20 Vault", async function () {
 		);
 		await expect(ercTokenHandler.connect(addr1).removeCollateral(bigAmount)).to.be.revertedWith(
 			"Retrieve amount higher than collateral"
+		);
+		await expect(ercTokenHandler.connect(addr1).removeCollateral(0)).to.be.revertedWith(
+			"Value can't be 0"
 		);
 		await expect(ercTokenHandler.connect(addr1).removeCollateral(amount))
 			.to.emit(ercTokenHandler, "LogRemoveCollateral")
@@ -221,6 +229,7 @@ describe("ERC20 Vault", async function () {
 		await expect(ercTokenHandler.connect(addr1).mint(bigAmount)).to.be.revertedWith(
 			"Not enough collateral"
 		);
+		await expect(ercTokenHandler.connect(addr1).mint(0)).to.be.revertedWith("Value can't be 0");
 		await expect(ercTokenHandler.connect(addr1).mint(amount))
 			.to.emit(ercTokenHandler, "LogMint")
 			.withArgs(accounts[1], 1, amount);
@@ -285,6 +294,7 @@ describe("ERC20 Vault", async function () {
 		await expect(
 			ercTokenHandler.connect(addr1).burn(amount, {value: ethHighAmount})
 		).to.be.revertedWith("Burn fee different than required");
+		await expect(ercTokenHandler.connect(addr1).burn(0)).to.be.revertedWith("Value can't be 0");
 		await expect(ercTokenHandler.connect(addr1).burn(amount, {value: ethAmount}))
 			.to.emit(ercTokenHandler, "LogBurn")
 			.withArgs(accounts[1], 1, amount);
@@ -480,8 +490,5 @@ describe("ERC20 Vault", async function () {
 			.withArgs(orchestratorInstance.address);
 		let paused = await ercTokenHandler.paused();
 		expect(paused).to.eq(false);
-		await expect(ercTokenHandler.connect(addr1).removeCollateral(0))
-			.to.emit(ercTokenHandler, "LogRemoveCollateral")
-			.withArgs(accounts[1], 1, 0);
 	});
 });

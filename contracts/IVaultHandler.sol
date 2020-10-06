@@ -117,6 +117,12 @@ abstract contract IVaultHandler is
     _;
   }
 
+  /** @notice Throws if value is 0. */
+  modifier notZero(uint256 _value) {
+    require(_value != 0, "Value can't be 0");
+    _;
+  }
+
   /**
    * @dev the computed interface ID according to ERC-165. The interface ID is a XOR of all
    * all interface method selectors.
@@ -306,6 +312,7 @@ abstract contract IVaultHandler is
     nonReentrant
     vaultExists
     whenNotPaused
+    notZero(_amount)
   {
     collateralContract.transferFrom(msg.sender, address(this), _amount);
     Vault storage vault = vaults[vaultToUser[msg.sender]];
@@ -323,6 +330,7 @@ abstract contract IVaultHandler is
     nonReentrant
     vaultExists
     whenNotPaused
+    notZero(_amount)
   {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     uint256 currentRatio = getVaultRatio(vault.Id);
@@ -352,6 +360,7 @@ abstract contract IVaultHandler is
     nonReentrant
     vaultExists
     whenNotPaused
+    notZero(_amount)
   {
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     uint256 requiredCollateral = requiredCollateral(_amount);
@@ -366,7 +375,7 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Burns TCAP Tokens freen the staked collateral
+   * @notice Burns TCAP Tokens releasing the staked collateral
    * @param _amount of tokens to burn
    */
   function burn(uint256 _amount)
@@ -376,6 +385,7 @@ abstract contract IVaultHandler is
     nonReentrant
     vaultExists
     whenNotPaused
+    notZero(_amount)
   {
     Vault memory vault = vaults[vaultToUser[msg.sender]];
     _checkBurnFee(_amount);

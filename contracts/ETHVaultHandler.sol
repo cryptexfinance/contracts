@@ -17,7 +17,8 @@ contract ETHVaultHandler is IVaultHandler {
   constructor(Orchestrator orchestrator) public IVaultHandler(orchestrator) {}
 
   /**
-   * @notice Adds collateral to vault
+   * @notice Adds collateral to vault using ETH
+   * @dev value should be higher than 0
    */
   function addCollateralETH()
     public
@@ -26,7 +27,7 @@ contract ETHVaultHandler is IVaultHandler {
     vaultExists
     whenNotPaused
   {
-    require(msg.value > 0, "Value should not be 0");
+    require(msg.value > 0, "Value can't be 0");
     IWETH(address(collateralContract)).deposit{value: msg.value}();
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     vault.Collateral = vault.Collateral.add(msg.value);
@@ -35,7 +36,8 @@ contract ETHVaultHandler is IVaultHandler {
 
   /**
    * @notice Removes not used collateral from collateral
-   * @param _amount of collateral to add
+   * @param _amount of collateral to remove
+   * @dev value should be higher than 0
    */
   function removeCollateralETH(uint256 _amount)
     public
@@ -43,6 +45,7 @@ contract ETHVaultHandler is IVaultHandler {
     vaultExists
     whenNotPaused
   {
+    require(_amount > 0, "Value can't be 0");
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     uint256 currentRatio = getVaultRatio(vault.Id);
     require(

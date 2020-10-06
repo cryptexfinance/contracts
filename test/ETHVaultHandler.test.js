@@ -131,6 +131,10 @@ describe("ETH Vault", async function () {
 		await wethTokenInstance.connect(addr1).approve(ethTokenHandler.address, amount);
 		balance = await wethTokenInstance.balanceOf(accounts[1]);
 		expect(balance).to.eq(amount);
+
+		await expect(ethTokenHandler.connect(addr1).addCollateral(0)).to.be.revertedWith(
+			"Value can't be 0"
+		);
 		await expect(ethTokenHandler.connect(addr1).addCollateral(amount))
 			.to.emit(ethTokenHandler, "LogAddCollateral")
 			.withArgs(accounts[1], 1, amount);
@@ -162,7 +166,7 @@ describe("ETH Vault", async function () {
 		let vaultBalance = vault[1];
 
 		await expect(ethTokenHandler.connect(addr1).addCollateralETH()).to.be.revertedWith(
-			"Value should not be 0"
+			"Value can't be 0"
 		);
 
 		await expect(ethTokenHandler.connect(addr1).addCollateralETH({value: amount}))
@@ -204,6 +208,9 @@ describe("ETH Vault", async function () {
 		await expect(ethTokenHandler.connect(addr1).removeCollateralETH(bigAmount)).to.be.revertedWith(
 			"Retrieve amount higher than collateral"
 		);
+		await expect(ethTokenHandler.connect(addr1).removeCollateralETH(0)).to.be.revertedWith(
+			"Value can't be 0"
+		);
 		await expect(ethTokenHandler.connect(addr1).removeCollateralETH(amount))
 			.to.emit(ethTokenHandler, "LogRemoveCollateral")
 			.withArgs(accounts[1], 1, amount);
@@ -241,6 +248,9 @@ describe("ETH Vault", async function () {
 		);
 		await expect(ethTokenHandler.connect(addr1).removeCollateral(bigAmount)).to.be.revertedWith(
 			"Retrieve amount higher than collateral"
+		);
+		await expect(ethTokenHandler.connect(addr1).removeCollateral(0)).to.be.revertedWith(
+			"Value can't be 0"
 		);
 		await expect(ethTokenHandler.connect(addr1).removeCollateral(amount))
 			.to.emit(ethTokenHandler, "LogRemoveCollateral")
@@ -554,8 +564,5 @@ describe("ETH Vault", async function () {
 			.withArgs(orchestratorInstance.address);
 		let paused = await ethTokenHandler.paused();
 		expect(paused).to.eq(false);
-		await expect(ethTokenHandler.connect(addr1).removeCollateral(0))
-			.to.emit(ethTokenHandler, "LogRemoveCollateral")
-			.withArgs(accounts[1], 1, 0);
 	});
 });
