@@ -26,13 +26,10 @@ contract ETHVaultHandler is IVaultHandler {
     vaultExists
     whenNotPaused
   {
-    console.log("yo");
+    require(msg.value > 0, "Value should not be 0");
     IWETH(address(collateralContract)).deposit{value: msg.value}();
-    // assert(IWETH(WETH).transfer(address(this), amountETH));
-    collateralContract.transferFrom(msg.sender, address(this), msg.value);
     Vault storage vault = vaults[vaultToUser[msg.sender]];
     vault.Collateral = vault.Collateral.add(msg.value);
-    console.log("bye");
     emit LogAddCollateral(msg.sender, vault.Id, msg.value);
   }
 
@@ -68,5 +65,9 @@ contract ETHVaultHandler is IVaultHandler {
   function safeTransferETH(address to, uint256 value) internal {
     (bool success, ) = to.call{value: value}(new bytes(0));
     require(success, "TransferHelper: ETH_TRANSFER_FAILED");
+  }
+
+  receive() external payable {
+    assert(msg.sender == address(collateralContract)); // only accept ETH via fallback from the WETH contract
   }
 }

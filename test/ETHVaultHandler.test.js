@@ -155,7 +155,82 @@ describe("ETH Vault", async function () {
 		expect(balance).to.eq(amount.add(amount));
 	});
 
-	it("...should allow user to retrieve unused collateral", async () => {
+	it("...should allow user to stake eth collateral", async () => {
+		let balance = await ethers.provider.getBalance(accounts[1]);
+		const amount = ethersProvider.utils.parseEther("375");
+		let vault = await ethTokenHandler.getVault(1);
+		let vaultBalance = vault[1];
+
+		await expect(ethTokenHandler.connect(addr1).addCollateralETH()).to.be.revertedWith(
+			"Value should not be 0"
+		);
+
+		await expect(ethTokenHandler.connect(addr1).addCollateralETH({value: amount}))
+			.to.emit(ethTokenHandler, "LogAddCollateral")
+			.withArgs(accounts[1], 1, amount);
+		vault = await ethTokenHandler.getVault(1);
+		expect(vault[0]).to.eq(1);
+		expect(vault[1]).to.eq(vaultBalance.add(amount));
+		expect(vault[2]).to.eq(accounts[1]);
+		expect(vault[3]).to.eq(0);
+
+		let currentBalance = await ethers.provider.getBalance(accounts[1]);
+		expect(currentBalance).to.lt(balance.sub(amount));
+		balance = await wethTokenInstance.balanceOf(ethTokenHandler.address);
+		expect(balance).to.eq(vaultBalance.add(amount));
+
+		await wethTokenInstance.connect(addr1).deposit({value: amount});
+		await wethTokenInstance.connect(addr1).approve(ethTokenHandler.address, amount);
+		await ethTokenHandler.connect(addr1).addCollateral(amount);
+		vault = await ethTokenHandler.getVault(1);
+		expect(vault[0]).to.eq(1);
+		expect(vault[1]).to.eq(vaultBalance.add(amount.add(amount)));
+		expect(vault[2]).to.eq(accounts[1]);
+		expect(vault[3]).to.eq(0);
+		balance = await wethTokenInstance.balanceOf(ethTokenHandler.address);
+		expect(balance).to.eq(vaultBalance.add(amount.add(amount)));
+	});
+
+	it("...should allow user to retrieve unused collateral on eth", async () => {
+		const amount = ethersProvider.utils.parseEther("375");
+		const bigAmount = ethersProvider.utils.parseEther("100375");
+		let userBalance = await ethers.provider.getBalance(accounts[1]);
+		let vault = await ethTokenHandler.getVault(1);
+		let vaultBalance = vault[1];
+		let contractBalance = await wethTokenInstance.balanceOf(ethTokenHandler.address);
+		await expect(ethTokenHandler.connect(addr3).removeCollateralETH(amount)).to.be.revertedWith(
+			"No Vault created"
+		);
+		await expect(ethTokenHandler.connect(addr1).removeCollateralETH(bigAmount)).to.be.revertedWith(
+			"Retrieve amount higher than collateral"
+		);
+		await expect(ethTokenHandler.connect(addr1).removeCollateralETH(amount))
+			.to.emit(ethTokenHandler, "LogRemoveCollateral")
+			.withArgs(accounts[1], 1, amount);
+
+		vault = await ethTokenHandler.getVault(1);
+		expect(vault[0]).to.eq(1);
+		expect(vault[1]).to.eq(vaultBalance.sub(amount));
+		expect(vault[2]).to.eq(accounts[1]);
+		expect(vault[3]).to.eq(0);
+		let currentBalance = await ethers.provider.getBalance(accounts[1]);
+		expect(userBalance.add(amount)).to.gt(currentBalance);
+		let balance = await wethTokenInstance.balanceOf(ethTokenHandler.address);
+		expect(balance).to.eq(contractBalance.sub(amount));
+		await ethTokenHandler.connect(addr1).removeCollateralETH(amount);
+		vault = await ethTokenHandler.getVault(1);
+		expect(vault[0]).to.eq(1);
+		expect(vault[1]).to.eq(vaultBalance.sub(amount).sub(amount));
+		expect(vault[2]).to.eq(accounts[1]);
+		expect(vault[3]).to.eq(0);
+
+		currentBalance = await ethers.provider.getBalance(accounts[1]);
+		expect(userBalance.add(amount).add(amount)).to.gt(currentBalance);
+		balance = await wethTokenInstance.balanceOf(ethTokenHandler.address);
+		expect(balance).to.eq(vaultBalance.sub(amount).sub(amount));
+	});
+
+	it("...should allow user to retrieve unused collateral on weth", async () => {
 		const amount = ethersProvider.utils.parseEther("375");
 		const bigAmount = ethersProvider.utils.parseEther("100375");
 		let balance = await wethTokenInstance.balanceOf(accounts[1]);
