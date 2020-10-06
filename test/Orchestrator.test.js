@@ -51,7 +51,7 @@ describe("Orchestrator Contract", async function () {
 		await orchestratorInstance.deployed();
 		expect(orchestratorInstance.address).properAddress;
 		//Vaults
-		const wethVault = await ethers.getContractFactory("VaultHandler");
+		const wethVault = await ethers.getContractFactory("ERC20VaultHandler");
 		ethVaultInstance = await wethVault.deploy(orchestratorInstance.address);
 		await ethVaultInstance.deployed();
 		expect(ethVaultInstance.address).properAddress;

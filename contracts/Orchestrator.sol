@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/introspection/ERC165Checker.sol";
 import "./IVaultHandler.sol";
 import "./TCAP.sol";
 import "./oracles/ChainlinkOracle.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 //DEBUG
 import "@nomiclabs/buidler/console.sol";
@@ -353,7 +353,7 @@ contract Orchestrator is Ownable {
    * @dev Validates if _vault is valid and not locked
    * @dev Locks function after using
    */
-  function setCollateral(IVaultHandler _vault, ERC20 _collateral)
+  function setCollateral(IVaultHandler _vault, IERC20 _collateral)
     public
     onlyOwner
     validVault(_vault)
