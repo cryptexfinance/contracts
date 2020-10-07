@@ -123,7 +123,11 @@ contract TCAP is ERC20, Ownable, IERC165 {
     }
   }
 
-  //Supports interface
+  /**
+   * @notice ERC165 Standard for support of interfaces
+   * @param interfaceId bytes of interface
+   * @return bool
+   */
   function supportsInterface(bytes4 interfaceId)
     external
     override

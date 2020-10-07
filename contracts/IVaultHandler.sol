@@ -13,8 +13,6 @@ import "./TCAP.sol";
 import "./Orchestrator.sol";
 import "./oracles/ChainlinkOracle.sol";
 
-//TODO: Add Formulas on comments
-
 /**
  * @title TCAP Vault Handler
  * @author Cristian Espinoza
@@ -70,12 +68,17 @@ abstract contract IVaultHandler is
   );
   event LogRetrieveFees(address indexed _owner, uint256 _amount);
 
+  /** @dev Open Zeppelin libraries */
   using SafeMath for uint256;
   using Counters for Counters.Counter;
 
   /** @dev vault id counter */
   Counters.Counter counter;
 
+  /**
+   * @notice There is one vault per user. it saves an unique identifier,
+   * the current collateral provided by the owner, the debt and the owner address
+   */
   struct Vault {
     uint256 Id;
     uint256 Collateral;
@@ -104,8 +107,9 @@ abstract contract IVaultHandler is
   uint256 public burnFee;
   /** @dev Penalty charged when an account gets liquidated */
   uint256 public liquidationPenalty;
+  /** @dev Owner to Vault Id */
   mapping(address => uint256) public vaultToUser;
-  /**@dev Id To Vault */
+  /** @dev Id To Vault */
   mapping(uint256 => Vault) public vaults;
 
   /** @notice Throws if vault hasn't been created. */
@@ -302,6 +306,7 @@ abstract contract IVaultHandler is
   /**
    * @notice Adds collateral to vault
    * @param _amount of collateral to add
+   * @dev _amount should be higher than 0
    */
   function addCollateral(uint256 _amount)
     public
@@ -320,6 +325,7 @@ abstract contract IVaultHandler is
   /**
    * @notice Removes not used collateral from collateral
    * @param _amount of collateral to remove
+   * @dev _amount should be higher than 0
    */
   function removeCollateral(uint256 _amount)
     public
@@ -342,7 +348,6 @@ abstract contract IVaultHandler is
         "Collateral below min required ratio"
       );
     }
-
     collateralContract.transfer(msg.sender, _amount);
     emit LogRemoveCollateral(msg.sender, vault.Id, _amount);
   }
@@ -350,6 +355,7 @@ abstract contract IVaultHandler is
   /**
    * @notice Mints TCAP Tokens staking the collateral
    * @param _amount of tokens to mint
+   * @dev _amount should be higher than 0
    */
   function mint(uint256 _amount)
     public
@@ -374,6 +380,7 @@ abstract contract IVaultHandler is
   /**
    * @notice Burns TCAP Tokens releasing the staked collateral
    * @param _amount of tokens to burn
+   * @dev _amount should be higher than 0
    */
   function burn(uint256 _amount)
     public
@@ -442,9 +449,13 @@ abstract contract IVaultHandler is
 
   /**
    * @notice Returns the price of the TCAP token
+   * @return price of the TCAP Token
    * @dev TCAP token is 18 decimals
    * @dev oracle totalMarketPrice must be in wei format
-   * @return price of the TCAP Token
+   * @dev P = M / d
+   * P = TCAP Token Price
+   * M = Total Crypto Market Cap
+   * d = Divisor
    */
   function TCAPPrice() public virtual view returns (uint256 price) {
     uint256 totalMarketPrice = tcapOracle.getLatestAnswer();
@@ -453,10 +464,15 @@ abstract contract IVaultHandler is
 
   /**
    * @notice Returns the minimal required collateral to mint TCAP token
-   * @dev TCAP token is 18 decimals
-   * @dev Is only divided by 100 as eth price comes in wei to cancel the additional 0
    * @param _amount uint amount to mint
    * @return collateral of the TCAP Token
+   * @dev TCAP token is 18 decimals
+   * @dev C = ((P * A * r) / 100) / cp
+   * C = Required Collateral
+   * P = TCAP Token Price
+   * A = Amount to Mint
+   * cp = Collateral Price
+   * Is only divided by 100 as eth price comes in wei to cancel the additional 0s
    */
   function requiredCollateral(uint256 _amount)
     public
@@ -475,6 +491,15 @@ abstract contract IVaultHandler is
    * @notice Returns the minimal required TCAP to liquidate a Vault
    * @param _vaultId of the vault to liquidate
    * @return collateral required of the TCAP Token
+   * @dev LC = ((((D * r) / 100) - cTcap) * 100) / (r - (p + 100))
+   * cTcap = ((C * cp) / P)
+   * LC = Required Liquidation Collateral
+   * D = Vault Debt
+   * C = Required Collateral
+   * P = TCAP Token Price
+   * cp = Collateral Price
+   * r = Min Vault Ratio
+   * p = Liquidation Penalty
    */
   function requiredLiquidationCollateral(uint256 _vaultId)
     public
@@ -500,6 +525,11 @@ abstract contract IVaultHandler is
    * @notice Returns the minimal required TCAP to liquidate a Vault
    * @param _vaultId of the vault to liquidate
    * @return rewardCollateral for liquidating Vault
+   * @dev the returned value is returned on the vault collateral
+   * @dev R = (LC * (p  + 100)) / 100
+   * R = Liquidation Reward
+   * LC = Required Liquidation Collateral
+   * p = liquidation penalty
    */
   function liquidationReward(uint256 _vaultId)
     public
@@ -538,6 +568,12 @@ abstract contract IVaultHandler is
    * @notice Returns the Collateral Ratio fo the Vault
    * @param _vaultId id of vault
    * @return currentRatio
+   * @dev vr = (cp * (C * 100)) / D - P
+   * vr = Vault Ratio
+   * C = Vault Collateral
+   * cp = Collateral Price
+   * D = Vault Debt
+   * P = TCAP Token Price
    */
   function getVaultRatio(uint256 _vaultId)
     public
@@ -562,6 +598,12 @@ abstract contract IVaultHandler is
    * @notice Returns the required fee to burn the TCAP tokens
    * @param _amount to burn
    * @return fee
+   * @dev The returned value is returned on ETH
+   * @dev f = ((P * A * b)/ 100)
+   * f = Burn Fee Value
+   * P = TCAP Token Price
+   * A = Amount to Burn
+   * b = Burn Fee %
    */
   function getFee(uint256 _amount) public virtual view returns (uint256 fee) {
     uint256 ethPrice = ETHPriceOracle.getLatestAnswer();

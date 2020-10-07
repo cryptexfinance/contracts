@@ -19,7 +19,7 @@ import "@nomiclabs/buidler/console.sol";
 contract Orchestrator is Ownable {
   /** @dev Logs the unlock function. */
   event LogUnlock(address indexed _contract, Functions _fn, bytes32 _hash);
-
+  /** @dev Enum which saves the available functions to unlock. */
   enum Functions {
     DIVISOR,
     RATIO,
@@ -526,19 +526,8 @@ contract Orchestrator is Ownable {
     _tcap.addTokenHandler(address(_vault));
   }
 
+  /**
+   * @notice Allows the contract to receive money
+   */
   receive() external payable {}
-
-  // // // 0xa9ccee51
-  // function calcStoreInterfaceId() external view returns (bytes4) {
-  //   TCAP i;
-  //   bytes4 x = i.mint.selector ^
-  //     i.burn.selector ^
-  //     i.setCap.selector ^
-  //     i.enableCap.selector ^
-  //     i.transfer.selector ^
-  //     i.transferFrom.selector ^
-  //     i.approve.selector ^
-  //     i.addTokenHandler.selector;
-  //   console.logBytes4(x);
-  // }
 }

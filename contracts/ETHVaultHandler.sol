@@ -62,11 +62,17 @@ contract ETHVaultHandler is IVaultHandler {
     emit LogRemoveCollateral(msg.sender, vault.Id, _amount);
   }
 
+  /**
+   * @notice Allows the safe transfer of ETH
+   */
   function safeTransferETH(address to, uint256 value) internal {
     (bool success, ) = to.call{value: value}(new bytes(0));
     require(success, "TransferHelper: ETH_TRANSFER_FAILED");
   }
 
+  /**
+   * @notice Only allows the contract to receive money from the WETH contract
+   */
   receive() external payable {
     assert(msg.sender == address(collateralContract)); // only accept ETH via fallback from the WETH contract
   }
