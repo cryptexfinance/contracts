@@ -8,7 +8,7 @@ import "./IWETH.sol";
 /**
  * @title TCAP Vault
  * @author Cristian Espinoza
- * @notice Contract in charge of handling the TCAP Vault and stake using a Collateral ERC20
+ * @notice Contract in charge of handling the TCAP Vault and stake using a ETH and WETH
  */
 contract ETHVaultHandler is IVaultHandler {
   constructor(Orchestrator orchestrator) public IVaultHandler(orchestrator) {}
@@ -34,7 +34,7 @@ contract ETHVaultHandler is IVaultHandler {
   /**
    * @notice Removes not used collateral from collateral
    * @param _amount of collateral to remove
-   * @dev value should be higher than 0
+   * @dev _amount should be higher than 0
    */
   function removeCollateralETH(uint256 _amount)
     public
@@ -71,9 +71,9 @@ contract ETHVaultHandler is IVaultHandler {
   }
 
   /**
-   * @notice Only allows the contract to receive money from the WETH contract
+   * @notice only accept ETH via fallback from the WETH contract
    */
   receive() external payable {
-    assert(msg.sender == address(collateralContract)); // only accept ETH via fallback from the WETH contract
+    assert(msg.sender == address(collateralContract));
   }
 }

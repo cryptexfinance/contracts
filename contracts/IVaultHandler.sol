@@ -292,6 +292,7 @@ abstract contract IVaultHandler is
 
   /**
    * @notice Creates a Vault
+	 * @dev Only one vault per address can be created
    */
   function createVault() public virtual whenNotPaused {
     require(vaultToUser[msg.sender] == 0, "Vault already created");
@@ -522,7 +523,7 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Returns the minimal required TCAP to liquidate a Vault
+   * @notice Returns Reward for liquidating a vault
    * @param _vaultId of the vault to liquidate
    * @return rewardCollateral for liquidating Vault
    * @dev the returned value is returned on the vault collateral
