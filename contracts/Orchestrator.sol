@@ -57,7 +57,8 @@ contract Orchestrator is Ownable {
     bytes32 _value
   ) {
     require(
-      timelock[_contract][_fn] != 0 && timelock[_contract][_fn] <= block.timestamp,
+      timelock[_contract][_fn] != 0 &&
+        timelock[_contract][_fn] <= block.timestamp,
       "Function is timelocked"
     );
     require(
@@ -172,7 +173,7 @@ contract Orchestrator is Ownable {
    * @param _fn to be unlocked
    * @dev Only owner can call it
    * @dev Unlock time is = block.timestamp + _TIMELOCK
-	 * @dev A hash of the value to save is passed as proof for users that the changing value is correct.
+   * @dev A hash of the value to save is passed as proof for users that the changing value is correct.
    */
   function unlockFunction(
     address _contract,
@@ -514,7 +515,7 @@ contract Orchestrator is Ownable {
    * @param _vault address
    * @dev Only owner can call it
    * @dev Validates if _tcap is valid
-	 * @dev Validates if _vault is valid
+   * @dev Validates if _vault is valid
    */
   function addTCAPVault(TCAP _tcap, IVaultHandler _vault)
     public

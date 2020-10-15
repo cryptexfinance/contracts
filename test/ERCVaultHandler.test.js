@@ -82,7 +82,7 @@ describe("ERC20 Vault", async function () {
 	it("...should return the token price", async () => {
 		let tcapPrice = await ercTokenHandler.TCAPPrice();
 		let totalMarketCap = await tcapOracleInstance.getLatestAnswer();
-		let result = totalMarketCap.div(divisor);
+		let result = (totalMarketCap.mul(10000000000)).div(divisor);
 		expect(tcapPrice).to.eq(result);
 	});
 
@@ -207,7 +207,7 @@ describe("ERC20 Vault", async function () {
 		const ethPrice = await priceOracleInstance.getLatestAnswer();
 		const tcapPrice = await ercTokenHandler.TCAPPrice();
 		const ratio = await ercTokenHandler.ratio();
-		let result = tcapPrice.mul(amount).mul(ratio).div(100).div(ethPrice);
+		let result = tcapPrice.mul(amount).mul(ratio).div(100).div(ethPrice.mul(10000000000));
 		expect(reqAmount).to.eq(result);
 	});
 
@@ -263,7 +263,7 @@ describe("ERC20 Vault", async function () {
 		let amount = ethersProvider.utils.parseEther("10");
 		let divisor = 100;
 		let tcapPrice = await ercTokenHandler.TCAPPrice();
-		let ethPrice = await priceOracleInstance.getLatestAnswer();
+		let ethPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
 		let result = tcapPrice.mul(amount).div(divisor).div(ethPrice);
 		let fee = await ercTokenHandler.getFee(amount);
 		expect(fee).to.eq(result);
@@ -376,7 +376,7 @@ describe("ERC20 Vault", async function () {
 		let reqLiquidation = await ercTokenHandler.requiredLiquidationCollateral(2);
 		let liquidationPenalty = await ercTokenHandler.liquidationPenalty();
 		let ratio = await ercTokenHandler.ratio();
-		let collateralPrice = await priceOracleInstance.getLatestAnswer();
+		let collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
 		let tcapPrice = await ercTokenHandler.TCAPPrice();
 		let vault = await ercTokenHandler.getVault(2);
 		let collateralTcap = vault[1].mul(collateralPrice).div(tcapPrice);
@@ -390,7 +390,7 @@ describe("ERC20 Vault", async function () {
 		let reqLiquidation = await ercTokenHandler.requiredLiquidationCollateral(2);
 		let liquidationReward = await ercTokenHandler.liquidationReward(2);
 		let liquidationPenalty = await ercTokenHandler.liquidationPenalty();
-		let collateralPrice = await priceOracleInstance.getLatestAnswer();
+		let collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
 		let tcapPrice = await ercTokenHandler.TCAPPrice();
 
 		let result = reqLiquidation.mul(liquidationPenalty.add(100)).div(100);
@@ -403,7 +403,7 @@ describe("ERC20 Vault", async function () {
 		const liquidationReward = await ercTokenHandler.liquidationReward(2);
 		const reqLiquidation = await ercTokenHandler.requiredLiquidationCollateral(2);
 		const tcapPrice = await ercTokenHandler.TCAPPrice();
-		const collateralPrice = await priceOracleInstance.getLatestAnswer();
+		const collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
 		const rewardUSD = liquidationReward.mul(collateralPrice).div(divisor);
 		const collateralUSD = reqLiquidation.mul(tcapPrice).div(divisor);
 		expect(rewardUSD).to.be.gte(

@@ -81,7 +81,7 @@ describe("ETH Vault", async function () {
 
 	it("...should return the token price", async () => {
 		let tcapPrice = await ethTokenHandler.TCAPPrice();
-		let totalMarketCap = await tcapOracleInstance.getLatestAnswer();
+		let totalMarketCap = (await tcapOracleInstance.getLatestAnswer()).mul(10000000000);
 		let result = totalMarketCap.div(divisor);
 		expect(tcapPrice).to.eq(result);
 	});
@@ -280,7 +280,7 @@ describe("ETH Vault", async function () {
 	it("...should return the correct minimal collateral required", async () => {
 		let amount = ethersProvider.utils.parseEther("1");
 		const reqAmount = await ethTokenHandler.requiredCollateral(amount);
-		const ethPrice = await priceOracleInstance.getLatestAnswer();
+		const ethPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
 		const tcapPrice = await ethTokenHandler.TCAPPrice();
 		const ratio = await ethTokenHandler.ratio();
 		let result = tcapPrice.mul(amount).mul(ratio).div(100).div(ethPrice);
@@ -338,7 +338,7 @@ describe("ETH Vault", async function () {
 		let amount = ethersProvider.utils.parseEther("10");
 		let divisor = 100;
 		let tcapPrice = await ethTokenHandler.TCAPPrice();
-		let ethPrice = await priceOracleInstance.getLatestAnswer();
+		let ethPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
 		let result = tcapPrice.mul(amount).div(divisor).div(ethPrice);
 		let fee = await ethTokenHandler.getFee(amount);
 		expect(fee).to.eq(result);
@@ -450,7 +450,7 @@ describe("ETH Vault", async function () {
 		let reqLiquidation = await ethTokenHandler.requiredLiquidationCollateral(2);
 		let liquidationPenalty = await ethTokenHandler.liquidationPenalty();
 		let ratio = await ethTokenHandler.ratio();
-		let collateralPrice = await priceOracleInstance.getLatestAnswer();
+		let collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
 		let tcapPrice = await ethTokenHandler.TCAPPrice();
 		let vault = await ethTokenHandler.getVault(2);
 		let collateralTcap = vault[1].mul(collateralPrice).div(tcapPrice);
@@ -464,7 +464,7 @@ describe("ETH Vault", async function () {
 		let reqLiquidation = await ethTokenHandler.requiredLiquidationCollateral(2);
 		let liquidationReward = await ethTokenHandler.liquidationReward(2);
 		let liquidationPenalty = await ethTokenHandler.liquidationPenalty();
-		let collateralPrice = await priceOracleInstance.getLatestAnswer();
+		let collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
 		let tcapPrice = await ethTokenHandler.TCAPPrice();
 
 		let result = reqLiquidation.mul(liquidationPenalty.add(100)).div(100);
@@ -477,7 +477,7 @@ describe("ETH Vault", async function () {
 		const liquidationReward = await ethTokenHandler.liquidationReward(2);
 		const reqLiquidation = await ethTokenHandler.requiredLiquidationCollateral(2);
 		const tcapPrice = await ethTokenHandler.TCAPPrice();
-		const collateralPrice = await priceOracleInstance.getLatestAnswer();
+		const collateralPrice =( await priceOracleInstance.getLatestAnswer()).mul(10000000000);
 		const rewardUSD = liquidationReward.mul(collateralPrice).div(divisor);
 		const collateralUSD = reqLiquidation.mul(tcapPrice).div(divisor);
 		expect(rewardUSD).to.be.gte(

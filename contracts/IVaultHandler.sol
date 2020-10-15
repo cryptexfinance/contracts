@@ -4,6 +4,7 @@ pragma solidity ^0.6.8;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/SafeCast.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
@@ -70,6 +71,7 @@ abstract contract IVaultHandler is
 
   /** @dev Open Zeppelin libraries */
   using SafeMath for uint256;
+  using SafeCast for int256;
   using Counters for Counters.Counter;
 
   /** @dev vault id counter */
@@ -292,7 +294,7 @@ abstract contract IVaultHandler is
 
   /**
    * @notice Creates a Vault
-	 * @dev Only one vault per address can be created
+   * @dev Only one vault per address can be created
    */
   function createVault() public virtual whenNotPaused {
     require(vaultToUser[msg.sender] == 0, "Vault already created");
@@ -459,7 +461,9 @@ abstract contract IVaultHandler is
    * d = Divisor
    */
   function TCAPPrice() public virtual view returns (uint256 price) {
-    uint256 totalMarketPrice = tcapOracle.getLatestAnswer();
+    uint256 totalMarketPrice = tcapOracle.getLatestAnswer().toUint256().mul(
+      10000000000
+    );
     price = totalMarketPrice.div(divisor);
   }
 
@@ -482,7 +486,10 @@ abstract contract IVaultHandler is
     returns (uint256 collateral)
   {
     uint256 tcapPrice = TCAPPrice();
-    uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
+    uint256 collateralPrice = collateralPriceOracle
+      .getLatestAnswer()
+      .toUint256()
+      .mul(10000000000);
     collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100)).div(
       collateralPrice
     );
@@ -510,7 +517,10 @@ abstract contract IVaultHandler is
   {
     Vault memory vault = vaults[_vaultId];
     uint256 tcapPrice = TCAPPrice();
-    uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
+    uint256 collateralPrice = collateralPriceOracle
+      .getLatestAnswer()
+      .toUint256()
+      .mul(10000000000);
     uint256 collateralTcap = (vault.Collateral.mul(collateralPrice)).div(
       tcapPrice
     );
@@ -540,7 +550,10 @@ abstract contract IVaultHandler is
   {
     uint256 req = requiredLiquidationCollateral(_vaultId);
     uint256 tcapPrice = TCAPPrice();
-    uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
+    uint256 collateralPrice = collateralPriceOracle
+      .getLatestAnswer()
+      .toUint256()
+      .mul(10000000000);
     uint256 reward = (req.mul(liquidationPenalty.add(100))).div(100);
     rewardCollateral = (reward.mul(tcapPrice)).div(collateralPrice);
   }
@@ -586,7 +599,10 @@ abstract contract IVaultHandler is
     if (vault.Id == 0 || vault.Debt == 0) {
       currentRatio = 0;
     } else {
-      uint256 collateralPrice = collateralPriceOracle.getLatestAnswer();
+      uint256 collateralPrice = collateralPriceOracle
+        .getLatestAnswer()
+        .toUint256()
+        .mul(10000000000);
       currentRatio = (
         (collateralPrice.mul(vault.Collateral.mul(100))).div(
           vault.Debt.mul(TCAPPrice())
@@ -607,7 +623,9 @@ abstract contract IVaultHandler is
    * b = Burn Fee %
    */
   function getFee(uint256 _amount) public virtual view returns (uint256 fee) {
-    uint256 ethPrice = ETHPriceOracle.getLatestAnswer();
+    uint256 ethPrice = ETHPriceOracle.getLatestAnswer().toUint256().mul(
+      10000000000
+    );
     fee = (TCAPPrice().mul(_amount).mul(burnFee)).div(100).div(ethPrice);
   }
 

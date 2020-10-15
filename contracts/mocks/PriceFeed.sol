@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.6.8;
 
-
 contract PriceFeed {
   uint256 val;
   uint32 public zzz;
