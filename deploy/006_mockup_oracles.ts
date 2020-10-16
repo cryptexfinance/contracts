@@ -11,12 +11,13 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 			TCAPOracle = await deployments.get("TCAPOracle");
 		} catch (error) {
 			log(error.message);
-
+			let oracleAddress = process.env.TCAP_ORACLE as string;
 			const deployResult = await deployIfDifferent(
 				["data"],
 				"TCAPOracle",
 				{from: deployer, gas: 4000000},
-				"TcapOracle"
+				"ChainlinkOracle",
+				oracleAddress
 			);
 			TCAPOracle = await deployments.get("TCAPOracle");
 			if (deployResult.newlyDeployed) {
@@ -26,7 +27,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 				BTCOracle = await deployments.get("BTCOracle");
 			} catch (error) {
 				log(error.message);
-				let oracleAddress = process.env.BTC_ORACLE as string;
+				oracleAddress = process.env.BTC_ORACLE as string;
 				const deployResult = await deployIfDifferent(
 					["data"],
 					"BTCOracle",

@@ -1,100 +1,82 @@
 import {ethers} from "ethers";
 import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
-import {VaultHandler} from "../typechain/VaultHandler";
+
+// import OrchestratorFactory from "../typechain/OrchestratorFactory";
 require("dotenv").config();
 module.exports = async ({deployments}: any) => {
 	if (buidlerArguments.network === "rinkeby" || buidlerArguments.network === "ganache") {
 		let DAIHandler = await deployments.get("DAIVaultHandler");
 		let BTCHandler = await deployments.get("BTCVaultHandler");
 		let WETHHandler = await deployments.get("WETHVaultHandler");
-		let tcapx = await deployments.get("TCAPX");
-
-		let divisor = process.env.DIVISOR as string;
-		let ratio = process.env.RATIO as string;
-		let burnFee = process.env.BURN_FEE as string;
-		let liquidationPenalty = process.env.LIQUIDATION_PENALTY as string;
-		let whitelistString = process.env.WHITELIST as string;
-		let whitelist = true;
-		if (whitelistString == "false") {
-			whitelist = false;
-		}
-		let tcapOracle = await deployments.get("TCAPOracle");
-		let priceFeedETH = await deployments.get("WETHOracle");
-		let priceFeedBTC = await deployments.get("BTCOracle");
-		let priceFeedDAI = await deployments.get("DAIOracle");
-
-		let daiHandlerContract = await ethersBuidler.getContract("VaultHandler");
-		let btcHandlerContract = await ethersBuidler.getContract("VaultHandler");
-		let wethHandlerContract = await ethersBuidler.getContract("VaultHandler");
+		let OrchestratorDeployment = await deployments.get("Orchestrator");
+		let tcap = await deployments.get("TCAP");
 
 		let DAIContract = await deployments.get("DAI");
 		let BTCContract = await deployments.get("WBTC");
 		let WETHContract = await deployments.get("WETH");
 
-		let dai = new ethers.Contract(
-			DAIHandler.address,
-			daiHandlerContract.interface,
-			daiHandlerContract.signer
-		) as VaultHandler;
+		let divisor = process.env.DIVISOR as string;
+		let ratio = process.env.RATIO as string;
+		let burnFee = process.env.BURN_FEE as string;
+		let liquidationPenalty = process.env.LIQUIDATION_PENALTY as string;
 
-		let btc = new ethers.Contract(
-			BTCHandler.address,
-			btcHandlerContract.interface,
-			btcHandlerContract.signer
-		) as VaultHandler;
+		let tcapOracle = await deployments.get("TCAPOracle");
+		let priceFeedETH = await deployments.get("WETHOracle");
+		let priceFeedBTC = await deployments.get("BTCOracle");
+		let priceFeedDAI = await deployments.get("DAIOracle");
 
-		let weth = new ethers.Contract(
-			WETHHandler.address,
-			wethHandlerContract.interface,
-			wethHandlerContract.signer
-		) as VaultHandler;
+		let dai = await ethersBuidler.getContractAt("ERC20VaultHandler", DAIHandler.address);
+		let btc = await ethersBuidler.getContractAt("ERC20VaultHandler", BTCHandler.address);
+		let weth = await ethersBuidler.getContractAt("ETHVaultHandler", WETHHandler.address);
+		let orchestrator = await ethersBuidler.getContractAt(
+			"Orchestrator",
+			OrchestratorDeployment.address
+		);
 
-		console.log("setting token address", tcapx.address);
-		await dai.setTCAPXContract(tcapx.address);
-		await btc.setTCAPXContract(tcapx.address);
-		await weth.setTCAPXContract(tcapx.address);
+		console.log("intializing", dai.address);
+		await orchestrator.initialize(dai.address);
+		console.log("intializing", weth.address);
+		console.log("intializing", btc.address);
 
-		console.log("setting collateral address");
-		await dai.setCollateralContract(DAIContract.address);
-		await btc.setCollateralContract(BTCContract.address);
-		await weth.setCollateralContract(WETHContract.address);
+		// console.log("setting token address", tcap.address);
+		// await dai.setTCAPContract(tcap.address);
+		// await btc.setTCAPContract(tcap.address);
+		// await weth.setTCAPContract(tcap.address);
 
-		console.log("setting the divisor", divisor);
-		await dai.setDivisor(divisor);
-		await btc.setDivisor(divisor);
-		await weth.setDivisor(divisor);
+		// console.log("setting collateral address");
+		// await dai.setCollateralContract(DAIContract.address);
+		// await btc.setCollateralContract(BTCContract.address);
+		// await weth.setCollateralContract(WETHContract.address);
 
-		console.log("setting ratio", ratio);
-		await dai.setRatio(ratio);
-		await btc.setRatio(ratio);
-		await weth.setRatio(ratio);
+		// console.log("setting the divisor", divisor);
+		// await dai.setDivisor(divisor);
+		// await btc.setDivisor(divisor);
+		// await weth.setDivisor(divisor);
 
-		console.log("setting burn fee", burnFee);
-		await dai.setBurnFee(burnFee);
-		await btc.setBurnFee(burnFee);
-		await weth.setBurnFee(burnFee);
+		// console.log("setting ratio", ratio);
+		// await dai.setRatio(ratio);
+		// await btc.setRatio(ratio);
+		// await weth.setRatio(ratio);
 
-		console.log("setting liquidation penalty", liquidationPenalty);
-		await dai.setLiquidationPenalty(liquidationPenalty);
-		await btc.setLiquidationPenalty(liquidationPenalty);
-		await weth.setLiquidationPenalty(liquidationPenalty);
+		// console.log("setting burn fee", burnFee);
+		// await dai.setBurnFee(burnFee);
+		// await btc.setBurnFee(burnFee);
+		// await weth.setBurnFee(burnFee);
 
-		console.log("setting TCAP oracle", tcapOracle.address);
-		await dai.setTCAPOracle(tcapOracle.address);
-		await btc.setTCAPOracle(tcapOracle.address);
-		await weth.setTCAPOracle(tcapOracle.address);
+		// console.log("setting liquidation penalty", liquidationPenalty);
+		// await dai.setLiquidationPenalty(liquidationPenalty);
+		// await btc.setLiquidationPenalty(liquidationPenalty);
+		// await weth.setLiquidationPenalty(liquidationPenalty);
 
-		console.log("setting Collateral");
-		await dai.setCollateralPriceOracle(priceFeedDAI.address);
-		await btc.setCollateralPriceOracle(priceFeedBTC.address);
-		await weth.setCollateralPriceOracle(priceFeedETH.address);
+		// console.log("setting TCAP oracle", tcapOracle.address);
+		// await dai.setTCAPOracle(tcapOracle.address);
+		// await btc.setTCAPOracle(tcapOracle.address);
+		// await weth.setTCAPOracle(tcapOracle.address);
 
-		if (!whitelist) {
-			console.log("setting whitelist", whitelist);
-			await dai.enableWhitelist(whitelist);
-			await btc.enableWhitelist(whitelist);
-			await weth.enableWhitelist(whitelist);
-		}
+		// console.log("setting Collateral");
+		// await dai.setCollateralPriceOracle(priceFeedDAI.address);
+		// await btc.setCollateralPriceOracle(priceFeedBTC.address);
+		// await weth.setCollateralPriceOracle(priceFeedETH.address);
 	}
 };
 module.exports.tags = ["Initialize"];

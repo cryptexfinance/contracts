@@ -4,24 +4,21 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		const {deployIfDifferent, log} = deployments;
 		const {deployer} = await getNamedAccounts();
 
-		let handlerContract;
-		let orchestrator = await deployments.get("Orchestrator");
+		let orchestrator;
 		try {
-			handlerContract = await deployments.get("WETHVaultHandler");
+			orchestrator = await deployments.get("Orchestrator");
 		} catch (error) {
-			log(error.message);
 			try {
 				const deployResult = await deployIfDifferent(
 					["data"],
-					"WETHVaultHandler",
+					"Orchestrator",
 					{from: deployer, gas: 8000000},
-					"ETHVaultHandler",
-					orchestrator.address
+					"Orchestrator"
 				);
-				handlerContract = await deployments.get("WETHVaultHandler");
+				orchestrator = await deployments.get("Orchestrator");
 				if (deployResult.newlyDeployed) {
 					log(
-						`WETHVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt.gasUsed}`
+						`Orchestrator deployed at ${orchestrator.address} for ${deployResult.receipt.gasUsed}`
 					);
 				}
 			} catch (error) {
@@ -30,4 +27,4 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		}
 	}
 };
-module.exports.tags = ["WETHVaultHandler"];
+module.exports.tags = ["Orchestrator"];

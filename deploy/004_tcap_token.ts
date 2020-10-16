@@ -8,26 +8,29 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		const symbol = process.env.SYMBOL;
 		const decimals = process.env.DECIMALS;
 
-		let TCAPX;
+		let orchestrator = await deployments.get("Orchestrator");
+
+		let TCAP;
 		try {
-			TCAPX = await deployments.get("TCAPX");
+			TCAP = await deployments.get("TCAP");
 		} catch (error) {
 			log(error.message);
 
 			const deployResult = await deployIfDifferent(
 				["data"],
-				"TCAPX",
+				"TCAP",
 				{from: deployer, gas: 4000000},
-				"TCAPX",
+				"TCAP",
 				name,
 				symbol,
-				decimals
+				decimals,
+				orchestrator.address
 			);
-			TCAPX = await deployments.get("TCAPX");
+			TCAP = await deployments.get("TCAP");
 			if (deployResult.newlyDeployed) {
-				log(`TCAPX deployed at ${TCAPX.address} for ${deployResult.receipt.gasUsed}`);
+				log(`TCAP deployed at ${TCAP.address} for ${deployResult.receipt.gasUsed}`);
 			}
 		}
 	}
 };
-module.exports.tags = ["TCAPX"];
+module.exports.tags = ["TCAP"];

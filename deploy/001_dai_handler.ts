@@ -5,6 +5,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		const {deployer} = await getNamedAccounts();
 
 		let handlerContract;
+		let orchestrator = await deployments.get("Orchestrator");
 		try {
 			handlerContract = await deployments.get("DAIVaultHandler");
 		} catch (error) {
@@ -13,7 +14,8 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 					["data"],
 					"DAIVaultHandler",
 					{from: deployer, gas: 8000000},
-					"VaultHandler"
+					"ERC20VaultHandler",
+					orchestrator.address
 				);
 				handlerContract = await deployments.get("DAIVaultHandler");
 				if (deployResult.newlyDeployed) {
