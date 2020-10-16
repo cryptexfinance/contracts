@@ -82,7 +82,7 @@ describe("ERC20 Vault", async function () {
 	it("...should return the token price", async () => {
 		let tcapPrice = await ercTokenHandler.TCAPPrice();
 		let totalMarketCap = await tcapOracleInstance.getLatestAnswer();
-		let result = (totalMarketCap.mul(10000000000)).div(divisor);
+		let result = totalMarketCap.mul(10000000000).div(divisor);
 		expect(tcapPrice).to.eq(result);
 	});
 
@@ -243,6 +243,22 @@ describe("ERC20 Vault", async function () {
 		await expect(ercTokenHandler.connect(addr1).mint(lowAmount)).to.be.revertedWith(
 			"Collateral below min required ratio"
 		);
+	});
+
+	it("...should allow token transfers", async () => {
+		let tcapBalance = await tcapInstance.balanceOf(accounts[1]);
+		await tcapInstance.connect(addr1).transfer(accounts[2], tcapBalance);
+		expect(await tcapInstance.balanceOf(accounts[1])).to.eq(0);
+		expect(await tcapInstance.balanceOf(accounts[2])).to.eq(tcapBalance);
+		await tcapInstance.connect(addr2).transfer(accounts[1], tcapBalance);
+		expect(await tcapInstance.balanceOf(accounts[2])).to.eq(0);
+		expect(await tcapInstance.balanceOf(accounts[1])).to.eq(tcapBalance);
+	});
+	it("...shouldn't allow user to send tokens to tcap contract", async () => {
+		let tcapBalance = await tcapInstance.balanceOf(accounts[1]);
+		await expect(
+			tcapInstance.connect(addr1).transfer(tcapInstance.address, tcapBalance)
+		).to.be.revertedWith("Can't transfer to TCAP contract");
 	});
 
 	it("...should allow users to get collateral ratio", async () => {

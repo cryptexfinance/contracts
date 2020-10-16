@@ -1,23 +1,23 @@
-// import {ethers} from "ethers";
-// import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
-// import {Tcap} from "../typechain/Tcap";
-// require("dotenv").config();
+import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
+require("dotenv").config();
 
-// module.exports = async ({deployments}: any) => {
-// 	if (buidlerArguments.network === "rinkeby" || buidlerArguments.network === "ganache") {
-// 		let DAIHandler = await deployments.get("DAIVaultHandler");
-// 		let BTCHandler = await deployments.get("BTCVaultHandler");
-// 		let WETHHandler = await deployments.get("WETHVaultHandler");
-// 		let TcapDeployment = await deployments.get("TCAP");
-// 		let TcapContract = await ethersBuidler.getContractFactory("TCAP");
-// 		let tcapAbi = TcapContract.interface;
-// 		let tcap = new ethers.Contract(TcapDeployment.address, tcapAbi, TcapContract.signer) as Tcap;
+module.exports = async ({deployments}: any) => {
+	if (buidlerArguments.network === "rinkeby" || buidlerArguments.network === "ganache") {
+		let DAIHandler = await deployments.get("DAIVaultHandler");
+		let BTCHandler = await deployments.get("BTCVaultHandler");
+		let WETHHandler = await deployments.get("WETHVaultHandler");
+		let OrchestratorDeployment = await deployments.get("Orchestrator");
+		let tcap = await deployments.get("TCAP");
 
-// 		console.log("adding token Handlers");
+		let orchestrator = await ethersBuidler.getContractAt(
+			"Orchestrator",
+			OrchestratorDeployment.address
+		);
 
-// 		await tcap.addTokenHandler(DAIHandler.address);
-// 		await tcap.addTokenHandler(BTCHandler.address);
-// 		await tcap.addTokenHandler(WETHHandler.address);
-// 	}
-// };
-// module.exports.tags = ["Initialize"];
+		console.log("adding vault Handlers");
+		await orchestrator.addTCAPVault(tcap.address, DAIHandler.address);
+		await orchestrator.addTCAPVault(tcap.address, BTCHandler.address);
+		await orchestrator.addTCAPVault(tcap.address, WETHHandler.address);
+	}
+};
+module.exports.tags = ["Initialize"];

@@ -33,11 +33,47 @@ module.exports = async ({deployments}: any) => {
 			OrchestratorDeployment.address
 		);
 
-		console.log("intializing", dai.address);
-		await orchestrator.initialize(dai.address);
-		console.log("intializing", weth.address);
-		console.log("intializing", btc.address);
+		console.log("intializing dai vault", dai.address);
+		await orchestrator.initializeVault(
+			dai.address,
+			divisor,
+			ratio,
+			burnFee,
+			liquidationPenalty,
+			tcapOracle.address,
+			tcap.address,
+			DAIContract.address,
+			priceFeedDAI.address,
+			priceFeedETH.address
+		);
 
+		console.log("intializing weth vault", weth.address);
+		await orchestrator.initializeVault(
+			weth.address,
+			divisor,
+			ratio,
+			burnFee,
+			liquidationPenalty,
+			tcapOracle.address,
+			tcap.address,
+			WETHContract.address,
+			priceFeedETH.address,
+			priceFeedETH.address
+		);
+
+		console.log("intializing wbtc vault", btc.address);
+		await orchestrator.initializeVault(
+			btc.address,
+			divisor,
+			ratio,
+			burnFee,
+			liquidationPenalty,
+			tcapOracle.address,
+			tcap.address,
+			BTCContract.address,
+			priceFeedBTC.address,
+			priceFeedETH.address
+		);
 		// console.log("setting token address", tcap.address);
 		// await dai.setTCAPContract(tcap.address);
 		// await btc.setTCAPContract(tcap.address);

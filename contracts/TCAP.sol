@@ -109,6 +109,7 @@ contract TCAP is ERC20, Ownable, IERC165 {
   /**
    * @dev See {ERC20-_beforeTokenTransfer}.
    * @notice minted tokens must not cause the total supply to go over the cap.
+   * @dev Reverts if the to address it's equal to token address
    */
   function _beforeTokenTransfer(
     address from,
@@ -116,6 +117,8 @@ contract TCAP is ERC20, Ownable, IERC165 {
     uint256 amount
   ) internal virtual override {
     super._beforeTokenTransfer(from, to, amount);
+
+    require(to != address(this), "Can't transfer to TCAP contract");
 
     if (from == address(0) && capEnabled) {
       // When minting tokens
