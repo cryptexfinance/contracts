@@ -87,14 +87,14 @@ describe("ETH Vault", async function () {
 	});
 
 	it("...should allow users to create a vault", async () => {
-		let vaultId = await ethTokenHandler.vaultToUser(accounts[1]);
+		let vaultId = await ethTokenHandler.userToVault(accounts[1]);
 		expect(vaultId).eq(0);
 		await expect(ethTokenHandler.connect(addr1).createVault())
 			.to.emit(ethTokenHandler, "LogCreateVault")
 			.withArgs(accounts[1], 1);
-		vaultId = await ethTokenHandler.vaultToUser(accounts[1]);
+		vaultId = await ethTokenHandler.userToVault(accounts[1]);
 		expect(vaultId).eq(1);
-		vaultId = await ethTokenHandler.vaultToUser(accounts[2]);
+		vaultId = await ethTokenHandler.userToVault(accounts[2]);
 		expect(vaultId).eq(0);
 		await expect(ethTokenHandler.connect(addr1).createVault()).to.be.revertedWith(
 			"Vault already created"
@@ -447,7 +447,7 @@ describe("ETH Vault", async function () {
 	});
 
 	it("...should get the required collateral for liquidation", async () => {
-		let reqLiquidation = await ethTokenHandler.requiredLiquidationCollateral(2);
+		let reqLiquidation = await ethTokenHandler.requiredLiquidationTCAP(2);
 		let liquidationPenalty = await ethTokenHandler.liquidationPenalty();
 		let ratio = await ethTokenHandler.ratio();
 		let collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
@@ -461,7 +461,7 @@ describe("ETH Vault", async function () {
 	});
 
 	it("...should get the liquidation reward", async () => {
-		let reqLiquidation = await ethTokenHandler.requiredLiquidationCollateral(2);
+		let reqLiquidation = await ethTokenHandler.requiredLiquidationTCAP(2);
 		let liquidationReward = await ethTokenHandler.liquidationReward(2);
 		let liquidationPenalty = await ethTokenHandler.liquidationPenalty();
 		let collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
@@ -475,9 +475,9 @@ describe("ETH Vault", async function () {
 	it("...should allow liquidators to return profits", async () => {
 		const divisor = ethersProvider.utils.parseEther("1");
 		const liquidationReward = await ethTokenHandler.liquidationReward(2);
-		const reqLiquidation = await ethTokenHandler.requiredLiquidationCollateral(2);
+		const reqLiquidation = await ethTokenHandler.requiredLiquidationTCAP(2);
 		const tcapPrice = await ethTokenHandler.TCAPPrice();
-		const collateralPrice =( await priceOracleInstance.getLatestAnswer()).mul(10000000000);
+		const collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
 		const rewardUSD = liquidationReward.mul(collateralPrice).div(divisor);
 		const collateralUSD = reqLiquidation.mul(tcapPrice).div(divisor);
 		expect(rewardUSD).to.be.gte(
@@ -501,7 +501,7 @@ describe("ETH Vault", async function () {
 		await ethTokenHandler.connect(addr3).mint(liquidatorAmount);
 
 		let liquidationReward = await ethTokenHandler.liquidationReward(2);
-		let reqLiquidation = await ethTokenHandler.requiredLiquidationCollateral(2);
+		let reqLiquidation = await ethTokenHandler.requiredLiquidationTCAP(2);
 		let tcapBalance = await tcapInstance.balanceOf(accounts[3]);
 		let collateralBalance = await wethTokenInstance.balanceOf(accounts[3]);
 		let vault = await ethTokenHandler.getVault(2);

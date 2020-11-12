@@ -314,7 +314,7 @@ describe("Orchestrator Contract", async function () {
 	});
 
 	it("...should set vault ratio", async () => {
-		let ratio = "200";
+		let ratio = "190";
 		let ratioHash = ethers.utils.solidityKeccak256(["uint256"], [ratio]);
 
 		await expect(orchestratorInstance.setRatio(ethVaultInstance.address, 0)).to.be.revertedWith(
@@ -410,6 +410,24 @@ describe("Orchestrator Contract", async function () {
 		await expect(
 			orchestratorInstance.setLiquidationPenalty(ethVaultInstance.address, 0)
 		).to.be.revertedWith("Function is timelocked");
+	});
+
+	it("...should prevent liquidation penalty + 100 to be above ratio", async () => {
+		let liquidationPenalty = "90";
+
+		let penaltyHash = ethers.utils.solidityKeccak256(["uint256"], [liquidationPenalty]);
+
+		await orchestratorInstance.unlockFunction(
+			ethVaultInstance.address,
+			fns.LIQUIDATION,
+			penaltyHash
+		);
+		//fast-forward
+		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
+
+		await expect(
+			orchestratorInstance.setLiquidationPenalty(ethVaultInstance.address, liquidationPenalty)
+		).to.be.revertedWith("Liquidation penalty too high");
 	});
 
 	it("...should set vault TCAP Contract", async () => {

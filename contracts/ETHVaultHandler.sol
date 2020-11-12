@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.6.8;
+pragma solidity 0.6.8;
 
 import "./IVaultHandler.sol";
 import "./Orchestrator.sol";
@@ -26,13 +26,13 @@ contract ETHVaultHandler is IVaultHandler {
   {
     require(msg.value > 0, "Value can't be 0");
     IWETH(address(collateralContract)).deposit{value: msg.value}();
-    Vault storage vault = vaults[vaultToUser[msg.sender]];
+    Vault storage vault = vaults[userToVault[msg.sender]];
     vault.Collateral = vault.Collateral.add(msg.value);
     emit LogAddCollateral(msg.sender, vault.Id, msg.value);
   }
 
   /**
-   * @notice Removes not used collateral from collateral
+   * @notice Removes not used collateral from vault
    * @param _amount of collateral to remove
    * @dev _amount should be higher than 0
    */
@@ -43,7 +43,7 @@ contract ETHVaultHandler is IVaultHandler {
     whenNotPaused
   {
     require(_amount > 0, "Value can't be 0");
-    Vault storage vault = vaults[vaultToUser[msg.sender]];
+    Vault storage vault = vaults[userToVault[msg.sender]];
     uint256 currentRatio = getVaultRatio(vault.Id);
     require(
       vault.Collateral >= _amount,

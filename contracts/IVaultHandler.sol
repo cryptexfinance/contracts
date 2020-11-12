@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.6.8;
+pragma solidity 0.6.8;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -75,7 +75,7 @@ abstract contract IVaultHandler is
   using Counters for Counters.Counter;
 
   /** @dev vault id counter */
-  Counters.Counter counter;
+  Counters.Counter public counter;
 
   /**
    * @notice There is one vault per user. it saves an unique identifier,
@@ -98,10 +98,7 @@ abstract contract IVaultHandler is
   /** @dev Collateral Oracle Address*/
   ChainlinkOracle public ETHPriceOracle;
 
-  /**
-   * @notice divisor value to set the TCAP price
-   * @dev Is 1x10^10 so the result is a token with 18 decimals
-   */
+  /** @dev divisor value used with the total market cap, just like the S&P 500 or any major financial index would to define the final tcap token price */
   uint256 public divisor;
   /** @dev Liquidation Ratio */
   uint256 public ratio;
@@ -110,13 +107,18 @@ abstract contract IVaultHandler is
   /** @dev Penalty charged when an account gets liquidated */
   uint256 public liquidationPenalty;
   /** @dev Owner to Vault Id */
-  mapping(address => uint256) public vaultToUser;
+  mapping(address => uint256) public userToVault;
   /** @dev Id To Vault */
   mapping(uint256 => Vault) public vaults;
 
+  /** @dev checks if vault parameters are initialized */
+  bool public isInitialized = false;
+  /** @dev value used to multiply chainlink oracle for handling decimals */
+  uint256 public constant oracleDigits = 10000000000;
+
   /** @notice Throws if vault hasn't been created. */
   modifier vaultExists() {
-    require(vaultToUser[msg.sender] != 0, "No Vault created");
+    require(userToVault[msg.sender] != 0, "No Vault created");
     _;
   }
 
@@ -127,9 +129,7 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @dev the computed interface ID according to ERC-165. The interface ID is a XOR of all
-   * all interface method selectors.
-   *
+   * @dev the computed interface ID according to ERC-165. The interface ID is a XOR of interface method selectors.
    * initialize.selector ^
    * setTCAPContract.selector ^
    * setTCAPOracle.selector ^
@@ -179,7 +179,9 @@ abstract contract IVaultHandler is
     address _collateralAddress,
     address _collateralOracle,
     address _ethOracle
-  ) public virtual onlyOwner {
+  ) external virtual onlyOwner {
+    require(!isInitialized, "Contract already initialized");
+    isInitialized = true;
     divisor = _divisor;
     ratio = _ratio;
     burnFee = _burnFee;
@@ -196,7 +198,7 @@ abstract contract IVaultHandler is
    * @param _TCAPToken address
    * @dev Only owner can call it
    */
-  function setTCAPContract(TCAP _TCAPToken) public virtual onlyOwner {
+  function setTCAPContract(TCAP _TCAPToken) external virtual onlyOwner {
     TCAPToken = _TCAPToken;
     emit LogSetTCAPContract(msg.sender, _TCAPToken);
   }
@@ -206,7 +208,7 @@ abstract contract IVaultHandler is
    * @param _oracle address
    * @dev Only owner can call it
    */
-  function setTCAPOracle(ChainlinkOracle _oracle) public virtual onlyOwner {
+  function setTCAPOracle(ChainlinkOracle _oracle) external virtual onlyOwner {
     tcapOracle = _oracle;
     emit LogSetTCAPOracle(msg.sender, _oracle);
   }
@@ -217,7 +219,7 @@ abstract contract IVaultHandler is
    * @dev Only owner can call it
    */
   function setCollateralContract(IERC20 _collateralContract)
-    public
+    external
     virtual
     onlyOwner
   {
@@ -231,7 +233,7 @@ abstract contract IVaultHandler is
    * @dev Only owner can call it
    */
   function setCollateralPriceOracle(ChainlinkOracle _collateral)
-    public
+    external
     onlyOwner
   {
     collateralPriceOracle = _collateral;
@@ -243,7 +245,10 @@ abstract contract IVaultHandler is
    * @param _ethPriceOracle address
    * @dev Only owner can call it
    */
-  function setETHPriceOracle(ChainlinkOracle _ethPriceOracle) public onlyOwner {
+  function setETHPriceOracle(ChainlinkOracle _ethPriceOracle)
+    external
+    onlyOwner
+  {
     ETHPriceOracle = _ethPriceOracle;
     emit LogSetETHPriceOracle(msg.sender, _ethPriceOracle);
   }
@@ -253,7 +258,7 @@ abstract contract IVaultHandler is
    * @param _divisor uint
    * @dev Only owner can call it
    */
-  function setDivisor(uint256 _divisor) public virtual onlyOwner {
+  function setDivisor(uint256 _divisor) external virtual onlyOwner {
     divisor = _divisor;
     emit LogSetDivisor(msg.sender, _divisor);
   }
@@ -263,17 +268,17 @@ abstract contract IVaultHandler is
    * @param _ratio uint
    * @dev Only owner can call it
    */
-  function setRatio(uint256 _ratio) public virtual onlyOwner {
+  function setRatio(uint256 _ratio) external virtual onlyOwner {
     ratio = _ratio;
     emit LogSetRatio(msg.sender, _ratio);
   }
 
   /**
-   * @notice Sets the collateral ratio needed to mint tokens
+   * @notice Sets the burn fee percentage an user pays when burning tcap tokens
    * @param _burnFee uint
    * @dev Only owner can call it
    */
-  function setBurnFee(uint256 _burnFee) public virtual onlyOwner {
+  function setBurnFee(uint256 _burnFee) external virtual onlyOwner {
     burnFee = _burnFee;
     emit LogSetBurnFee(msg.sender, _burnFee);
   }
@@ -284,10 +289,14 @@ abstract contract IVaultHandler is
    * @dev Only owner can call it
    */
   function setLiquidationPenalty(uint256 _liquidationPenalty)
-    public
+    external
     virtual
     onlyOwner
   {
+    require(
+      _liquidationPenalty.add(100) < ratio,
+      "Liquidation penalty too high"
+    );
     liquidationPenalty = _liquidationPenalty;
     emit LogSetLiquidationPenalty(msg.sender, _liquidationPenalty);
   }
@@ -296,10 +305,10 @@ abstract contract IVaultHandler is
    * @notice Creates a Vault
    * @dev Only one vault per address can be created
    */
-  function createVault() public virtual whenNotPaused {
-    require(vaultToUser[msg.sender] == 0, "Vault already created");
+  function createVault() external virtual whenNotPaused {
+    require(userToVault[msg.sender] == 0, "Vault already created");
     uint256 id = counter.current();
-    vaultToUser[msg.sender] = id;
+    userToVault[msg.sender] = id;
     Vault memory vault = Vault(id, 0, 0, msg.sender);
     vaults[id] = vault;
     counter.increment();
@@ -312,33 +321,36 @@ abstract contract IVaultHandler is
    * @dev _amount should be higher than 0
    */
   function addCollateral(uint256 _amount)
-    public
+    external
     virtual
     nonReentrant
     vaultExists
     whenNotPaused
     notZero(_amount)
   {
-    collateralContract.transferFrom(msg.sender, address(this), _amount);
-    Vault storage vault = vaults[vaultToUser[msg.sender]];
+    require(
+      collateralContract.transferFrom(msg.sender, address(this), _amount),
+      "ERC20 transfer did not succeed"
+    );
+    Vault storage vault = vaults[userToVault[msg.sender]];
     vault.Collateral = vault.Collateral.add(_amount);
     emit LogAddCollateral(msg.sender, vault.Id, _amount);
   }
 
   /**
-   * @notice Removes not used collateral from collateral
+   * @notice Removes not used collateral from vault
    * @param _amount of collateral to remove
    * @dev _amount should be higher than 0
    */
   function removeCollateral(uint256 _amount)
-    public
+    external
     virtual
     nonReentrant
     vaultExists
     whenNotPaused
     notZero(_amount)
   {
-    Vault storage vault = vaults[vaultToUser[msg.sender]];
+    Vault storage vault = vaults[userToVault[msg.sender]];
     uint256 currentRatio = getVaultRatio(vault.Id);
     require(
       vault.Collateral >= _amount,
@@ -351,7 +363,10 @@ abstract contract IVaultHandler is
         "Collateral below min required ratio"
       );
     }
-    collateralContract.transfer(msg.sender, _amount);
+    require(
+      collateralContract.transfer(msg.sender, _amount),
+      "ERC20 transfer did not succeed"
+    );
     emit LogRemoveCollateral(msg.sender, vault.Id, _amount);
   }
 
@@ -361,14 +376,14 @@ abstract contract IVaultHandler is
    * @dev _amount should be higher than 0
    */
   function mint(uint256 _amount)
-    public
+    external
     virtual
     nonReentrant
     vaultExists
     whenNotPaused
     notZero(_amount)
   {
-    Vault storage vault = vaults[vaultToUser[msg.sender]];
+    Vault storage vault = vaults[userToVault[msg.sender]];
     uint256 requiredCollateral = requiredCollateral(_amount);
     require(vault.Collateral >= requiredCollateral, "Not enough collateral");
     vault.Debt = vault.Debt.add(_amount);
@@ -386,7 +401,7 @@ abstract contract IVaultHandler is
    * @dev _amount should be higher than 0
    */
   function burn(uint256 _amount)
-    public
+    external
     virtual
     payable
     nonReentrant
@@ -394,7 +409,7 @@ abstract contract IVaultHandler is
     whenNotPaused
     notZero(_amount)
   {
-    Vault memory vault = vaults[vaultToUser[msg.sender]];
+    Vault memory vault = vaults[userToVault[msg.sender]];
     _checkBurnFee(_amount);
     _burn(vault.Id, _amount);
     emit LogBurn(msg.sender, vault.Id, _amount);
@@ -403,9 +418,10 @@ abstract contract IVaultHandler is
   /**
    * @notice Allow users to liquidate vaults with low collateral ratio
    * @param _vaultId to liquidate
+   * @param _requiredTCAP amount of TCAP to liquidate vault
    */
-  function liquidateVault(uint256 _vaultId, uint256 requiredCollateral)
-    public
+  function liquidateVault(uint256 _vaultId, uint256 _requiredTCAP)
+    external
     payable
     nonReentrant
     whenNotPaused
@@ -414,40 +430,49 @@ abstract contract IVaultHandler is
     require(vault.Id != 0, "No Vault created");
     uint256 vaultRatio = getVaultRatio(vault.Id);
     require(vaultRatio < ratio, "Vault is not liquidable");
-    uint256 req = requiredLiquidationCollateral(vault.Id);
-    require(
-      requiredCollateral == req,
-      "Liquidation amount different than required"
-    );
+    uint256 req = requiredLiquidationTCAP(vault.Id);
+    require(_requiredTCAP == req, "Liquidation amount different than required");
     uint256 reward = liquidationReward(vault.Id);
-    _checkBurnFee(requiredCollateral);
-    _burn(vault.Id, requiredCollateral);
+    _checkBurnFee(_requiredTCAP);
+    _burn(vault.Id, _requiredTCAP);
     vault.Collateral = vault.Collateral.sub(reward);
-    collateralContract.transfer(msg.sender, reward);
+    require(
+      collateralContract.transfer(msg.sender, reward),
+      "ERC20 transfer did not succeed"
+    );
     emit LogLiquidateVault(vault.Id, msg.sender, req, reward);
   }
 
   /**
    * @notice Allows owner to Pause the Contract
    */
-  function pause() public onlyOwner {
+  function pause() external onlyOwner {
     _pause();
   }
 
   /**
    * @notice Allows owner to Unpause the Contract
    */
-  function unpause() public onlyOwner {
+  function unpause() external onlyOwner {
     _unpause();
   }
 
   /**
    * @notice Sends the owner of the contract the Fees saved on ETH
    */
-  function retrieveFees() public virtual onlyOwner {
+  function retrieveFees() external virtual onlyOwner {
     uint256 amount = address(this).balance;
     payable(owner()).transfer(amount);
     emit LogRetrieveFees(msg.sender, amount);
+  }
+
+  function getOraclePrice(ChainlinkOracle _oracle)
+    public
+    virtual
+    view
+    returns (uint256 price)
+  {
+    price = _oracle.getLatestAnswer().toUint256().mul(oracleDigits);
   }
 
   /**
@@ -461,9 +486,7 @@ abstract contract IVaultHandler is
    * d = Divisor
    */
   function TCAPPrice() public virtual view returns (uint256 price) {
-    uint256 totalMarketPrice = tcapOracle.getLatestAnswer().toUint256().mul(
-      10000000000
-    );
+    uint256 totalMarketPrice = getOraclePrice(tcapOracle);
     price = totalMarketPrice.div(divisor);
   }
 
@@ -477,6 +500,7 @@ abstract contract IVaultHandler is
    * P = TCAP Token Price
    * A = Amount to Mint
    * cp = Collateral Price
+   * r = Minimun Ratio for Liquidation
    * Is only divided by 100 as eth price comes in wei to cancel the additional 0s
    */
   function requiredCollateral(uint256 _amount)
@@ -486,10 +510,7 @@ abstract contract IVaultHandler is
     returns (uint256 collateral)
   {
     uint256 tcapPrice = TCAPPrice();
-    uint256 collateralPrice = collateralPriceOracle
-      .getLatestAnswer()
-      .toUint256()
-      .mul(10000000000);
+    uint256 collateralPrice = getOraclePrice(collateralPriceOracle);
     collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100)).div(
       collateralPrice
     );
@@ -498,10 +519,10 @@ abstract contract IVaultHandler is
   /**
    * @notice Returns the minimal required TCAP to liquidate a Vault
    * @param _vaultId of the vault to liquidate
-   * @return collateral required of the TCAP Token
-   * @dev LC = ((((D * r) / 100) - cTcap) * 100) / (r - (p + 100))
+   * @return amount required of the TCAP Token
+   * @dev LT = ((((D * r) / 100) - cTcap) * 100) / (r - (p + 100))
    * cTcap = ((C * cp) / P)
-   * LC = Required Liquidation Collateral
+   * LT = Required TCAP
    * D = Vault Debt
    * C = Required Collateral
    * P = TCAP Token Price
@@ -509,18 +530,15 @@ abstract contract IVaultHandler is
    * r = Min Vault Ratio
    * p = Liquidation Penalty
    */
-  function requiredLiquidationCollateral(uint256 _vaultId)
+  function requiredLiquidationTCAP(uint256 _vaultId)
     public
     virtual
     view
-    returns (uint256 collateral)
+    returns (uint256 amount)
   {
     Vault memory vault = vaults[_vaultId];
     uint256 tcapPrice = TCAPPrice();
-    uint256 collateralPrice = collateralPriceOracle
-      .getLatestAnswer()
-      .toUint256()
-      .mul(10000000000);
+    uint256 collateralPrice = getOraclePrice(collateralPriceOracle);
     uint256 collateralTcap = (vault.Collateral.mul(collateralPrice)).div(
       tcapPrice
     );
@@ -529,7 +547,7 @@ abstract contract IVaultHandler is
     )
       .mul(100);
     uint256 reqDivisor = ratio.sub(liquidationPenalty.add(100));
-    collateral = reqDividend.div(reqDivisor);
+    amount = reqDividend.div(reqDivisor);
   }
 
   /**
@@ -537,9 +555,9 @@ abstract contract IVaultHandler is
    * @param _vaultId of the vault to liquidate
    * @return rewardCollateral for liquidating Vault
    * @dev the returned value is returned on the vault collateral
-   * @dev R = (LC * (p  + 100)) / 100
+   * @dev R = (LT * (p  + 100)) / 100
    * R = Liquidation Reward
-   * LC = Required Liquidation Collateral
+   * LT = Required Liquidation TCAP
    * p = liquidation penalty
    */
   function liquidationReward(uint256 _vaultId)
@@ -548,12 +566,9 @@ abstract contract IVaultHandler is
     view
     returns (uint256 rewardCollateral)
   {
-    uint256 req = requiredLiquidationCollateral(_vaultId);
+    uint256 req = requiredLiquidationTCAP(_vaultId);
     uint256 tcapPrice = TCAPPrice();
-    uint256 collateralPrice = collateralPriceOracle
-      .getLatestAnswer()
-      .toUint256()
-      .mul(10000000000);
+    uint256 collateralPrice = getOraclePrice(collateralPriceOracle);
     uint256 reward = (req.mul(liquidationPenalty.add(100))).div(100);
     rewardCollateral = (reward.mul(tcapPrice)).div(collateralPrice);
   }
@@ -564,7 +579,7 @@ abstract contract IVaultHandler is
    * @return Id, Collateral, Owner, Debt
    */
   function getVault(uint256 _id)
-    public
+    external
     virtual
     view
     returns (
@@ -579,10 +594,10 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Returns the Collateral Ratio fo the Vault
+   * @notice Returns the Collateral Ratio of the Vault
    * @param _vaultId id of vault
    * @return currentRatio
-   * @dev vr = (cp * (C * 100)) / D - P
+   * @dev vr = (cp * (C * 100)) / D * P
    * vr = Vault Ratio
    * C = Vault Collateral
    * cp = Collateral Price
@@ -599,10 +614,7 @@ abstract contract IVaultHandler is
     if (vault.Id == 0 || vault.Debt == 0) {
       currentRatio = 0;
     } else {
-      uint256 collateralPrice = collateralPriceOracle
-        .getLatestAnswer()
-        .toUint256()
-        .mul(10000000000);
+      uint256 collateralPrice = getOraclePrice(collateralPriceOracle);
       currentRatio = (
         (collateralPrice.mul(vault.Collateral.mul(100))).div(
           vault.Debt.mul(TCAPPrice())
@@ -615,7 +627,7 @@ abstract contract IVaultHandler is
    * @notice Returns the required fee to burn the TCAP tokens
    * @param _amount to burn
    * @return fee
-   * @dev The returned value is returned on ETH
+   * @dev The returned value is returned in wei
    * @dev f = ((P * A * b)/ 100)
    * f = Burn Fee Value
    * P = TCAP Token Price
@@ -623,9 +635,7 @@ abstract contract IVaultHandler is
    * b = Burn Fee %
    */
   function getFee(uint256 _amount) public virtual view returns (uint256 fee) {
-    uint256 ethPrice = ETHPriceOracle.getLatestAnswer().toUint256().mul(
-      10000000000
-    );
+    uint256 ethPrice = getOraclePrice(ETHPriceOracle);
     fee = (TCAPPrice().mul(_amount).mul(burnFee)).div(100).div(ethPrice);
   }
 

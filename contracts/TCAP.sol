@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.6.8;
+pragma solidity 0.6.8;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -47,18 +47,18 @@ contract TCAP is ERC20, Ownable, IERC165 {
     transferOwnership(address(_orchestrator));
   }
 
-  /** @notice Throws if called by any account other than the handler. */
+  /** @notice Throws if called by any account other than a handler. */
   modifier onlyHandler() {
-    require(tokenHandlers[msg.sender], "Caller is not the handler");
+    require(tokenHandlers[msg.sender], "Caller is not a handler");
     _;
   }
 
   /**
-   * @notice Sets the address of the handler contract
-   * @param _handler address of the receiver of tokens
+   * @notice Sets the address of a handler contract
+   * @param _handler address of a contract with permissions to mint and burn tokens
    * @dev Only owner can call it
    */
-  function addTokenHandler(address _handler) public onlyOwner {
+  function addTokenHandler(address _handler) external onlyOwner {
     tokenHandlers[_handler] = true;
     emit LogAddTokenHandler(msg.sender, _handler);
   }
@@ -69,17 +69,17 @@ contract TCAP is ERC20, Ownable, IERC165 {
    * @param _amount uint of tokens to mint
    * @dev Only handler can call it
    */
-  function mint(address _account, uint256 _amount) public onlyHandler {
+  function mint(address _account, uint256 _amount) external onlyHandler {
     _mint(_account, _amount);
   }
 
   /**
    * @notice Burns TCAP Tokens
-   * @param _account address of the receiver of tokens
+   * @param _account address of the account which is burning tokens.
    * @param _amount uint of tokens to burn
    * @dev Only handler can call it
    */
-  function burn(address _account, uint256 _amount) public onlyHandler {
+  function burn(address _account, uint256 _amount) external onlyHandler {
     _burn(_account, _amount);
   }
 
@@ -90,7 +90,7 @@ contract TCAP is ERC20, Ownable, IERC165 {
    * total supply above the specified capacity.
    * @dev Only owner can call it
    */
-  function setCap(uint256 _cap) public onlyOwner {
+  function setCap(uint256 _cap) external onlyOwner {
     cap = _cap;
     emit LogSetCap(msg.sender, _cap);
   }
@@ -101,7 +101,7 @@ contract TCAP is ERC20, Ownable, IERC165 {
    * @dev When capEnabled is true, minting will not be allowed above the max capacity.
    * @dev Only owner can call it
    */
-  function enableCap(bool _enable) public onlyOwner {
+  function enableCap(bool _enable) external onlyOwner {
     capEnabled = _enable;
     emit LogEnableCap(msg.sender, _enable);
   }
@@ -109,7 +109,7 @@ contract TCAP is ERC20, Ownable, IERC165 {
   /**
    * @dev See {ERC20-_beforeTokenTransfer}.
    * @notice minted tokens must not cause the total supply to go over the cap.
-   * @dev Reverts if the to address it's equal to token address
+   * @dev Reverts if the to address is equal to token address
    */
   function _beforeTokenTransfer(
     address from,
