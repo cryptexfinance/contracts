@@ -98,7 +98,7 @@ contract TCAP is ERC20, Ownable, IERC165 {
   /**
    * @notice Enables or Disables the Token Cap.
    * @param _enable value
-   * @dev When capEnabled is true, minting will not be allowed above the max capacity.
+   * @dev When capEnabled is true, minting will not be allowed above the max capacity. It can exist a supply above the cap, but it prevents minting above the cap.
    * @dev Only owner can call it
    */
   function enableCap(bool _enable) external onlyOwner {

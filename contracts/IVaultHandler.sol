@@ -131,19 +131,13 @@ abstract contract IVaultHandler is
   /**
    * @dev the computed interface ID according to ERC-165. The interface ID is a XOR of interface method selectors.
    * initialize.selector ^
-   * setTCAPContract.selector ^
-   * setTCAPOracle.selector ^
-   * setCollateralContract.selector ^
-   * setCollateralPriceOracle.selector ^
-   * setETHPriceOracle.selector ^
-   * setDivisor.selector ^
    * setRatio.selector ^
    * setBurnFee.selector ^
    * setLiquidationPenalty.selector ^
-   * i.pause.selector ^
-   * i.unpause.selector =>  0x409e4a0f
+   * pause.selector ^
+   * unpause.selector =>  0x9e75ab0c
    */
-  bytes4 private constant _INTERFACE_ID_IVAULT = 0x409e4a0f;
+  bytes4 private constant _INTERFACE_ID_IVAULT = 0x9e75ab0c;
 
   /* bytes4(keccak256('supportsInterface(bytes4)')) == 0x01ffc9a7 */
   bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
