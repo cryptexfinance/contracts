@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.6.8;
+pragma solidity 0.6.8;
 
 import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/introspection/IERC165.sol";
 
 /**
- * @title TCAP Vault Handler
+ * @title Chainlink Oracle
  * @author Cristian Espinoza
  * @notice Contract in charge or reading the information from a Chainlink Oracle. TCAP contracts read the price directly from this contract. More information can be found on Chainlink Documentation
  */
 contract ChainlinkOracle is Ownable, IERC165 {
-  AggregatorV3Interface internal ref;
+  AggregatorV3Interface internal aggregatorContract;
 
   /*
    * setReferenceContract.selector ^
@@ -28,11 +28,11 @@ contract ChainlinkOracle is Ownable, IERC165 {
   bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
 
   /**
-   * @notice Called once the contract it's deployed.
+   * @notice Called once the contract is deployed.
    * Set the Chainlink Oracle as an aggregator.
    */
   constructor(address _aggregator) public {
-    ref = AggregatorV3Interface(_aggregator);
+    aggregatorContract = AggregatorV3Interface(_aggregator);
   }
 
   /**
@@ -40,19 +40,19 @@ contract ChainlinkOracle is Ownable, IERC165 {
    * @dev Only owner can call it.
    */
   function setReferenceContract(address _aggregator) public onlyOwner() {
-    ref = AggregatorV3Interface(_aggregator);
+    aggregatorContract = AggregatorV3Interface(_aggregator);
   }
 
   /**
-   * @notice Returns the latest answer from the referece contract.
+   * @notice Returns the latest answer from the reference contract.
    * @return price
    */
   function getLatestAnswer() public view returns (int256 price) {
-    (, price, , , ) = ref.latestRoundData();
+    (, price, , , ) = aggregatorContract.latestRoundData();
   }
 
   /**
-   * @notice Returns the latest round from the referece contract.
+   * @notice Returns the latest round from the reference contract.
    */
   function getLatestRound()
     public
@@ -71,13 +71,13 @@ contract ChainlinkOracle is Ownable, IERC165 {
       uint256 startedAt,
       uint256 timeStamp,
       uint80 answeredInRound
-    ) = ref.latestRoundData();
+    ) = aggregatorContract.latestRoundData();
 
     return (roundID, price, startedAt, timeStamp, answeredInRound);
   }
 
   /**
-   * @notice Returns the latest round from the referece contract.
+   * @notice Returns a given round from the reference contract.
    * @param _id of round
    */
   function getRound(uint80 _id)
@@ -97,7 +97,7 @@ contract ChainlinkOracle is Ownable, IERC165 {
       uint256 startedAt,
       uint256 timeStamp,
       uint80 answeredInRound
-    ) = ref.getRoundData(_id);
+    ) = aggregatorContract.getRoundData(_id);
 
     return (roundID, price, startedAt, timeStamp, answeredInRound);
   }
@@ -106,28 +106,30 @@ contract ChainlinkOracle is Ownable, IERC165 {
    * @notice Returns the last time the Oracle was updated.
    */
   function getLatestTimestamp() public view returns (uint256) {
-    (, , , uint256 timeStamp, ) = ref.latestRoundData();
+    (, , , uint256 timeStamp, ) = aggregatorContract.latestRoundData();
     return timeStamp;
   }
 
   /**
-   * @notice Returns the previous answer updated on the Oracle.
+   * @notice Returns a previous answer updated on the Oracle.
    * @param _id of round
    * @return price
    */
   function getPreviousAnswer(uint80 _id) public view returns (int256) {
-    (uint80 roundID, int256 price, , , ) = ref.getRoundData(_id);
+    (uint80 roundID, int256 price, , , ) = aggregatorContract.getRoundData(_id);
     require(_id <= roundID, "Not enough history");
     return price;
   }
 
   /**
-   * @notice Returns the previous time the Oracle was updated.
+   * @notice Returns a previous time the Oracle was updated.
    * @param _id of round
    * @return timeStamp
    */
   function getPreviousTimestamp(uint80 _id) public view returns (uint256) {
-    (uint80 roundID, , , uint256 timeStamp, ) = ref.getRoundData(_id);
+    (uint80 roundID, , , uint256 timeStamp, ) = aggregatorContract.getRoundData(
+      _id
+    );
     require(_id <= roundID, "Not enough history");
     return timeStamp;
   }

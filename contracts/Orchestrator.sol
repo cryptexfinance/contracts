@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.6.8;
+pragma solidity 0.6.8;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/introspection/ERC165Checker.sol";
@@ -17,39 +17,25 @@ contract Orchestrator is Ownable {
   /** @dev Logs the unlock function. */
   event LogUnlock(address indexed _contract, Functions _fn, bytes32 _hash);
   /** @dev Enum which saves the available functions to unlock. */
-  enum Functions {
-    DIVISOR,
-    RATIO,
-    BURNFEE,
-    LIQUIDATION,
-    TCAP,
-    TCAPORACLE,
-    COLLATERAL,
-    COLLATERALORACLE,
-    ETHORACLE,
-    ENABLECAP,
-    SETCAP
-  }
-  /** @dev Vault address to initialized bool */
-  mapping(IVaultHandler => bool) public initialized;
+  enum Functions {RATIO, BURNFEE, LIQUIDATION, ENABLECAP, SETCAP}
   /** @dev Mapping that checks if Function on vault is timelocked */
   mapping(address => mapping(Functions => uint256)) public timelock;
   /** @dev Mapping that saves a hash of the value to be updated to make sure it updates the same value */
   mapping(address => mapping(Functions => bytes32)) public timelockValue;
   /** @dev vault functions are timelocked for 3 days*/
-  uint256 private constant _TIMELOCK = 3 days;
+  uint256 public constant _TIMELOCK = 3 days;
 
   /** @dev Interface constants*/
-  bytes4 private constant _INTERFACE_ID_IVAULT = 0x409e4a0f;
+  bytes4 private constant _INTERFACE_ID_IVAULT = 0x9e75ab0c;
   bytes4 private constant _INTERFACE_ID_TCAP = 0xa9ccee51;
   bytes4 private constant _INTERFACE_ID_CHAINLINK_ORACLE = 0x85be402b;
 
   /**
    * @notice Throws if vault is locked.
    * @param _contract address
-   * @param _fn constant identifier
+   * @param _fn function identifier
    * @param _value hash of value
-   * @dev checks if the timelocked value it's the same
+   * @dev checks if the timelocked value is the same
    */
   modifier notLocked(
     address _contract,
@@ -148,8 +134,7 @@ contract Orchestrator is Ownable {
     address _collateralAddress,
     address _collateralOracle,
     address _ethOracle
-  ) public onlyOwner validVault(_vault) validTCAP(_tcapAddress) {
-    require(!initialized[_vault], "Contract already initialized");
+  ) external onlyOwner validVault(_vault) validTCAP(_tcapAddress) {
     _validChainlinkOracle(_tcapOracle);
     _validChainlinkOracle(_collateralOracle);
     _validChainlinkOracle(_ethOracle);
@@ -164,7 +149,6 @@ contract Orchestrator is Ownable {
       _collateralOracle,
       _ethOracle
     );
-    initialized[_vault] = true;
   }
 
   /**
@@ -179,7 +163,7 @@ contract Orchestrator is Ownable {
     address _contract,
     Functions _fn,
     bytes32 _hash
-  ) public onlyOwner {
+  ) external onlyOwner {
     timelock[address(_contract)][_fn] = block.timestamp + _TIMELOCK;
     timelockValue[address(_contract)][_fn] = _hash;
     emit LogUnlock(_contract, _fn, _hash);
@@ -188,7 +172,7 @@ contract Orchestrator is Ownable {
   /**
    * @notice Locks contract function
    * @param _contract address
-   * @param _fn to be unlocked
+   * @param _fn to be locked
    * @dev Lock happens immediately
    */
   function _lockFunction(address _contract, Functions _fn) private {
@@ -199,37 +183,15 @@ contract Orchestrator is Ownable {
   /**
    * @notice Locks vault function
    * @param _vault address
-   * @param _fn to be unlocked
+   * @param _fn to be locked
    * @dev Only owner can call it
    * @dev Lock happens immediately
    */
   function lockVaultFunction(IVaultHandler _vault, Functions _fn)
-    public
+    external
     onlyOwner
   {
     _lockFunction(address(_vault), _fn);
-  }
-
-  /**
-   * @notice Sets the divisor of a vault
-   * @param _vault address
-   * @param _divisor value
-   * @dev Only owner can call it
-   * @dev Validates if _vault is valid and not locked
-   * @dev Locks function after using
-   */
-  function setDivisor(IVaultHandler _vault, uint256 _divisor)
-    public
-    onlyOwner
-    validVault(_vault)
-    notLocked(
-      address(_vault),
-      Functions.DIVISOR,
-      keccak256(abi.encodePacked(_divisor))
-    )
-  {
-    _vault.setDivisor(_divisor);
-    _lockFunction(address(_vault), Functions.DIVISOR);
   }
 
   /**
@@ -241,7 +203,7 @@ contract Orchestrator is Ownable {
    * @dev Locks function after using
    */
   function setRatio(IVaultHandler _vault, uint256 _ratio)
-    public
+    external
     onlyOwner
     validVault(_vault)
     notLocked(
@@ -263,7 +225,7 @@ contract Orchestrator is Ownable {
    * @dev Locks function after using
    */
   function setBurnFee(IVaultHandler _vault, uint256 _burnFee)
-    public
+    external
     onlyOwner
     validVault(_vault)
     notLocked(
@@ -273,6 +235,22 @@ contract Orchestrator is Ownable {
     )
   {
     _vault.setBurnFee(_burnFee);
+    _lockFunction(address(_vault), Functions.BURNFEE);
+  }
+
+  /**
+   * @notice Sets the burn fee to 0, only used on a black swan event
+   * @param _vault address
+   * @dev Only owner can call it
+   * @dev Validates if _vault is valid
+   * @dev Locks function after using
+   */
+  function setEmergencyBurnFee(IVaultHandler _vault)
+    external
+    onlyOwner
+    validVault(_vault)
+  {
+    _vault.setBurnFee(0);
     _lockFunction(address(_vault), Functions.BURNFEE);
   }
 
@@ -288,7 +266,7 @@ contract Orchestrator is Ownable {
     IVaultHandler _vault,
     uint256 _liquidationPenalty
   )
-    public
+    external
     onlyOwner
     validVault(_vault)
     notLocked(
@@ -302,117 +280,19 @@ contract Orchestrator is Ownable {
   }
 
   /**
-   * @notice Sets the TCAP ERC20 Contract
+   * @notice Sets the liquidation penalty of a vault to 0, only used on a black swan event
    * @param _vault address
-   * @param _tcap contract address
    * @dev Only owner can call it
-   * @dev Validates if _vault and tcap are valid and not locked
+   * @dev Validates if _vault is valid
    * @dev Locks function after using
    */
-  function setTCAP(IVaultHandler _vault, TCAP _tcap)
-    public
+  function setEmergencyLiquidationPenalty(IVaultHandler _vault)
+    external
     onlyOwner
     validVault(_vault)
-    notLocked(
-      address(_vault),
-      Functions.TCAP,
-      keccak256(abi.encodePacked(_tcap))
-    )
-    validTCAP(_tcap)
   {
-    _vault.setTCAPContract(_tcap);
-    _lockFunction(address(_vault), Functions.TCAP);
-  }
-
-  /**
-   * @notice Sets the TCAP Oracle Contract
-   * @param _vault address
-   * @param _tcapOracle contract address
-   * @dev Only owner can call it
-   * @dev Validates if _vault and oracle are valid and not locked
-   * @dev Locks function after using
-   */
-  function setTCAPOracle(IVaultHandler _vault, address _tcapOracle)
-    public
-    onlyOwner
-    validVault(_vault)
-    notLocked(
-      address(_vault),
-      Functions.TCAPORACLE,
-      keccak256(abi.encodePacked(_tcapOracle))
-    )
-    validChainlinkOracle(_tcapOracle)
-  {
-    _vault.setTCAPOracle(ChainlinkOracle(_tcapOracle));
-    _lockFunction(address(_vault), Functions.TCAPORACLE);
-  }
-
-  /**
-   * @notice Sets the Collateral Contract
-   * @param _vault address
-   * @param _collateral contract address
-   * @dev Only owner can call it
-   * @dev Validates if _vault is valid and not locked
-   * @dev Locks function after using
-   */
-  function setCollateral(IVaultHandler _vault, IERC20 _collateral)
-    public
-    onlyOwner
-    validVault(_vault)
-    notLocked(
-      address(_vault),
-      Functions.COLLATERAL,
-      keccak256(abi.encodePacked(_collateral))
-    )
-  {
-    _vault.setCollateralContract(_collateral);
-    _lockFunction(address(_vault), Functions.COLLATERAL);
-  }
-
-  /**
-   * @notice Sets the Collateral Oracle Contract
-   * @param _vault address
-   * @param _collateralOracle contract address
-   * @dev Only owner can call it
-   * @dev Validates if _vault and oracle are valid and not locked
-   * @dev Locks function after using
-   */
-  function setCollateralOracle(IVaultHandler _vault, address _collateralOracle)
-    public
-    onlyOwner
-    validVault(_vault)
-    notLocked(
-      address(_vault),
-      Functions.COLLATERALORACLE,
-      keccak256(abi.encodePacked(_collateralOracle))
-    )
-    validChainlinkOracle(_collateralOracle)
-  {
-    _vault.setCollateralPriceOracle(ChainlinkOracle(_collateralOracle));
-    _lockFunction(address(_vault), Functions.COLLATERALORACLE);
-  }
-
-  /**
-   * @notice Sets the ETH Price Oracle Contract
-   * @param _vault address
-   * @param _ethOracles contract address
-   * @dev Only owner can call it
-   * @dev Validates if _vault and oracle are valid and not locked
-   * @dev Locks function after using
-   */
-  function setETHOracle(IVaultHandler _vault, address _ethOracles)
-    public
-    onlyOwner
-    validVault(_vault)
-    notLocked(
-      address(_vault),
-      Functions.ETHORACLE,
-      keccak256(abi.encodePacked(_ethOracles))
-    )
-    validChainlinkOracle(_ethOracles)
-  {
-    _vault.setETHPriceOracle(ChainlinkOracle(_ethOracles));
-    _lockFunction(address(_vault), Functions.ETHORACLE);
+    _vault.setLiquidationPenalty(0);
+    _lockFunction(address(_vault), Functions.LIQUIDATION);
   }
 
   /**
@@ -422,7 +302,7 @@ contract Orchestrator is Ownable {
    * @dev Validates if _vault is valid
    */
   function pauseVault(IVaultHandler _vault)
-    public
+    external
     onlyOwner
     validVault(_vault)
   {
@@ -436,7 +316,7 @@ contract Orchestrator is Ownable {
    * @dev Validates if _vault is valid
    */
   function unpauseVault(IVaultHandler _vault)
-    public
+    external
     onlyOwner
     validVault(_vault)
   {
@@ -450,7 +330,7 @@ contract Orchestrator is Ownable {
    * @dev Validates if _vault is valid
    */
   function retrieveVaultFees(IVaultHandler _vault)
-    public
+    external
     onlyOwner
     validVault(_vault)
   {
@@ -462,7 +342,7 @@ contract Orchestrator is Ownable {
    * @dev Only owner can call it
    * @dev Transfer the balance to the contract owner
    */
-  function retrieveFees() public onlyOwner {
+  function retrieveFees() external onlyOwner {
     uint256 amount = address(this).balance;
     payable(owner()).transfer(amount);
   }
@@ -475,7 +355,7 @@ contract Orchestrator is Ownable {
    * @dev Validates if _tcap is valid
    */
   function enableTCAPCap(TCAP _tcap, bool _enable)
-    public
+    external
     onlyOwner
     validTCAP(_tcap)
     notLocked(
@@ -489,14 +369,14 @@ contract Orchestrator is Ownable {
   }
 
   /**
-   * @notice Enables or disables the TCAP Cap
+   * @notice Sets the TCAP maximum minting value
    * @param _tcap address
    * @param _cap uint value
    * @dev Only owner can call it
    * @dev Validates if _tcap is valid
    */
   function setTCAPCap(TCAP _tcap, uint256 _cap)
-    public
+    external
     onlyOwner
     validTCAP(_tcap)
     notLocked(
@@ -518,7 +398,7 @@ contract Orchestrator is Ownable {
    * @dev Validates if _vault is valid
    */
   function addTCAPVault(TCAP _tcap, IVaultHandler _vault)
-    public
+    external
     onlyOwner
     validTCAP(_tcap)
     validVault(_vault)

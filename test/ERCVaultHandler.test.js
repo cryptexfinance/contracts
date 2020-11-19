@@ -87,14 +87,14 @@ describe("ERC20 Vault", async function () {
 	});
 
 	it("...should allow users to create a vault", async () => {
-		let vaultId = await ercTokenHandler.vaultToUser(accounts[1]);
+		let vaultId = await ercTokenHandler.userToVault(accounts[1]);
 		expect(vaultId).eq(0);
 		await expect(ercTokenHandler.connect(addr1).createVault())
 			.to.emit(ercTokenHandler, "LogCreateVault")
 			.withArgs(accounts[1], 1);
-		vaultId = await ercTokenHandler.vaultToUser(accounts[1]);
+		vaultId = await ercTokenHandler.userToVault(accounts[1]);
 		expect(vaultId).eq(1);
-		vaultId = await ercTokenHandler.vaultToUser(accounts[2]);
+		vaultId = await ercTokenHandler.userToVault(accounts[2]);
 		expect(vaultId).eq(0);
 		await expect(ercTokenHandler.connect(addr1).createVault()).to.be.revertedWith(
 			"Vault already created"
@@ -389,7 +389,7 @@ describe("ERC20 Vault", async function () {
 	});
 
 	it("...should get the required collateral for liquidation", async () => {
-		let reqLiquidation = await ercTokenHandler.requiredLiquidationCollateral(2);
+		let reqLiquidation = await ercTokenHandler.requiredLiquidationTCAP(2);
 		let liquidationPenalty = await ercTokenHandler.liquidationPenalty();
 		let ratio = await ercTokenHandler.ratio();
 		let collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
@@ -403,7 +403,7 @@ describe("ERC20 Vault", async function () {
 	});
 
 	it("...should get the liquidation reward", async () => {
-		let reqLiquidation = await ercTokenHandler.requiredLiquidationCollateral(2);
+		let reqLiquidation = await ercTokenHandler.requiredLiquidationTCAP(2);
 		let liquidationReward = await ercTokenHandler.liquidationReward(2);
 		let liquidationPenalty = await ercTokenHandler.liquidationPenalty();
 		let collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
@@ -417,7 +417,7 @@ describe("ERC20 Vault", async function () {
 	it("...should allow liquidators to return profits", async () => {
 		const divisor = ethersProvider.utils.parseEther("1");
 		const liquidationReward = await ercTokenHandler.liquidationReward(2);
-		const reqLiquidation = await ercTokenHandler.requiredLiquidationCollateral(2);
+		const reqLiquidation = await ercTokenHandler.requiredLiquidationTCAP(2);
 		const tcapPrice = await ercTokenHandler.TCAPPrice();
 		const collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
 		const rewardUSD = liquidationReward.mul(collateralPrice).div(divisor);
@@ -443,7 +443,7 @@ describe("ERC20 Vault", async function () {
 		await ercTokenHandler.connect(addr3).mint(liquidatorAmount);
 
 		let liquidationReward = await ercTokenHandler.liquidationReward(2);
-		let reqLiquidation = await ercTokenHandler.requiredLiquidationCollateral(2);
+		let reqLiquidation = await ercTokenHandler.requiredLiquidationTCAP(2);
 		let tcapBalance = await tcapInstance.balanceOf(accounts[3]);
 		let collateralBalance = await ercTokenInstance.balanceOf(accounts[3]);
 		let vault = await ercTokenHandler.getVault(2);
