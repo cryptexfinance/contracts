@@ -1,5 +1,6 @@
 var expect = require("chai").expect;
 var ethersProvider = require("ethers");
+const bre = require("@nomiclabs/buidler");
 
 describe("ERC20 Vault", async function () {
 	let ercTokenHandler,
@@ -15,6 +16,15 @@ describe("ERC20 Vault", async function () {
 	let ratio = "150";
 	let burnFee = "1";
 	let liquidationPenalty = "10";
+	const THREE_DAYS = 259200;
+
+	const fns = {
+		RATIO: 0,
+		BURNFEE: 1,
+		LIQUIDATION: 2,
+		ENABLECAP: 3,
+		SETCAP: 4,
+	};
 
 	before("Set Accounts", async () => {
 		let [acc0, acc1, acc3, acc4, acc5] = await ethers.getSigners();
@@ -211,18 +221,47 @@ describe("ERC20 Vault", async function () {
 		expect(reqAmount).to.eq(result);
 	});
 
+	it("...shouldn't allow minting above cap", async () => {
+		const amount = ethersProvider.utils.parseEther("11");
+		const reqAmount = await ercTokenHandler.requiredCollateral(amount);
+
+		await ercTokenInstance.mint(accounts[1], reqAmount);
+		await ercTokenInstance.connect(addr1).approve(ercTokenHandler.address, reqAmount);
+		await ercTokenHandler.connect(addr1).addCollateral(reqAmount);
+
+		//Shouldn't allow to mint above cap
+		let enableCap = true;
+		let enableHash = ethers.utils.solidityKeccak256(["bool"], [enableCap]);
+
+		let tcapCap = 1;
+		let capHash = ethers.utils.solidityKeccak256(["uint256"], [tcapCap]);
+
+		await orchestratorInstance.unlockFunction(tcapInstance.address, fns.ENABLECAP, enableHash);
+		await orchestratorInstance.unlockFunction(tcapInstance.address, fns.SETCAP, capHash);
+		//fast-forward
+		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
+		await orchestratorInstance.enableTCAPCap(tcapInstance.address, enableCap);
+		await orchestratorInstance.setTCAPCap(tcapInstance.address, tcapCap);
+		await expect(ercTokenHandler.connect(addr1).mint(reqAmount)).to.be.revertedWith(
+			"ERC20: cap exceeded"
+		);
+		// Remove Cap
+		enableCap = false;
+		enableHash = ethers.utils.solidityKeccak256(["bool"], [enableCap]);
+		await orchestratorInstance.unlockFunction(tcapInstance.address, fns.ENABLECAP, enableHash);
+		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
+		await orchestratorInstance.enableTCAPCap(tcapInstance.address, enableCap);
+	});
+
 	it("...should allow user to mint tokens", async () => {
 		const amount = ethersProvider.utils.parseEther("10");
-		const amount2 = ethersProvider.utils.parseEther("11");
 		const lowAmount = ethersProvider.utils.parseEther("1");
 		const bigAmount = ethersProvider.utils.parseEther("100");
+		const amount2 = ethersProvider.utils.parseEther("11");
 		const reqAmount2 = await ercTokenHandler.requiredCollateral(amount2);
 
-		await ercTokenInstance.mint(accounts[1], reqAmount2);
 		let tcapBalance = await tcapInstance.balanceOf(accounts[1]);
 		expect(tcapBalance).to.eq(0);
-		await ercTokenInstance.connect(addr1).approve(ercTokenHandler.address, reqAmount2);
-		await ercTokenHandler.connect(addr1).addCollateral(reqAmount2);
 		await expect(ercTokenHandler.connect(addr3).mint(amount)).to.be.revertedWith(
 			"No Vault created"
 		);
