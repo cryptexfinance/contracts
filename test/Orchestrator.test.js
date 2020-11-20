@@ -188,18 +188,32 @@ describe("Orchestrator Contract", async function () {
 				)
 		).to.be.revertedWith("Ownable: caller is not the owner");
 
-		await orchestratorInstance.initializeVault(
-			ethVaultInstance.address,
-			divisor,
-			ratio,
-			burnFee,
-			liquidationPenalty,
-			tcapOracle,
-			tcapInstance.address,
-			collateralAddress,
-			collateralOracle,
-			ethOracle
-		);
+		await expect(
+			orchestratorInstance.initializeVault(
+				ethVaultInstance.address,
+				divisor,
+				ratio,
+				burnFee,
+				liquidationPenalty,
+				tcapOracle,
+				tcapInstance.address,
+				collateralAddress,
+				collateralOracle,
+				ethOracle
+			)
+		)
+			.to.emit(ethVaultInstance, "LogInitializeVault")
+			.withArgs(
+				divisor,
+				ratio,
+				burnFee,
+				liquidationPenalty,
+				tcapOracle,
+				tcapInstance.address,
+				collateralAddress,
+				collateralOracle,
+				ethOracle
+			);
 		expect(divisor).to.eq(await ethVaultInstance.divisor());
 		expect(ratio).to.eq(await ethVaultInstance.ratio());
 		expect(burnFee).to.eq(await ethVaultInstance.burnFee());
