@@ -171,6 +171,10 @@ abstract contract IVaultHandler is
     address _ethOracle
   ) external virtual onlyOwner {
     require(!isInitialized, "Contract already initialized");
+    require(
+      _liquidationPenalty.add(100) < _ratio,
+      "Liquidation penalty too high"
+    );
     isInitialized = true;
     divisor = _divisor;
     ratio = _ratio;

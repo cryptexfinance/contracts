@@ -168,6 +168,22 @@ describe("Orchestrator Contract", async function () {
 				ethersProvider.constants.AddressZero
 			)
 		).to.be.revertedWith("Not a valid Chainlink Oracle");
+
+		let liquidationPenaltyBreak = "90";
+		await expect(
+			orchestratorInstance.initializeVault(
+				ethVaultInstance.address,
+				divisor,
+				ratio,
+				burnFee,
+				liquidationPenaltyBreak,
+				tcapOracle,
+				tcapInstance.address,
+				collateralAddress,
+				collateralOracle,
+				ethOracle
+			)
+		).to.be.revertedWith("Liquidation penalty too high");
 	});
 
 	it("...should initialize vault contracts", async () => {
