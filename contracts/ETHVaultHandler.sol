@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.6.8;
 
 import "./IVaultHandler.sol";
@@ -24,7 +24,10 @@ contract ETHVaultHandler is IVaultHandler {
     vaultExists
     whenNotPaused
   {
-    require(msg.value > 0, "Value can't be 0");
+    require(
+      msg.value > 0,
+      "ETHVaultHandler::addCollateralETH: value can't be 0"
+    );
     IWETH(address(collateralContract)).deposit{value: msg.value}();
     Vault storage vault = vaults[userToVault[msg.sender]];
     vault.Collateral = vault.Collateral.add(msg.value);
@@ -42,18 +45,21 @@ contract ETHVaultHandler is IVaultHandler {
     vaultExists
     whenNotPaused
   {
-    require(_amount > 0, "Value can't be 0");
+    require(
+      _amount > 0,
+      "ETHVaultHandler::removeCollateralETH: value can't be 0"
+    );
     Vault storage vault = vaults[userToVault[msg.sender]];
     uint256 currentRatio = getVaultRatio(vault.Id);
     require(
       vault.Collateral >= _amount,
-      "Transaction reverted with Retrieve amount higher than collateral"
+      "ETHVaultHandler::removeCollateralETH: retrieve amount higher than collateral"
     );
     vault.Collateral = vault.Collateral.sub(_amount);
     if (currentRatio != 0) {
       require(
         getVaultRatio(vault.Id) >= ratio,
-        "Collateral below min required ratio"
+        "ETHVaultHandler::removeCollateralETH: collateral below min required ratio"
       );
     }
 
@@ -67,7 +73,7 @@ contract ETHVaultHandler is IVaultHandler {
    */
   function safeTransferETH(address to, uint256 value) internal {
     (bool success, ) = to.call{value: value}(new bytes(0));
-    require(success, "TransferHelper: ETH_TRANSFER_FAILED");
+    require(success, "ETHVaultHandler::safeTransferETH: ETH transfer failed");
   }
 
   /**

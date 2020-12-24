@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.6.8;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -118,7 +118,10 @@ contract TCAP is ERC20, Ownable, IERC165 {
   ) internal virtual override {
     super._beforeTokenTransfer(from, to, amount);
 
-    require(to != address(this), "Can't transfer to TCAP contract");
+    require(
+      to != address(this),
+      "TCAP::transfer: can't transfer to TCAP contract"
+    );
 
     if (from == address(0) && capEnabled) {
       // When minting tokens

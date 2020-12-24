@@ -183,7 +183,7 @@ describe("Orchestrator Contract", async function () {
 				collateralOracle,
 				ethOracle
 			)
-		).to.be.revertedWith("Liquidation penalty too high");
+		).to.be.revertedWith("VaultHandler::initialize: liquidation penalty too high");
 	});
 
 	it("...should initialize vault contracts", async () => {
@@ -254,7 +254,7 @@ describe("Orchestrator Contract", async function () {
 				collateralOracle,
 				ethOracle
 			)
-		).to.be.revertedWith("Contract already initialized");
+		).to.be.revertedWith("VaultHandler::initialize: contract already initialized");
 	});
 
 	it("...should allow to unlock timelock for a function", async () => {
@@ -420,7 +420,7 @@ describe("Orchestrator Contract", async function () {
 
 		await expect(
 			orchestratorInstance.setLiquidationPenalty(ethVaultInstance.address, liquidationPenalty)
-		).to.be.revertedWith("Liquidation penalty too high");
+		).to.be.revertedWith("VaultHandler::setLiquidationPenalty: liquidation penalty too high");
 	});
 
 	it("...should pause the Vault", async () => {

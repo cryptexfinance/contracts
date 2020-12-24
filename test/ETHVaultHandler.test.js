@@ -97,7 +97,7 @@ describe("ETH Vault", async function () {
 		vaultId = await ethTokenHandler.userToVault(accounts[2]);
 		expect(vaultId).eq(0);
 		await expect(ethTokenHandler.connect(addr1).createVault()).to.be.revertedWith(
-			"Vault already created"
+			"VaultHandler::createVault: vault already created"
 		);
 	});
 
@@ -117,7 +117,7 @@ describe("ETH Vault", async function () {
 	it("...should allow user to stake weth collateral", async () => {
 		const amount = ethersProvider.utils.parseEther("375");
 		await expect(ethTokenHandler.connect(addr3).addCollateral(amount)).to.be.revertedWith(
-			"No Vault created"
+			"VaultHandler::vaultExists: no vault created"
 		);
 		let balance = await wethTokenInstance.balanceOf(accounts[1]);
 		expect(balance).to.eq(0);
@@ -133,7 +133,7 @@ describe("ETH Vault", async function () {
 		expect(balance).to.eq(amount);
 
 		await expect(ethTokenHandler.connect(addr1).addCollateral(0)).to.be.revertedWith(
-			"Value can't be 0"
+			"VaultHandler::notZero: value can't be 0"
 		);
 		await expect(ethTokenHandler.connect(addr1).addCollateral(amount))
 			.to.emit(ethTokenHandler, "LogAddCollateral")
@@ -166,7 +166,7 @@ describe("ETH Vault", async function () {
 		let vaultBalance = vault[1];
 
 		await expect(ethTokenHandler.connect(addr1).addCollateralETH()).to.be.revertedWith(
-			"Value can't be 0"
+			"ETHVaultHandler::addCollateralETH: value can't be 0"
 		);
 
 		await expect(ethTokenHandler.connect(addr1).addCollateralETH({value: amount}))
@@ -203,13 +203,13 @@ describe("ETH Vault", async function () {
 		let vaultBalance = vault[1];
 		let contractBalance = await wethTokenInstance.balanceOf(ethTokenHandler.address);
 		await expect(ethTokenHandler.connect(addr3).removeCollateralETH(amount)).to.be.revertedWith(
-			"No Vault created"
+			"VaultHandler::vaultExists: no vault created"
 		);
 		await expect(ethTokenHandler.connect(addr1).removeCollateralETH(bigAmount)).to.be.revertedWith(
-			"Retrieve amount higher than collateral"
+			"ETHVaultHandler::removeCollateralETH: retrieve amount higher than collateral"
 		);
 		await expect(ethTokenHandler.connect(addr1).removeCollateralETH(0)).to.be.revertedWith(
-			"Value can't be 0"
+			"ETHVaultHandler::removeCollateralETH: value can't be 0"
 		);
 		await expect(ethTokenHandler.connect(addr1).removeCollateralETH(amount))
 			.to.emit(ethTokenHandler, "LogRemoveCollateral")
@@ -244,13 +244,13 @@ describe("ETH Vault", async function () {
 		expect(balance).to.eq(0);
 
 		await expect(ethTokenHandler.connect(addr3).removeCollateral(amount)).to.be.revertedWith(
-			"No Vault created"
+			"VaultHandler::vaultExists: no vault created"
 		);
 		await expect(ethTokenHandler.connect(addr1).removeCollateral(bigAmount)).to.be.revertedWith(
-			"Retrieve amount higher than collateral"
+			"VaultHandler::removeCollateral: retrieve amount higher than collateral"
 		);
 		await expect(ethTokenHandler.connect(addr1).removeCollateral(0)).to.be.revertedWith(
-			"Value can't be 0"
+			"VaultHandler::notZero: value can't be 0"
 		);
 		await expect(ethTokenHandler.connect(addr1).removeCollateral(amount))
 			.to.emit(ethTokenHandler, "LogRemoveCollateral")
@@ -300,10 +300,10 @@ describe("ETH Vault", async function () {
 		await wethTokenInstance.connect(addr1).approve(ethTokenHandler.address, reqAmount2);
 		await ethTokenHandler.connect(addr1).addCollateral(reqAmount2);
 		await expect(ethTokenHandler.connect(addr3).mint(amount)).to.be.revertedWith(
-			"No Vault created"
+			"VaultHandler::vaultExists: no vault created"
 		);
 		await expect(ethTokenHandler.connect(addr1).mint(bigAmount)).to.be.revertedWith(
-			"Not enough collateral"
+			"VaultHandler::mint: not enough collateral"
 		);
 		await expect(ethTokenHandler.connect(addr1).mint(amount))
 			.to.emit(ethTokenHandler, "LogMint")
@@ -316,7 +316,7 @@ describe("ETH Vault", async function () {
 		expect(vault[2]).to.eq(accounts[1]);
 		expect(vault[3]).to.eq(amount);
 		await expect(ethTokenHandler.connect(addr1).mint(lowAmount)).to.be.revertedWith(
-			"Collateral below min required ratio"
+			"VaultHandler::mint: collateral below min required ratio"
 		);
 	});
 
@@ -330,7 +330,7 @@ describe("ETH Vault", async function () {
 	it("...shouln't allow users to retrieve stake unless debt is paid", async () => {
 		let vault = await ethTokenHandler.getVault(1);
 		await expect(ethTokenHandler.connect(addr1).removeCollateral(vault[1])).to.be.revertedWith(
-			"Collateral below min required ratio"
+			"VaultHandler::removeCollateral: collateral below min required ratio"
 		);
 	});
 
@@ -358,17 +358,17 @@ describe("ETH Vault", async function () {
 		const ethAmount2 = await ethTokenHandler.getFee(bigAmount);
 
 		await expect(ethTokenHandler.connect(addr3).burn(amount)).to.be.revertedWith(
-			"No Vault created"
+			"VaultHandler::vaultExists: no vault created"
 		);
 		await expect(ethTokenHandler.connect(addr1).burn(amount)).to.be.revertedWith(
-			"Burn fee different than required"
+			"VaultHandler::burn: burn fee different than required"
 		);
 		await expect(
 			ethTokenHandler.connect(addr1).burn(bigAmount, {value: ethAmount2})
-		).to.be.revertedWith("Amount greater than debt");
+		).to.be.revertedWith("VaultHandler::burn: amount greater than debt");
 		await expect(
 			ethTokenHandler.connect(addr1).burn(amount, {value: ethHighAmount})
-		).to.be.revertedWith("Burn fee different than required");
+		).to.be.revertedWith("VaultHandler::burn: burn fee different than required");
 		await expect(ethTokenHandler.connect(addr1).burn(amount, {value: ethAmount}))
 			.to.emit(ethTokenHandler, "LogBurn")
 			.withArgs(accounts[1], 1, amount);
@@ -437,10 +437,10 @@ describe("ETH Vault", async function () {
 		await ethTokenHandler.connect(lq).addCollateral(reqAmount);
 		await ethTokenHandler.connect(lq).mint(amount);
 		await expect(ethTokenHandler.connect(addr3).liquidateVault(99, 0)).to.be.revertedWith(
-			"No Vault created"
+			"VaultHandler::liquidateVault: no vault created"
 		);
 		await expect(ethTokenHandler.connect(addr3).liquidateVault(2, 0)).to.be.revertedWith(
-			"Vault is not liquidable"
+			"VaultHandler::liquidateVault: vault is not liquidable"
 		);
 		const totalMarketCap = "43129732288636297500";
 		await aggregatorTCAPInstance.connect(owner).setLatestAnswer(totalMarketCap);
@@ -508,10 +508,12 @@ describe("ETH Vault", async function () {
 		const burnAmount = await ethTokenHandler.getFee(reqLiquidation);
 		await expect(
 			ethTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation)
-		).to.be.revertedWith("Burn fee different than required");
+		).to.be.revertedWith("VaultHandler::burn: burn fee different than required");
 		await expect(
 			ethTokenHandler.connect(addr3).liquidateVault(2, 1, {value: burnAmount})
-		).to.be.revertedWith("Liquidation amount different than required");
+		).to.be.revertedWith(
+			"VaultHandler::liquidateVault: liquidation amount different than required"
+		);
 		await expect(
 			ethTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation, {value: burnAmount})
 		)
