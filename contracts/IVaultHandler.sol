@@ -142,7 +142,44 @@ abstract contract IVaultHandler is
   bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
 
   /** @dev counter starts in one as 0 is reserved for empty objects */
-  constructor(Orchestrator _orchestrator) public {
+  /**
+   * @notice Allows the orchestrator to initialize the contract
+   * @param _orchestrator address
+   * @param _divisor uint256
+   * @param _ratio uint256
+   * @param _burnFee uint256
+   * @param _liquidationPenalty uint256
+   * @param _tcapOracle address
+   * @param _tcapAddress address
+   * @param _collateralAddress address
+   * @param _collateralOracle address
+   * @param _ethOracle address
+   */
+  constructor(
+    Orchestrator _orchestrator,
+    uint256 _divisor,
+    uint256 _ratio,
+    uint256 _burnFee,
+    uint256 _liquidationPenalty,
+    address _tcapOracle,
+    TCAP _tcapAddress,
+    address _collateralAddress,
+    address _collateralOracle,
+    address _ethOracle
+  ) public {
+    require(
+      _liquidationPenalty.add(100) < _ratio,
+      "VaultHandler::initialize: liquidation penalty too high"
+    );
+    divisor = _divisor;
+    ratio = _ratio;
+    burnFee = _burnFee;
+    liquidationPenalty = _liquidationPenalty;
+    tcapOracle = ChainlinkOracle(_tcapOracle);
+    collateralContract = IERC20(_collateralAddress);
+    collateralPriceOracle = ChainlinkOracle(_collateralOracle);
+    ETHPriceOracle = ChainlinkOracle(_ethOracle);
+    TCAPToken = _tcapAddress;
     counter.increment();
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     transferOwnership(address(_orchestrator));
