@@ -40,14 +40,6 @@ describe("TCAP Token", async function () {
 		);
 		await tcapInstance.deployed();
 		expect(tcapInstance.address).properAddress;
-
-		//vault
-		const wethVault = await ethers.getContractFactory("ERC20VaultHandler");
-		ethVaultInstance = await wethVault.deploy(orchestratorInstance.address);
-		await ethVaultInstance.deployed();
-
-		ethVaultInstance2 = await wethVault.deploy(orchestratorInstance.address);
-		await ethVaultInstance2.deployed();
 	});
 
 	it("...should set the correct initial values", async () => {
@@ -89,29 +81,5 @@ describe("TCAP Token", async function () {
 		await expect(tcapInstance.burn(accounts[1], amount)).to.be.revertedWith(
 			"TCAP::onlyHandler: caller is not a handler"
 		);
-	});
-
-	it("...should allow owner to add Handlers", async () => {
-		await expect(tcapInstance.connect(addr1).addTokenHandler(accounts[1])).to.be.revertedWith(
-			"Ownable: caller is not the owner"
-		);
-		await expect(
-			orchestratorInstance
-				.connect(owner)
-				.addTCAPVault(tcapInstance.address, ethVaultInstance.address)
-		)
-			.to.emit(tcapInstance, "LogAddTokenHandler")
-			.withArgs(orchestratorInstance.address, ethVaultInstance.address);
-		let currentHandler = await tcapInstance.tokenHandlers(ethVaultInstance.address);
-		expect(currentHandler).to.eq(true);
-		await expect(
-			orchestratorInstance
-				.connect(owner)
-				.addTCAPVault(tcapInstance.address, ethVaultInstance2.address)
-		)
-			.to.emit(tcapInstance, "LogAddTokenHandler")
-			.withArgs(orchestratorInstance.address, ethVaultInstance2.address);
-		currentHandler = await tcapInstance.tokenHandlers(ethVaultInstance2.address);
-		expect(currentHandler).to.eq(true);
 	});
 });

@@ -44,15 +44,7 @@ describe("Orchestrator Contract", async function () {
 		orchestratorInstance = await orchestrator.deploy();
 		await orchestratorInstance.deployed();
 		expect(orchestratorInstance.address).properAddress;
-		//Vaults
-		const wethVault = await ethers.getContractFactory("ERC20VaultHandler");
-		ethVaultInstance = await wethVault.deploy(orchestratorInstance.address);
-		await ethVaultInstance.deployed();
-		expect(ethVaultInstance.address).properAddress;
 
-		btcVaultInstance = await wethVault.deploy(orchestratorInstance.address);
-		await btcVaultInstance.deployed();
-		expect(btcVaultInstance.address).properAddress;
 		//TCAP
 		const TCAP = await ethers.getContractFactory("TCAP");
 		tcapInstance = await TCAP.deploy(
@@ -86,6 +78,38 @@ describe("Orchestrator Contract", async function () {
 		const weth = await ethers.getContractFactory("WETH");
 		let wethTokenInstance = await weth.deploy();
 		collateralAddress = wethTokenInstance.address;
+
+		//Vaults
+		const wethVault = await ethers.getContractFactory("ERC20VaultHandler");
+		ethVaultInstance = await wethVault.deploy(
+			orchestratorInstance.address,
+			divisor,
+			ratio,
+			burnFee,
+			liquidationPenalty,
+			tcapOracle,
+			tcapInstance.address,
+			collateralAddress,
+			collateralOracle,
+			ethOracle
+		);
+		await ethVaultInstance.deployed();
+		expect(ethVaultInstance.address).properAddress;
+
+		btcVaultInstance = await wethVault.deploy(
+			orchestratorInstance.address,
+			divisor,
+			ratio,
+			burnFee,
+			liquidationPenalty,
+			tcapOracle,
+			tcapInstance.address,
+			collateralAddress,
+			collateralOracle,
+			ethOracle
+		);
+		await btcVaultInstance.deployed();
+		expect(btcVaultInstance.address).properAddress;
 	});
 
 	it("...should set the owner", async () => {

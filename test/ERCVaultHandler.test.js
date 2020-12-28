@@ -56,10 +56,6 @@ describe("ERC20 Vault", async function () {
 			orchestratorInstance.address
 		);
 		await tcapInstance.deployed();
-		const ercVault = await ethers.getContractFactory("ERC20VaultHandler");
-		ercTokenHandler = await ercVault.deploy(orchestratorInstance.address);
-		await ercTokenHandler.deployed();
-		expect(ercTokenHandler.address).properAddress;
 		const collateralOracle = await ethers.getContractFactory("ChainlinkOracle");
 		const oracle = await ethers.getContractFactory("ChainlinkOracle");
 		const aggregator = await ethers.getContractFactory("AggregatorInterface");
@@ -69,11 +65,27 @@ describe("ERC20 Vault", async function () {
 		priceOracleInstance = await collateralOracle.deploy(aggregatorInstance.address);
 		tcapOracleInstance = await oracle.deploy(aggregatorTCAPInstance.address);
 		await priceOracleInstance.deployed();
-		await orchestratorInstance.addTCAPVault(tcapInstance.address, ercTokenHandler.address);
+
 		const wbtc = await ethers.getContractFactory("WBTC");
 		ercTokenInstance = await wbtc.deploy();
 
 		// Initialize Vault
+
+		const ercVault = await ethers.getContractFactory("ERC20VaultHandler");
+		ercTokenHandler = await ercVault.deploy(
+			orchestratorInstance.address,
+			divisor,
+			ratio,
+			burnFee,
+			liquidationPenalty,
+			tcapOracleInstance.address,
+			tcapInstance.address,
+			ercTokenInstance.address,
+			priceOracleInstance.address,
+			priceOracleInstance.address
+		);
+		await ercTokenHandler.deployed();
+		expect(ercTokenHandler.address).properAddress;
 
 		await orchestratorInstance.initializeVault(
 			ercTokenHandler.address,
@@ -87,6 +99,8 @@ describe("ERC20 Vault", async function () {
 			priceOracleInstance.address,
 			priceOracleInstance.address
 		);
+
+		await orchestratorInstance.addTCAPVault(tcapInstance.address, ercTokenHandler.address);
 	});
 
 	it("...should return the token price", async () => {
