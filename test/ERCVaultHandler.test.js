@@ -243,7 +243,7 @@ describe("ERC20 Vault", async function () {
 		await orchestratorInstance.enableTCAPCap(tcapInstance.address, enableCap);
 		await orchestratorInstance.setTCAPCap(tcapInstance.address, tcapCap);
 		await expect(ercTokenHandler.connect(addr1).mint(reqAmount)).to.be.revertedWith(
-			"ERC20: cap exceeded"
+			"TCAP::Transfer: TCAP cap exceeded"
 		);
 		// Remove Cap
 		enableCap = false;

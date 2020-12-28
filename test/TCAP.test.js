@@ -80,14 +80,14 @@ describe("TCAP Token", async function () {
 	it("...shouldn't allow users to mint", async () => {
 		const amount = ethersProvider.utils.parseEther("1000000");
 		await expect(tcapInstance.mint(accounts[0], amount)).to.be.revertedWith(
-			"Caller is not a handler"
+			"TCAP::onlyHandler: caller is not a handler"
 		);
 	});
 
 	it("...shouldn't allow users to burn", async () => {
 		const amount = ethersProvider.utils.parseEther("1000000");
 		await expect(tcapInstance.burn(accounts[1], amount)).to.be.revertedWith(
-			"Caller is not a handler"
+			"TCAP::onlyHandler: caller is not a handler"
 		);
 	});
 

@@ -545,7 +545,7 @@ describe("Orchestrator Contract", async function () {
 
 		await expect(
 			orchestratorInstance.setTCAPCap(ethersProvider.constants.AddressZero, 0)
-		).to.be.revertedWith("Not a valid TCAP ERC2");
+		).to.be.revertedWith("Not a valid TCAP ERC20");
 
 		await expect(orchestratorInstance.setTCAPCap(tcapInstance.address, 0)).to.be.revertedWith(
 			"Not defined timelock value"

@@ -49,7 +49,10 @@ contract TCAP is ERC20, Ownable, IERC165 {
 
   /** @notice Throws if called by any account other than a handler. */
   modifier onlyHandler() {
-    require(tokenHandlers[msg.sender], "Caller is not a handler");
+    require(
+      tokenHandlers[msg.sender],
+      "TCAP::onlyHandler: caller is not a handler"
+    );
     _;
   }
 
@@ -125,7 +128,10 @@ contract TCAP is ERC20, Ownable, IERC165 {
 
     if (from == address(0) && capEnabled) {
       // When minting tokens
-      require(totalSupply().add(amount) <= cap, "ERC20: cap exceeded");
+      require(
+        totalSupply().add(amount) <= cap,
+        "TCAP::Transfer: TCAP cap exceeded"
+      );
     }
   }
 
