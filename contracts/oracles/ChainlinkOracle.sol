@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.6.8;
 
 import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";

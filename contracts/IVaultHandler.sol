@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.6.8;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -114,13 +114,16 @@ abstract contract IVaultHandler is
 
   /** @notice Throws if vault hasn't been created. */
   modifier vaultExists() {
-    require(userToVault[msg.sender] != 0, "No Vault created");
+    require(
+      userToVault[msg.sender] != 0,
+      "VaultHandler::vaultExists: no vault created"
+    );
     _;
   }
 
   /** @notice Throws if value is 0. */
   modifier notZero(uint256 _value) {
-    require(_value != 0, "Value can't be 0");
+    require(_value != 0, "VaultHandler::notZero: value can't be 0");
     _;
   }
 
@@ -170,10 +173,13 @@ abstract contract IVaultHandler is
     address _collateralOracle,
     address _ethOracle
   ) external virtual onlyOwner {
-    require(!isInitialized, "Contract already initialized");
+    require(
+      !isInitialized,
+      "VaultHandler::initialize: contract already initialized"
+    );
     require(
       _liquidationPenalty.add(100) < _ratio,
-      "Liquidation penalty too high"
+      "VaultHandler::initialize: liquidation penalty too high"
     );
     isInitialized = true;
     divisor = _divisor;
@@ -230,7 +236,7 @@ abstract contract IVaultHandler is
   {
     require(
       _liquidationPenalty.add(100) < ratio,
-      "Liquidation penalty too high"
+      "VaultHandler::setLiquidationPenalty: liquidation penalty too high"
     );
     liquidationPenalty = _liquidationPenalty;
     emit LogSetLiquidationPenalty(msg.sender, _liquidationPenalty);
@@ -241,7 +247,10 @@ abstract contract IVaultHandler is
    * @dev Only one vault per address can be created
    */
   function createVault() external virtual whenNotPaused {
-    require(userToVault[msg.sender] == 0, "Vault already created");
+    require(
+      userToVault[msg.sender] == 0,
+      "VaultHandler::createVault: vault already created"
+    );
     uint256 id = counter.current();
     userToVault[msg.sender] = id;
     Vault memory vault = Vault(id, 0, 0, msg.sender);
@@ -265,7 +274,7 @@ abstract contract IVaultHandler is
   {
     require(
       collateralContract.transferFrom(msg.sender, address(this), _amount),
-      "ERC20 transfer did not succeed"
+      "VaultHandler::addCollateral: ERC20 transfer did not succeed"
     );
     Vault storage vault = vaults[userToVault[msg.sender]];
     vault.Collateral = vault.Collateral.add(_amount);
@@ -289,18 +298,18 @@ abstract contract IVaultHandler is
     uint256 currentRatio = getVaultRatio(vault.Id);
     require(
       vault.Collateral >= _amount,
-      "Transaction reverted with Retrieve amount higher than collateral"
+      "VaultHandler::removeCollateral: retrieve amount higher than collateral"
     );
     vault.Collateral = vault.Collateral.sub(_amount);
     if (currentRatio != 0) {
       require(
         getVaultRatio(vault.Id) >= ratio,
-        "Collateral below min required ratio"
+        "VaultHandler::removeCollateral: collateral below min required ratio"
       );
     }
     require(
       collateralContract.transfer(msg.sender, _amount),
-      "ERC20 transfer did not succeed"
+      "VaultHandler::removeCollateral: ERC20 transfer did not succeed"
     );
     emit LogRemoveCollateral(msg.sender, vault.Id, _amount);
   }
@@ -320,11 +329,14 @@ abstract contract IVaultHandler is
   {
     Vault storage vault = vaults[userToVault[msg.sender]];
     uint256 requiredCollateral = requiredCollateral(_amount);
-    require(vault.Collateral >= requiredCollateral, "Not enough collateral");
+    require(
+      vault.Collateral >= requiredCollateral,
+      "VaultHandler::mint: not enough collateral"
+    );
     vault.Debt = vault.Debt.add(_amount);
     require(
       getVaultRatio(vault.Id) >= ratio,
-      "Collateral below min required ratio"
+      "VaultHandler::mint: collateral below min required ratio"
     );
     TCAPToken.mint(msg.sender, _amount);
     emit LogMint(msg.sender, vault.Id, _amount);
@@ -362,18 +374,24 @@ abstract contract IVaultHandler is
     whenNotPaused
   {
     Vault storage vault = vaults[_vaultId];
-    require(vault.Id != 0, "No Vault created");
+    require(vault.Id != 0, "VaultHandler::liquidateVault: no vault created");
     uint256 vaultRatio = getVaultRatio(vault.Id);
-    require(vaultRatio < ratio, "Vault is not liquidable");
+    require(
+      vaultRatio < ratio,
+      "VaultHandler::liquidateVault: vault is not liquidable"
+    );
     uint256 req = requiredLiquidationTCAP(vault.Id);
-    require(_requiredTCAP == req, "Liquidation amount different than required");
+    require(
+      _requiredTCAP == req,
+      "VaultHandler::liquidateVault: liquidation amount different than required"
+    );
     uint256 reward = liquidationReward(vault.Id);
     _checkBurnFee(_requiredTCAP);
     _burn(vault.Id, _requiredTCAP);
     vault.Collateral = vault.Collateral.sub(reward);
     require(
       collateralContract.transfer(msg.sender, reward),
-      "ERC20 transfer did not succeed"
+      "VaultHandler::liquidateVault: ERC20 transfer did not succeed"
     );
     emit LogLiquidateVault(vault.Id, msg.sender, req, reward);
   }
@@ -580,7 +598,10 @@ abstract contract IVaultHandler is
    */
   function _checkBurnFee(uint256 _amount) internal {
     uint256 fee = getFee(_amount);
-    require(fee == msg.value, "Burn fee different than required");
+    require(
+      fee == msg.value,
+      "VaultHandler::burn: burn fee different than required"
+    );
   }
 
   /**
@@ -590,7 +611,10 @@ abstract contract IVaultHandler is
    */
   function _burn(uint256 _vaultId, uint256 _amount) internal {
     Vault storage vault = vaults[_vaultId];
-    require(vault.Debt >= _amount, "Amount greater than debt");
+    require(
+      vault.Debt >= _amount,
+      "VaultHandler::burn: amount greater than debt"
+    );
     vault.Debt = vault.Debt.sub(_amount);
     TCAPToken.burn(msg.sender, _amount);
   }

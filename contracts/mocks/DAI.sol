@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 /** @notice this contract is for tests only */
 
 pragma solidity ^0.6.8;

@@ -183,7 +183,7 @@ describe("Orchestrator Contract", async function () {
 				collateralOracle,
 				ethOracle
 			)
-		).to.be.revertedWith("Liquidation penalty too high");
+		).to.be.revertedWith("VaultHandler::initialize: liquidation penalty too high");
 	});
 
 	it("...should initialize vault contracts", async () => {
@@ -254,7 +254,7 @@ describe("Orchestrator Contract", async function () {
 				collateralOracle,
 				ethOracle
 			)
-		).to.be.revertedWith("Contract already initialized");
+		).to.be.revertedWith("VaultHandler::initialize: contract already initialized");
 	});
 
 	it("...should allow to unlock timelock for a function", async () => {
@@ -420,7 +420,7 @@ describe("Orchestrator Contract", async function () {
 
 		await expect(
 			orchestratorInstance.setLiquidationPenalty(ethVaultInstance.address, liquidationPenalty)
-		).to.be.revertedWith("Liquidation penalty too high");
+		).to.be.revertedWith("VaultHandler::setLiquidationPenalty: liquidation penalty too high");
 	});
 
 	it("...should pause the Vault", async () => {
@@ -545,7 +545,7 @@ describe("Orchestrator Contract", async function () {
 
 		await expect(
 			orchestratorInstance.setTCAPCap(ethersProvider.constants.AddressZero, 0)
-		).to.be.revertedWith("Not a valid TCAP ERC2");
+		).to.be.revertedWith("Not a valid TCAP ERC20");
 
 		await expect(orchestratorInstance.setTCAPCap(tcapInstance.address, 0)).to.be.revertedWith(
 			"Not defined timelock value"

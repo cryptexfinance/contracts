@@ -1,10 +1,11 @@
 {
 	"name": "cryptex-contract",
 	"version": "1.0.0",
-	"description": "TCAP Contracts",
+	"description": "TCAP Vault",
 	"main": "index.js",
-	"repository": "https://github.com/cryptexglobal/contracts",
-	"author": "@crisgarner",
+	"repository": "git@github.com:cryptexglobal/contracts.git",
+	"author": "Cristian Espinoza @crisgarner",
+	"license": "MIT",
 	"scripts": {
 		"build": "npm run typechain",
 		"test": "npx buidler test ",
