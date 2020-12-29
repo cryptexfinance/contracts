@@ -1,6 +1,6 @@
 # Total Cryptocurrency Market Capitalization Token
 
-[![codecov](https://codecov.io/gh/crisgarner/tcap.x/branch/master/graph/badge.svg?token=BP6UPE7IJ6)](https://codecov.io/gh/crisgarner/tcap.x)
+[![codecov](https://codecov.io/gh/cryptexglobal/contracts/branch/master/graph/badge.svg?token=BP6UPE7IJ6)](https://codecov.io/gh/cryptexglobal/contracts)
 
 ## What is TCAP?
 
