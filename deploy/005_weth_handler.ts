@@ -1,4 +1,5 @@
 import {buidlerArguments} from "@nomiclabs/buidler";
+
 module.exports = async ({getNamedAccounts, deployments}: any) => {
 	if (buidlerArguments.network === "rinkeby" || buidlerArguments.network === "ganache") {
 		const {deployIfDifferent, log} = deployments;
@@ -11,12 +12,34 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 		} catch (error) {
 			log(error.message);
 			try {
+				let tcap = await deployments.get("TCAP");
+
+				let DAIContract = await deployments.get("DAI");
+
+				let divisor = process.env.DIVISOR as string;
+				let ratio = process.env.RATIO as string;
+				let burnFee = process.env.BURN_FEE as string;
+				let liquidationPenalty = process.env.LIQUIDATION_PENALTY as string;
+
+				let tcapOracle = await deployments.get("TCAPOracle");
+				let priceFeedETH = await deployments.get("WETHOracle");
+				let priceFeedDAI = await deployments.get("DAIOracle");
+
 				const deployResult = await deployIfDifferent(
 					["data"],
 					"WETHVaultHandler",
 					{from: deployer, gas: 8000000},
 					"ETHVaultHandler",
-					orchestrator.address
+					orchestrator.address,
+					divisor,
+					ratio,
+					burnFee,
+					liquidationPenalty,
+					tcapOracle.address,
+					tcap.address,
+					DAIContract.address,
+					priceFeedDAI.address,
+					priceFeedETH.address
 				);
 				handlerContract = await deployments.get("WETHVaultHandler");
 				if (deployResult.newlyDeployed) {
