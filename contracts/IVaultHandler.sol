@@ -107,8 +107,6 @@ abstract contract IVaultHandler is
   /** @dev Id To Vault */
   mapping(uint256 => Vault) public vaults;
 
-  /** @dev checks if vault parameters are initialized */
-  bool public isInitialized = false;
   /** @dev value used to multiply chainlink oracle for handling decimals */
   uint256 public constant oracleDigits = 10000000000;
 
@@ -142,14 +140,9 @@ abstract contract IVaultHandler is
   bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
 
   /** @dev counter starts in one as 0 is reserved for empty objects */
-  constructor(Orchestrator _orchestrator) public {
-    counter.increment();
-    _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-    transferOwnership(address(_orchestrator));
-  }
-
   /**
    * @notice Allows the orchestrator to initialize the contract
+   * @param _orchestrator address
    * @param _divisor uint256
    * @param _ratio uint256
    * @param _burnFee uint256
@@ -159,10 +152,9 @@ abstract contract IVaultHandler is
    * @param _collateralAddress address
    * @param _collateralOracle address
    * @param _ethOracle address
-   * @dev Only owner can call it
-   * @dev Can only be called once
    */
-  function initialize(
+  constructor(
+    Orchestrator _orchestrator,
     uint256 _divisor,
     uint256 _ratio,
     uint256 _burnFee,
@@ -172,16 +164,11 @@ abstract contract IVaultHandler is
     address _collateralAddress,
     address _collateralOracle,
     address _ethOracle
-  ) external virtual onlyOwner {
-    require(
-      !isInitialized,
-      "VaultHandler::initialize: contract already initialized"
-    );
+  ) public {
     require(
       _liquidationPenalty.add(100) < _ratio,
       "VaultHandler::initialize: liquidation penalty too high"
     );
-    isInitialized = true;
     divisor = _divisor;
     ratio = _ratio;
     burnFee = _burnFee;
@@ -191,17 +178,9 @@ abstract contract IVaultHandler is
     collateralPriceOracle = ChainlinkOracle(_collateralOracle);
     ETHPriceOracle = ChainlinkOracle(_ethOracle);
     TCAPToken = _tcapAddress;
-    emit LogInitializeVault(
-      _divisor,
-      _ratio,
-      _burnFee,
-      _liquidationPenalty,
-      _tcapOracle,
-      _tcapAddress,
-      _collateralAddress,
-      _collateralOracle,
-      _ethOracle
-    );
+    counter.increment();
+    _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    transferOwnership(address(_orchestrator));
   }
 
   /**

@@ -44,15 +44,7 @@ describe("Orchestrator Contract", async function () {
 		orchestratorInstance = await orchestrator.deploy();
 		await orchestratorInstance.deployed();
 		expect(orchestratorInstance.address).properAddress;
-		//Vaults
-		const wethVault = await ethers.getContractFactory("ERC20VaultHandler");
-		ethVaultInstance = await wethVault.deploy(orchestratorInstance.address);
-		await ethVaultInstance.deployed();
-		expect(ethVaultInstance.address).properAddress;
 
-		btcVaultInstance = await wethVault.deploy(orchestratorInstance.address);
-		await btcVaultInstance.deployed();
-		expect(btcVaultInstance.address).properAddress;
 		//TCAP
 		const TCAP = await ethers.getContractFactory("TCAP");
 		tcapInstance = await TCAP.deploy(
@@ -86,175 +78,43 @@ describe("Orchestrator Contract", async function () {
 		const weth = await ethers.getContractFactory("WETH");
 		let wethTokenInstance = await weth.deploy();
 		collateralAddress = wethTokenInstance.address;
+
+		//Vaults
+		const wethVault = await ethers.getContractFactory("ERC20VaultHandler");
+		ethVaultInstance = await wethVault.deploy(
+			orchestratorInstance.address,
+			divisor,
+			ratio,
+			burnFee,
+			liquidationPenalty,
+			tcapOracle,
+			tcapInstance.address,
+			collateralAddress,
+			collateralOracle,
+			ethOracle
+		);
+		await ethVaultInstance.deployed();
+		expect(ethVaultInstance.address).properAddress;
+
+		btcVaultInstance = await wethVault.deploy(
+			orchestratorInstance.address,
+			divisor,
+			ratio,
+			burnFee,
+			liquidationPenalty,
+			tcapOracle,
+			tcapInstance.address,
+			collateralAddress,
+			collateralOracle,
+			ethOracle
+		);
+		await btcVaultInstance.deployed();
+		expect(btcVaultInstance.address).properAddress;
 	});
 
 	it("...should set the owner", async () => {
 		const defaultOwner = await orchestratorInstance.owner();
 		expect(defaultOwner).to.eq(accounts[0]);
-	});
-
-	it("...should validate the data on initialize", async () => {
-		await expect(
-			orchestratorInstance.initializeVault(
-				ethersProvider.constants.AddressZero,
-				divisor,
-				ratio,
-				burnFee,
-				liquidationPenalty,
-				tcapOracle,
-				tcapInstance.address,
-				collateralAddress,
-				collateralOracle,
-				ethOracle
-			)
-		).to.be.revertedWith("Not a valid vault");
-
-		await expect(
-			orchestratorInstance.initializeVault(
-				ethVaultInstance.address,
-				divisor,
-				ratio,
-				burnFee,
-				liquidationPenalty,
-				ethersProvider.constants.AddressZero,
-				tcapInstance.address,
-				collateralAddress,
-				collateralOracle,
-				ethOracle
-			)
-		).to.be.revertedWith("Not a valid Chainlink Oracle");
-
-		await expect(
-			orchestratorInstance.initializeVault(
-				ethVaultInstance.address,
-				divisor,
-				ratio,
-				burnFee,
-				liquidationPenalty,
-				tcapOracle,
-				ethersProvider.constants.AddressZero,
-				collateralAddress,
-				collateralOracle,
-				ethOracle
-			)
-		).to.be.revertedWith("Not a valid TCAP ERC20");
-
-		await expect(
-			orchestratorInstance.initializeVault(
-				ethVaultInstance.address,
-				divisor,
-				ratio,
-				burnFee,
-				liquidationPenalty,
-				tcapOracle,
-				tcapInstance.address,
-				collateralAddress,
-				ethersProvider.constants.AddressZero,
-				ethOracle
-			)
-		).to.be.revertedWith("Not a valid Chainlink Oracle");
-
-		await expect(
-			orchestratorInstance.initializeVault(
-				ethVaultInstance.address,
-				divisor,
-				ratio,
-				burnFee,
-				liquidationPenalty,
-				tcapOracle,
-				tcapInstance.address,
-				collateralAddress,
-				collateralOracle,
-				ethersProvider.constants.AddressZero
-			)
-		).to.be.revertedWith("Not a valid Chainlink Oracle");
-
-		let liquidationPenaltyBreak = "90";
-		await expect(
-			orchestratorInstance.initializeVault(
-				ethVaultInstance.address,
-				divisor,
-				ratio,
-				burnFee,
-				liquidationPenaltyBreak,
-				tcapOracle,
-				tcapInstance.address,
-				collateralAddress,
-				collateralOracle,
-				ethOracle
-			)
-		).to.be.revertedWith("VaultHandler::initialize: liquidation penalty too high");
-	});
-
-	it("...should initialize vault contracts", async () => {
-		await expect(
-			orchestratorInstance
-				.connect(addr1)
-				.initializeVault(
-					ethVaultInstance.address,
-					divisor,
-					ratio,
-					burnFee,
-					liquidationPenalty,
-					tcapOracle,
-					tcapInstance.address,
-					collateralAddress,
-					collateralOracle,
-					ethOracle
-				)
-		).to.be.revertedWith("Ownable: caller is not the owner");
-
-		await expect(
-			orchestratorInstance.initializeVault(
-				ethVaultInstance.address,
-				divisor,
-				ratio,
-				burnFee,
-				liquidationPenalty,
-				tcapOracle,
-				tcapInstance.address,
-				collateralAddress,
-				collateralOracle,
-				ethOracle
-			)
-		)
-			.to.emit(ethVaultInstance, "LogInitializeVault")
-			.withArgs(
-				divisor,
-				ratio,
-				burnFee,
-				liquidationPenalty,
-				tcapOracle,
-				tcapInstance.address,
-				collateralAddress,
-				collateralOracle,
-				ethOracle
-			);
-		expect(divisor).to.eq(await ethVaultInstance.divisor());
-		expect(ratio).to.eq(await ethVaultInstance.ratio());
-		expect(burnFee).to.eq(await ethVaultInstance.burnFee());
-		expect(liquidationPenalty).to.eq(await ethVaultInstance.liquidationPenalty());
-		expect(tcapOracle).to.eq(await ethVaultInstance.tcapOracle());
-		expect(tcapInstance.address).to.eq(await ethVaultInstance.TCAPToken());
-		expect(collateralAddress).to.eq(await ethVaultInstance.collateralContract());
-		expect(collateralOracle).to.eq(await ethVaultInstance.collateralPriceOracle());
-		expect(ethOracle).to.eq(await ethVaultInstance.ETHPriceOracle());
-	});
-	it("...shouldn't allow a vault to initialize more than once", async () => {
-		await expect(
-			orchestratorInstance.initializeVault(
-				ethVaultInstance.address,
-				divisor,
-				ratio,
-				burnFee,
-				liquidationPenalty,
-				tcapOracle,
-				tcapInstance.address,
-				collateralAddress,
-				collateralOracle,
-				ethOracle
-			)
-		).to.be.revertedWith("VaultHandler::initialize: contract already initialized");
 	});
 
 	it("...should allow to unlock timelock for a function", async () => {

@@ -46,10 +46,7 @@ describe("ETH Vault", async function () {
 			orchestratorInstance.address
 		);
 		await tcapInstance.deployed();
-		const ercVault = await ethers.getContractFactory("ETHVaultHandler");
-		ethTokenHandler = await ercVault.deploy(orchestratorInstance.address);
-		await ethTokenHandler.deployed();
-		expect(ethTokenHandler.address).properAddress;
+
 		const collateralOracle = await ethers.getContractFactory("ChainlinkOracle");
 		const oracle = await ethers.getContractFactory("ChainlinkOracle");
 		const aggregator = await ethers.getContractFactory("AggregatorInterface");
@@ -59,14 +56,12 @@ describe("ETH Vault", async function () {
 		priceOracleInstance = await collateralOracle.deploy(aggregatorInstance.address);
 		tcapOracleInstance = await oracle.deploy(aggregatorTCAPInstance.address);
 		await priceOracleInstance.deployed();
-		await orchestratorInstance.addTCAPVault(tcapInstance.address, ethTokenHandler.address);
 		const weth = await ethers.getContractFactory("WETH");
 		wethTokenInstance = await weth.deploy();
 
-		// Initialize Vault
-
-		await orchestratorInstance.initializeVault(
-			ethTokenHandler.address,
+		const ethVault = await ethers.getContractFactory("ETHVaultHandler");
+		ethTokenHandler = await ethVault.deploy(
+			orchestratorInstance.address,
 			divisor,
 			ratio,
 			burnFee,
@@ -77,6 +72,10 @@ describe("ETH Vault", async function () {
 			priceOracleInstance.address,
 			priceOracleInstance.address
 		);
+		await ethTokenHandler.deployed();
+		expect(ethTokenHandler.address).properAddress;
+
+		await orchestratorInstance.addTCAPVault(tcapInstance.address, ethTokenHandler.address);
 	});
 
 	it("...should return the token price", async () => {
