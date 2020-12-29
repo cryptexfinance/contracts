@@ -107,8 +107,6 @@ abstract contract IVaultHandler is
   /** @dev Id To Vault */
   mapping(uint256 => Vault) public vaults;
 
-  /** @dev checks if vault parameters are initialized */
-  bool public isInitialized = false;
   /** @dev value used to multiply chainlink oracle for handling decimals */
   uint256 public constant oracleDigits = 10000000000;
 
@@ -183,62 +181,6 @@ abstract contract IVaultHandler is
     counter.increment();
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     transferOwnership(address(_orchestrator));
-  }
-
-  /**
-   * @notice Allows the orchestrator to initialize the contract
-   * @param _divisor uint256
-   * @param _ratio uint256
-   * @param _burnFee uint256
-   * @param _liquidationPenalty uint256
-   * @param _tcapOracle address
-   * @param _tcapAddress address
-   * @param _collateralAddress address
-   * @param _collateralOracle address
-   * @param _ethOracle address
-   * @dev Only owner can call it
-   * @dev Can only be called once
-   */
-  function initialize(
-    uint256 _divisor,
-    uint256 _ratio,
-    uint256 _burnFee,
-    uint256 _liquidationPenalty,
-    address _tcapOracle,
-    TCAP _tcapAddress,
-    address _collateralAddress,
-    address _collateralOracle,
-    address _ethOracle
-  ) external virtual onlyOwner {
-    require(
-      !isInitialized,
-      "VaultHandler::initialize: contract already initialized"
-    );
-    require(
-      _liquidationPenalty.add(100) < _ratio,
-      "VaultHandler::initialize: liquidation penalty too high"
-    );
-    isInitialized = true;
-    divisor = _divisor;
-    ratio = _ratio;
-    burnFee = _burnFee;
-    liquidationPenalty = _liquidationPenalty;
-    tcapOracle = ChainlinkOracle(_tcapOracle);
-    collateralContract = IERC20(_collateralAddress);
-    collateralPriceOracle = ChainlinkOracle(_collateralOracle);
-    ETHPriceOracle = ChainlinkOracle(_ethOracle);
-    TCAPToken = _tcapAddress;
-    emit LogInitializeVault(
-      _divisor,
-      _ratio,
-      _burnFee,
-      _liquidationPenalty,
-      _tcapOracle,
-      _tcapAddress,
-      _collateralAddress,
-      _collateralOracle,
-      _ethOracle
-    );
   }
 
   /**

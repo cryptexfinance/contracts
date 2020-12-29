@@ -87,19 +87,6 @@ describe("ERC20 Vault", async function () {
 		await ercTokenHandler.deployed();
 		expect(ercTokenHandler.address).properAddress;
 
-		await orchestratorInstance.initializeVault(
-			ercTokenHandler.address,
-			divisor,
-			ratio,
-			burnFee,
-			liquidationPenalty,
-			tcapOracleInstance.address,
-			tcapInstance.address,
-			ercTokenInstance.address,
-			priceOracleInstance.address,
-			priceOracleInstance.address
-		);
-
 		await orchestratorInstance.addTCAPVault(tcapInstance.address, ercTokenHandler.address);
 	});
 

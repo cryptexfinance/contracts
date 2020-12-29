@@ -109,49 +109,6 @@ contract Orchestrator is Ownable {
   }
 
   /**
-   * @notice Intialize the Vault Contract
-   * @param _vault address
-   * @param _divisor uint256
-   * @param _ratio uint256
-   * @param _burnFee uint256
-   * @param _liquidationPenalty uint256
-   * @param _tcapOracle address
-   * @param _tcapAddress address
-   * @param _collateralAddress address
-   * @param _collateralOracle address
-   * @param _ethOracle address
-   * @dev Only owner can call it
-   * @dev Validates if contracts support their interface
-   */
-  function initializeVault(
-    IVaultHandler _vault,
-    uint256 _divisor,
-    uint256 _ratio,
-    uint256 _burnFee,
-    uint256 _liquidationPenalty,
-    address _tcapOracle,
-    TCAP _tcapAddress,
-    address _collateralAddress,
-    address _collateralOracle,
-    address _ethOracle
-  ) external onlyOwner validVault(_vault) validTCAP(_tcapAddress) {
-    _validChainlinkOracle(_tcapOracle);
-    _validChainlinkOracle(_collateralOracle);
-    _validChainlinkOracle(_ethOracle);
-    _vault.initialize(
-      _divisor,
-      _ratio,
-      _burnFee,
-      _liquidationPenalty,
-      _tcapOracle,
-      _tcapAddress,
-      _collateralAddress,
-      _collateralOracle,
-      _ethOracle
-    );
-  }
-
-  /**
    * @notice Unlocks contract function
    * @param _contract address
    * @param _fn to be unlocked

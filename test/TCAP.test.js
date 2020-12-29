@@ -4,8 +4,6 @@ var ethersProvider = require("ethers");
 describe("TCAP Token", async function () {
 	let tcapInstance;
 	let orchestratorInstance;
-	let ethVaultInstance;
-	let ethVaultInstance2;
 	let [owner, addr1, handler, handler2] = [];
 	let accounts = [];
 
