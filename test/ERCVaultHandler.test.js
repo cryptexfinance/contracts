@@ -10,29 +10,21 @@ describe("ERC20 Vault", async function () {
 		priceOracleInstance,
 		aggregatorTCAPInstance,
 		orchestratorInstance;
-	let [owner, addr1, addr2, addr3, lq] = [];
+	let [owner, addr1, addr2, addr3, lq, guardian] = [];
 	let accounts = [];
 	let divisor = "10000000000";
 	let ratio = "150";
 	let burnFee = "1";
 	let liquidationPenalty = "10";
-	const THREE_DAYS = 259200;
-
-	const fns = {
-		RATIO: 0,
-		BURNFEE: 1,
-		LIQUIDATION: 2,
-		ENABLECAP: 3,
-		SETCAP: 4,
-	};
 
 	before("Set Accounts", async () => {
-		let [acc0, acc1, acc3, acc4, acc5] = await ethers.getSigners();
+		let [acc0, acc1, acc3, acc4, acc5, acc6] = await ethers.getSigners();
 		owner = acc0;
 		addr1 = acc1;
 		addr2 = acc3;
 		addr3 = acc4;
 		lq = acc5;
+		guardian = acc6;
 		if (owner && addr1) {
 			accounts.push(await owner.getAddress());
 			accounts.push(await addr1.getAddress());
@@ -44,7 +36,7 @@ describe("ERC20 Vault", async function () {
 
 	it("...should deploy the contract", async () => {
 		const orchestrator = await ethers.getContractFactory("Orchestrator");
-		orchestratorInstance = await orchestrator.deploy();
+		orchestratorInstance = await orchestrator.deploy(await guardian.getAddress());
 		await orchestratorInstance.deployed();
 		expect(orchestratorInstance.address).properAddress;
 
@@ -235,12 +227,6 @@ describe("ERC20 Vault", async function () {
 		let enableHash = ethers.utils.solidityKeccak256(["bool"], [enableCap]);
 
 		let tcapCap = 1;
-		let capHash = ethers.utils.solidityKeccak256(["uint256"], [tcapCap]);
-
-		await orchestratorInstance.unlockFunction(tcapInstance.address, fns.ENABLECAP, enableHash);
-		await orchestratorInstance.unlockFunction(tcapInstance.address, fns.SETCAP, capHash);
-		//fast-forward
-		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
 		await orchestratorInstance.enableTCAPCap(tcapInstance.address, enableCap);
 		await orchestratorInstance.setTCAPCap(tcapInstance.address, tcapCap);
 		await expect(ercTokenHandler.connect(addr1).mint(reqAmount)).to.be.revertedWith(
@@ -248,9 +234,6 @@ describe("ERC20 Vault", async function () {
 		);
 		// Remove Cap
 		enableCap = false;
-		enableHash = ethers.utils.solidityKeccak256(["bool"], [enableCap]);
-		await orchestratorInstance.unlockFunction(tcapInstance.address, fns.ENABLECAP, enableHash);
-		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
 		await orchestratorInstance.enableTCAPCap(tcapInstance.address, enableCap);
 	});
 
@@ -523,7 +506,7 @@ describe("ERC20 Vault", async function () {
 		await expect(ercTokenHandler.connect(addr1).pause()).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(orchestratorInstance.connect(owner).pauseVault(ercTokenHandler.address))
+		await expect(orchestratorInstance.connect(guardian).pauseVault(ercTokenHandler.address))
 			.to.emit(ercTokenHandler, "Paused")
 			.withArgs(orchestratorInstance.address);
 		let paused = await ercTokenHandler.paused();
@@ -547,7 +530,7 @@ describe("ERC20 Vault", async function () {
 		await expect(ercTokenHandler.connect(addr1).unpause()).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(orchestratorInstance.connect(owner).unpauseVault(ercTokenHandler.address))
+		await expect(orchestratorInstance.connect(guardian).unpauseVault(ercTokenHandler.address))
 			.to.emit(ercTokenHandler, "Unpaused")
 			.withArgs(orchestratorInstance.address);
 		let paused = await ercTokenHandler.paused();

@@ -4,15 +4,16 @@ var ethersProvider = require("ethers");
 describe("TCAP Token", async function () {
 	let tcapInstance;
 	let orchestratorInstance;
-	let [owner, addr1, handler, handler2] = [];
+	let [owner, addr1, handler, handler2, guardian] = [];
 	let accounts = [];
 
 	before("Set Accounts", async () => {
-		let [acc0, acc1, acc3, acc4, acc5] = await ethers.getSigners();
+		let [acc0, acc1, acc3, acc4, acc5, acc6] = await ethers.getSigners();
 		owner = acc0;
 		addr1 = acc1;
 		handler = acc3;
 		handler2 = acc4;
+		guardian = acc6;
 		if (owner && addr1 && handler) {
 			accounts.push(await owner.getAddress());
 			accounts.push(await addr1.getAddress());
@@ -24,7 +25,7 @@ describe("TCAP Token", async function () {
 
 	it("...should deploy the contract", async () => {
 		const orchestrator = await ethers.getContractFactory("Orchestrator");
-		orchestratorInstance = await orchestrator.deploy();
+		orchestratorInstance = await orchestrator.deploy(await guardian.getAddress());
 		await orchestratorInstance.deployed();
 		expect(orchestratorInstance.address).properAddress;
 
