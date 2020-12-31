@@ -1,10 +1,9 @@
 var expect = require("chai").expect;
 var ethersProvider = require("ethers");
-const bre = require("@nomiclabs/buidler");
 
 describe("Orchestrator Contract", async function () {
 	let orchestratorInstance, tcapInstance, tcapInstance2, ethVaultInstance, btcVaultInstance;
-	let [owner, addr1, handler, handler2] = [];
+	let [owner, addr1, handler, handler2, guardian] = [];
 	let accounts = [];
 	let divisor = "10000000000";
 	let ratio = "150";
@@ -12,15 +11,14 @@ describe("Orchestrator Contract", async function () {
 	let liquidationPenalty = "10";
 	let tcapOracle = (collateralAddress = collateralOracle = ethOracle =
 		ethersProvider.constants.AddressZero);
-	const THREE_DAYS = 259200;
-	const TWO_DAYS = 172800;
 
 	before("Set Accounts", async () => {
-		let [acc0, acc1, acc3, acc4, acc5] = await ethers.getSigners();
+		let [acc0, acc1, acc3, acc4, acc5, acc6] = await ethers.getSigners();
 		owner = acc0;
 		addr1 = acc1;
 		handler = acc3;
 		handler2 = acc4;
+		guardian = acc6;
 		if (owner && addr1 && handler) {
 			accounts.push(await owner.getAddress());
 			accounts.push(await addr1.getAddress());
@@ -33,7 +31,7 @@ describe("Orchestrator Contract", async function () {
 
 	it("...should deploy the contract", async () => {
 		const orchestrator = await ethers.getContractFactory("Orchestrator");
-		orchestratorInstance = await orchestrator.deploy();
+		orchestratorInstance = await orchestrator.deploy(await guardian.getAddress());
 		await orchestratorInstance.deployed();
 		expect(orchestratorInstance.address).properAddress;
 
@@ -109,6 +107,25 @@ describe("Orchestrator Contract", async function () {
 		expect(defaultOwner).to.eq(accounts[0]);
 	});
 
+	it("...should set the guardian", async () => {
+		const currentGuardian = await orchestratorInstance.guardian();
+		expect(currentGuardian).to.eq(await guardian.getAddress());
+
+		await expect(
+			orchestratorInstance.connect(addr1).setGuardian(await addr1.getAddress())
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		await expect(
+			orchestratorInstance.connect(owner).setGuardian(ethersProvider.constants.AddressZero)
+		).to.be.revertedWith("Orchestrator::setGuardian: guardian can't be zero");
+
+		await expect(orchestratorInstance.connect(owner).setGuardian(await addr1.getAddress()))
+			.to.emit(orchestratorInstance, "LogSetGuardian")
+			.withArgs(await owner.getAddress(), await addr1.getAddress());
+
+		await orchestratorInstance.setGuardian(await guardian.getAddress());
+	});
+
 	it("...should set vault ratio", async () => {
 		let ratio = "190";
 
@@ -118,7 +135,7 @@ describe("Orchestrator Contract", async function () {
 
 		await expect(
 			orchestratorInstance.setRatio(ethersProvider.constants.AddressZero, 0)
-		).to.be.revertedWith("Not a valid vault");
+		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
 
 		await orchestratorInstance.setRatio(ethVaultInstance.address, ratio);
 		expect(ratio).to.eq(await ethVaultInstance.ratio());
@@ -133,7 +150,7 @@ describe("Orchestrator Contract", async function () {
 
 		await expect(
 			orchestratorInstance.setBurnFee(ethersProvider.constants.AddressZero, 0)
-		).to.be.revertedWith("Not a valid vault");
+		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
 
 		await orchestratorInstance.setBurnFee(ethVaultInstance.address, burnFee);
 		expect(burnFee).to.eq(await ethVaultInstance.burnFee());
@@ -148,7 +165,7 @@ describe("Orchestrator Contract", async function () {
 
 		await expect(
 			orchestratorInstance.setLiquidationPenalty(ethersProvider.constants.AddressZero, 0)
-		).to.be.revertedWith("Not a valid vault");
+		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
 
 		await orchestratorInstance.setLiquidationPenalty(ethVaultInstance.address, liquidationPenalty);
 		expect(liquidationPenalty).to.eq(await ethVaultInstance.liquidationPenalty());
@@ -164,51 +181,79 @@ describe("Orchestrator Contract", async function () {
 
 	it("...should pause the Vault", async () => {
 		await expect(
-			orchestratorInstance.connect(addr1).pauseVault(ethVaultInstance.address)
-		).to.be.revertedWith("Ownable: caller is not the owner");
+			orchestratorInstance.connect(owner).pauseVault(ethVaultInstance.address)
+		).to.be.revertedWith("Orchestrator::onlyGuardian: caller is not the guardian");
 
 		await expect(
-			orchestratorInstance.pauseVault(ethersProvider.constants.AddressZero)
-		).to.be.revertedWith("Not a valid vault");
+			orchestratorInstance.connect(guardian).pauseVault(ethersProvider.constants.AddressZero)
+		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
 
-		await orchestratorInstance.pauseVault(ethVaultInstance.address);
+		await orchestratorInstance.connect(guardian).pauseVault(ethVaultInstance.address);
 		expect(true).to.eq(await ethVaultInstance.paused());
+
+		await expect(
+			orchestratorInstance.connect(guardian).pauseVault(ethVaultInstance.address)
+		).to.be.revertedWith("Orchestrator::pauseVault: emergency call already used");
+		await orchestratorInstance.connect(guardian).pauseVault(btcVaultInstance.address);
+		expect(true).to.eq(await btcVaultInstance.paused());
 	});
 
 	it("...should unpause the vault", async () => {
 		await expect(
-			orchestratorInstance.connect(addr1).unpauseVault(ethVaultInstance.address)
-		).to.be.revertedWith("Ownable: caller is not the owner");
+			orchestratorInstance.connect(owner).unpauseVault(ethVaultInstance.address)
+		).to.be.revertedWith("Orchestrator::onlyGuardian: caller is not the guardian");
 
 		await expect(
-			orchestratorInstance.unpauseVault(ethersProvider.constants.AddressZero)
-		).to.be.revertedWith("Not a valid vault");
+			orchestratorInstance.connect(guardian).unpauseVault(ethersProvider.constants.AddressZero)
+		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
 
-		await orchestratorInstance.unpauseVault(ethVaultInstance.address);
+		await orchestratorInstance.connect(guardian).unpauseVault(ethVaultInstance.address);
 		expect(false).to.eq(await ethVaultInstance.paused());
 	});
 
 	it("...should set the liquidation penalty to 0 on emergency", async () => {
 		await expect(
-			orchestratorInstance.connect(addr1).setEmergencyLiquidationPenalty(ethVaultInstance.address)
-		).to.be.revertedWith("Ownable: caller is not the owner");
+			orchestratorInstance.connect(owner).setEmergencyLiquidationPenalty(ethVaultInstance.address)
+		).to.be.revertedWith("Orchestrator::onlyGuardian: caller is not the guardian");
 		await expect(
-			orchestratorInstance.setEmergencyLiquidationPenalty(ethersProvider.constants.AddressZero)
-		).to.be.revertedWith("Not a valid vault");
-		await orchestratorInstance.setEmergencyLiquidationPenalty(ethVaultInstance.address);
+			orchestratorInstance
+				.connect(guardian)
+				.setEmergencyLiquidationPenalty(ethersProvider.constants.AddressZero)
+		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
+		await orchestratorInstance
+			.connect(guardian)
+			.setEmergencyLiquidationPenalty(ethVaultInstance.address);
 		expect(await ethVaultInstance.liquidationPenalty()).to.eq(0);
+		await expect(
+			orchestratorInstance
+				.connect(guardian)
+				.setEmergencyLiquidationPenalty(ethVaultInstance.address)
+		).to.be.revertedWith(
+			"Orchestrator::setEmergencyLiquidationPenalty: emergency call already used"
+		);
+		await orchestratorInstance
+			.connect(guardian)
+			.setEmergencyLiquidationPenalty(btcVaultInstance.address);
+		expect(await btcVaultInstance.liquidationPenalty()).to.eq(0);
 	});
 
 	it("...should set the burn fee to 0 on emergency", async () => {
 		await expect(
-			orchestratorInstance.connect(addr1).setEmergencyBurnFee(ethVaultInstance.address)
-		).to.be.revertedWith("Ownable: caller is not the owner");
+			orchestratorInstance.connect(owner).setEmergencyBurnFee(ethVaultInstance.address)
+		).to.be.revertedWith("Orchestrator::onlyGuardian: caller is not the guardian");
 		await expect(
-			orchestratorInstance.setEmergencyBurnFee(ethersProvider.constants.AddressZero)
-		).to.be.revertedWith("Not a valid vault");
+			orchestratorInstance
+				.connect(guardian)
+				.setEmergencyBurnFee(ethersProvider.constants.AddressZero)
+		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
 
-		await orchestratorInstance.setEmergencyBurnFee(ethVaultInstance.address);
+		await orchestratorInstance.connect(guardian).setEmergencyBurnFee(ethVaultInstance.address);
 		expect(await ethVaultInstance.burnFee()).to.eq(0);
+		await expect(
+			orchestratorInstance.connect(guardian).setEmergencyBurnFee(ethVaultInstance.address)
+		).to.be.revertedWith("Orchestrator::setEmergencyBurnFee: emergency call already used");
+		await orchestratorInstance.connect(guardian).setEmergencyBurnFee(btcVaultInstance.address);
+		expect(await btcVaultInstance.burnFee()).to.eq(0);
 	});
 
 	it("...should be able to retrieve funds from vault", async () => {
@@ -218,7 +263,7 @@ describe("Orchestrator Contract", async function () {
 
 		await expect(
 			orchestratorInstance.retrieveVaultFees(ethersProvider.constants.AddressZero)
-		).to.be.revertedWith("Not a valid vault");
+		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
 
 		await expect(orchestratorInstance.retrieveVaultFees(ethVaultInstance.address))
 			.to.emit(ethVaultInstance, "LogRetrieveFees")
@@ -243,7 +288,7 @@ describe("Orchestrator Contract", async function () {
 
 		await expect(
 			orchestratorInstance.enableTCAPCap(ethersProvider.constants.AddressZero, false)
-		).to.be.revertedWith("Not a valid TCAP ERC2");
+		).to.be.revertedWith("Orchestrator::validTCAP: not a valid TCAP ERC20");
 
 		await expect(orchestratorInstance.enableTCAPCap(tcapInstance.address, enableCap))
 			.to.emit(tcapInstance, "LogEnableCap")
@@ -261,7 +306,7 @@ describe("Orchestrator Contract", async function () {
 
 		await expect(
 			orchestratorInstance.setTCAPCap(ethersProvider.constants.AddressZero, 0)
-		).to.be.revertedWith("Not a valid TCAP ERC20");
+		).to.be.revertedWith("Orchestrator::validTCAP: not a valid TCAP ERC20");
 
 		await expect(orchestratorInstance.setTCAPCap(tcapInstance.address, tcapCap))
 			.to.emit(tcapInstance, "LogSetCap")
@@ -282,11 +327,11 @@ describe("Orchestrator Contract", async function () {
 				ethersProvider.constants.AddressZero,
 				ethVaultInstance.address
 			)
-		).to.be.revertedWith("Not a valid TCAP ERC20");
+		).to.be.revertedWith("Orchestrator::validTCAP: not a valid TCAP ERC20");
 
 		await expect(
 			orchestratorInstance.addTCAPVault(tcapInstance.address, ethersProvider.constants.AddressZero)
-		).to.be.revertedWith("Not a valid vault");
+		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
 
 		await expect(orchestratorInstance.addTCAPVault(tcapInstance.address, ethVaultInstance.address))
 			.to.emit(tcapInstance, "LogAddTokenHandler")

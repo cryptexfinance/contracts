@@ -14,10 +14,32 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @notice Orchestrator contract in charge of managing the settings of the vaults and TCAP token
  */
 contract Orchestrator is Ownable {
+  /** @dev Logs all the calls of the functions. */
+  event LogSetGuardian(address indexed _owner, address guardian);
+
   /** @dev Interface constants*/
   bytes4 private constant _INTERFACE_ID_IVAULT = 0x9e75ab0c;
   bytes4 private constant _INTERFACE_ID_TCAP = 0xa9ccee51;
   bytes4 private constant _INTERFACE_ID_CHAINLINK_ORACLE = 0x85be402b;
+
+  /**
+   * @notice guardian address that can set to 0 the fees in an emergency event to promote liquidations.
+   */
+  address public guardian;
+
+  /** @dev Enum which saves the available functions to emergency call. */
+  enum Functions {BURNFEE, LIQUIDATION, PAUSE}
+  /** @notice tracks which vault was emergency called */
+  mapping(IVaultHandler => mapping(Functions => bool)) private emergencyCalled;
+
+  /** @notice Throws if called by any account other than the guardian. */
+  modifier onlyGuardian() {
+    require(
+      msg.sender == guardian,
+      "Orchestrator::onlyGuardian: caller is not the guardian"
+    );
+    _;
+  }
 
   /**
    * @notice Throws if vault is not valid.
@@ -26,7 +48,7 @@ contract Orchestrator is Ownable {
   modifier validVault(IVaultHandler _vault) {
     require(
       ERC165Checker.supportsInterface(address(_vault), _INTERFACE_ID_IVAULT),
-      "Not a valid vault"
+      "Orchestrator::validVault: not a valid vault"
     );
     _;
   }
@@ -38,7 +60,7 @@ contract Orchestrator is Ownable {
   modifier validTCAP(TCAP _tcap) {
     require(
       ERC165Checker.supportsInterface(address(_tcap), _INTERFACE_ID_TCAP),
-      "Not a valid TCAP ERC20"
+      "Orchestrator::validTCAP: not a valid TCAP ERC20"
     );
     _;
   }
@@ -53,24 +75,30 @@ contract Orchestrator is Ownable {
         address(_oracle),
         _INTERFACE_ID_CHAINLINK_ORACLE
       ),
-      "Not a valid Chainlink Oracle"
+      "Orchestrator::validChainlinkOrchestrator: not a valid Chainlink Oracle"
     );
     _;
   }
 
   /**
-   * @dev CREATED AS STACK IS TOO DEEP ON INITIALIZE
-   * @notice Throws if Chainlink Oracle is not valid
-   * @param _oracle address
+   * @notice Construct a new Orchestrator
+   * @param _guardian The guardian address
    */
-  function _validChainlinkOracle(address _oracle) private view {
+  constructor(address _guardian) public {
+    guardian = _guardian;
+  }
+
+  /**
+   * @notice Sets the guardian of the orchestrator
+   * @param _guardian address of the guardian
+   * @dev Only owner can call it
+   */
+  function setGuardian(address _guardian) external onlyOwner {
     require(
-      ERC165Checker.supportsInterface(
-        address(_oracle),
-        _INTERFACE_ID_CHAINLINK_ORACLE
-      ),
-      "Not a valid Chainlink Oracle"
+      _guardian != address(0),
+      "Orchestrator::setGuardian: guardian can't be zero"
     );
+    emit LogSetGuardian(msg.sender, _guardian);
   }
 
   /**
@@ -109,9 +137,14 @@ contract Orchestrator is Ownable {
    */
   function setEmergencyBurnFee(IVaultHandler _vault)
     external
-    onlyOwner
+    onlyGuardian
     validVault(_vault)
   {
+    require(
+      emergencyCalled[_vault][Functions.BURNFEE] != true,
+      "Orchestrator::setEmergencyBurnFee: emergency call already used"
+    );
+    emergencyCalled[_vault][Functions.BURNFEE] = true;
     _vault.setBurnFee(0);
   }
 
@@ -136,35 +169,45 @@ contract Orchestrator is Ownable {
    */
   function setEmergencyLiquidationPenalty(IVaultHandler _vault)
     external
-    onlyOwner
+    onlyGuardian
     validVault(_vault)
   {
+    require(
+      emergencyCalled[_vault][Functions.LIQUIDATION] != true,
+      "Orchestrator::setEmergencyLiquidationPenalty: emergency call already used"
+    );
+    emergencyCalled[_vault][Functions.LIQUIDATION] = true;
     _vault.setLiquidationPenalty(0);
   }
 
   /**
    * @notice Pauses the Vault
    * @param _vault address
-   * @dev Only owner can call it
+   * @dev Only guardian can call it
    * @dev Validates if _vault is valid
    */
   function pauseVault(IVaultHandler _vault)
     external
-    onlyOwner
+    onlyGuardian
     validVault(_vault)
   {
+    require(
+      emergencyCalled[_vault][Functions.PAUSE] != true,
+      "Orchestrator::pauseVault: emergency call already used"
+    );
+    emergencyCalled[_vault][Functions.PAUSE] = true;
     _vault.pause();
   }
 
   /**
    * @notice Unpauses the Vault
    * @param _vault address
-   * @dev Only owner can call it
+   * @dev Only guardian can call it
    * @dev Validates if _vault is valid
    */
   function unpauseVault(IVaultHandler _vault)
     external
-    onlyOwner
+    onlyGuardian
     validVault(_vault)
   {
     _vault.unpause();

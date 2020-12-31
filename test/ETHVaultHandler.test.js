@@ -9,7 +9,7 @@ describe("ETH Vault", async function () {
 		priceOracleInstance,
 		aggregatorTCAPInstance,
 		orchestratorInstance;
-	let [owner, addr1, addr2, addr3, lq] = [];
+	let [owner, addr1, addr2, addr3, lq, guardian] = [];
 	let accounts = [];
 	let divisor = "10000000000";
 	let ratio = "150";
@@ -17,12 +17,13 @@ describe("ETH Vault", async function () {
 	let liquidationPenalty = "10";
 
 	before("Set Accounts", async () => {
-		let [acc0, acc1, acc3, acc4, acc5] = await ethers.getSigners();
+		let [acc0, acc1, acc3, acc4, acc5, acc6] = await ethers.getSigners();
 		owner = acc0;
 		addr1 = acc1;
 		addr2 = acc3;
 		addr3 = acc4;
 		lq = acc5;
+		guardian = acc6;
 		if (owner && addr1) {
 			accounts.push(await owner.getAddress());
 			accounts.push(await addr1.getAddress());
@@ -34,7 +35,7 @@ describe("ETH Vault", async function () {
 
 	it("...should deploy the contract", async () => {
 		const orchestrator = await ethers.getContractFactory("Orchestrator");
-		orchestratorInstance = await orchestrator.deploy();
+		orchestratorInstance = await orchestrator.deploy(await guardian.getAddress());
 		await orchestratorInstance.deployed();
 		expect(orchestratorInstance.address).properAddress;
 
@@ -536,7 +537,7 @@ describe("ETH Vault", async function () {
 		await expect(ethTokenHandler.connect(addr1).pause()).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(orchestratorInstance.connect(owner).pauseVault(ethTokenHandler.address))
+		await expect(orchestratorInstance.connect(guardian).pauseVault(ethTokenHandler.address))
 			.to.emit(ethTokenHandler, "Paused")
 			.withArgs(orchestratorInstance.address);
 		let paused = await ethTokenHandler.paused();
@@ -560,7 +561,7 @@ describe("ETH Vault", async function () {
 		await expect(ethTokenHandler.connect(addr1).unpause()).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(orchestratorInstance.connect(owner).unpauseVault(ethTokenHandler.address))
+		await expect(orchestratorInstance.connect(guardian).unpauseVault(ethTokenHandler.address))
 			.to.emit(ethTokenHandler, "Unpaused")
 			.withArgs(orchestratorInstance.address);
 		let paused = await ethTokenHandler.paused();
