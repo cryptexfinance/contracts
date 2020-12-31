@@ -14,45 +14,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @notice Orchestrator contract in charge of managing the settings of the vaults and TCAP token
  */
 contract Orchestrator is Ownable {
-  /** @dev Logs the unlock function. */
-  event LogUnlock(address indexed _contract, Functions _fn, bytes32 _hash);
-  /** @dev Enum which saves the available functions to unlock. */
-  enum Functions {RATIO, BURNFEE, LIQUIDATION, ENABLECAP, SETCAP}
-  /** @dev Mapping that checks if Function on vault is timelocked */
-  mapping(address => mapping(Functions => uint256)) public timelock;
-  /** @dev Mapping that saves a hash of the value to be updated to make sure it updates the same value */
-  mapping(address => mapping(Functions => bytes32)) public timelockValue;
-  /** @dev vault functions are timelocked for 3 days*/
-  uint256 public constant _TIMELOCK = 3 days;
-
   /** @dev Interface constants*/
   bytes4 private constant _INTERFACE_ID_IVAULT = 0x9e75ab0c;
   bytes4 private constant _INTERFACE_ID_TCAP = 0xa9ccee51;
   bytes4 private constant _INTERFACE_ID_CHAINLINK_ORACLE = 0x85be402b;
-
-  /**
-   * @notice Throws if vault is locked.
-   * @param _contract address
-   * @param _fn function identifier
-   * @param _value hash of value
-   * @dev checks if the timelocked value is the same
-   */
-  modifier notLocked(
-    address _contract,
-    Functions _fn,
-    bytes32 _value
-  ) {
-    require(
-      timelock[_contract][_fn] != 0 &&
-        timelock[_contract][_fn] <= block.timestamp,
-      "Function is timelocked"
-    );
-    require(
-      timelockValue[_contract][_fn] == _value,
-      "Not defined timelock value"
-    );
-    _;
-  }
 
   /**
    * @notice Throws if vault is not valid.
@@ -109,68 +74,17 @@ contract Orchestrator is Ownable {
   }
 
   /**
-   * @notice Unlocks contract function
-   * @param _contract address
-   * @param _fn to be unlocked
-   * @dev Only owner can call it
-   * @dev Unlock time is = block.timestamp + _TIMELOCK
-   * @dev A hash of the value to save is passed as proof for users that the changing value is correct.
-   */
-  function unlockFunction(
-    address _contract,
-    Functions _fn,
-    bytes32 _hash
-  ) external onlyOwner {
-    timelock[address(_contract)][_fn] = block.timestamp + _TIMELOCK;
-    timelockValue[address(_contract)][_fn] = _hash;
-    emit LogUnlock(_contract, _fn, _hash);
-  }
-
-  /**
-   * @notice Locks contract function
-   * @param _contract address
-   * @param _fn to be locked
-   * @dev Lock happens immediately
-   */
-  function _lockFunction(address _contract, Functions _fn) private {
-    timelock[address(_contract)][_fn] = 0;
-    timelockValue[address(_contract)][_fn] = 0;
-  }
-
-  /**
-   * @notice Locks vault function
-   * @param _vault address
-   * @param _fn to be locked
-   * @dev Only owner can call it
-   * @dev Lock happens immediately
-   */
-  function lockVaultFunction(IVaultHandler _vault, Functions _fn)
-    external
-    onlyOwner
-  {
-    _lockFunction(address(_vault), _fn);
-  }
-
-  /**
    * @notice Sets the ratio of a vault
    * @param _vault address
    * @param _ratio value
    * @dev Only owner can call it
-   * @dev Validates if _vault is valid and not locked
-   * @dev Locks function after using
    */
   function setRatio(IVaultHandler _vault, uint256 _ratio)
     external
     onlyOwner
     validVault(_vault)
-    notLocked(
-      address(_vault),
-      Functions.RATIO,
-      keccak256(abi.encodePacked(_ratio))
-    )
   {
     _vault.setRatio(_ratio);
-    _lockFunction(address(_vault), Functions.RATIO);
   }
 
   /**
@@ -178,21 +92,13 @@ contract Orchestrator is Ownable {
    * @param _vault address
    * @param _burnFee value
    * @dev Only owner can call it
-   * @dev Validates if _vault is valid and not locked
-   * @dev Locks function after using
    */
   function setBurnFee(IVaultHandler _vault, uint256 _burnFee)
     external
     onlyOwner
     validVault(_vault)
-    notLocked(
-      address(_vault),
-      Functions.BURNFEE,
-      keccak256(abi.encodePacked(_burnFee))
-    )
   {
     _vault.setBurnFee(_burnFee);
-    _lockFunction(address(_vault), Functions.BURNFEE);
   }
 
   /**
@@ -200,7 +106,6 @@ contract Orchestrator is Ownable {
    * @param _vault address
    * @dev Only owner can call it
    * @dev Validates if _vault is valid
-   * @dev Locks function after using
    */
   function setEmergencyBurnFee(IVaultHandler _vault)
     external
@@ -208,7 +113,6 @@ contract Orchestrator is Ownable {
     validVault(_vault)
   {
     _vault.setBurnFee(0);
-    _lockFunction(address(_vault), Functions.BURNFEE);
   }
 
   /**
@@ -216,24 +120,12 @@ contract Orchestrator is Ownable {
    * @param _vault address
    * @param _liquidationPenalty value
    * @dev Only owner can call it
-   * @dev Validates if _vault is valid and not locked
-   * @dev Locks function after using
    */
   function setLiquidationPenalty(
     IVaultHandler _vault,
     uint256 _liquidationPenalty
-  )
-    external
-    onlyOwner
-    validVault(_vault)
-    notLocked(
-      address(_vault),
-      Functions.LIQUIDATION,
-      keccak256(abi.encodePacked(_liquidationPenalty))
-    )
-  {
+  ) external onlyOwner validVault(_vault) {
     _vault.setLiquidationPenalty(_liquidationPenalty);
-    _lockFunction(address(_vault), Functions.LIQUIDATION);
   }
 
   /**
@@ -241,7 +133,6 @@ contract Orchestrator is Ownable {
    * @param _vault address
    * @dev Only owner can call it
    * @dev Validates if _vault is valid
-   * @dev Locks function after using
    */
   function setEmergencyLiquidationPenalty(IVaultHandler _vault)
     external
@@ -249,7 +140,6 @@ contract Orchestrator is Ownable {
     validVault(_vault)
   {
     _vault.setLiquidationPenalty(0);
-    _lockFunction(address(_vault), Functions.LIQUIDATION);
   }
 
   /**
@@ -315,14 +205,8 @@ contract Orchestrator is Ownable {
     external
     onlyOwner
     validTCAP(_tcap)
-    notLocked(
-      address(_tcap),
-      Functions.ENABLECAP,
-      keccak256(abi.encodePacked(_enable))
-    )
   {
     _tcap.enableCap(_enable);
-    _lockFunction(address(_tcap), Functions.ENABLECAP);
   }
 
   /**
@@ -336,14 +220,8 @@ contract Orchestrator is Ownable {
     external
     onlyOwner
     validTCAP(_tcap)
-    notLocked(
-      address(_tcap),
-      Functions.SETCAP,
-      keccak256(abi.encodePacked(_cap))
-    )
   {
     _tcap.setCap(_cap);
-    _lockFunction(address(_tcap), Functions.SETCAP);
   }
 
   /**

@@ -235,12 +235,6 @@ describe("ERC20 Vault", async function () {
 		let enableHash = ethers.utils.solidityKeccak256(["bool"], [enableCap]);
 
 		let tcapCap = 1;
-		let capHash = ethers.utils.solidityKeccak256(["uint256"], [tcapCap]);
-
-		await orchestratorInstance.unlockFunction(tcapInstance.address, fns.ENABLECAP, enableHash);
-		await orchestratorInstance.unlockFunction(tcapInstance.address, fns.SETCAP, capHash);
-		//fast-forward
-		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
 		await orchestratorInstance.enableTCAPCap(tcapInstance.address, enableCap);
 		await orchestratorInstance.setTCAPCap(tcapInstance.address, tcapCap);
 		await expect(ercTokenHandler.connect(addr1).mint(reqAmount)).to.be.revertedWith(
@@ -248,9 +242,6 @@ describe("ERC20 Vault", async function () {
 		);
 		// Remove Cap
 		enableCap = false;
-		enableHash = ethers.utils.solidityKeccak256(["bool"], [enableCap]);
-		await orchestratorInstance.unlockFunction(tcapInstance.address, fns.ENABLECAP, enableHash);
-		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
 		await orchestratorInstance.enableTCAPCap(tcapInstance.address, enableCap);
 	});
 
