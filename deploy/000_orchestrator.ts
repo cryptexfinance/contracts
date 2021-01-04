@@ -1,6 +1,10 @@
 import {buidlerArguments} from "@nomiclabs/buidler";
 module.exports = async ({getNamedAccounts, deployments}: any) => {
-	if (buidlerArguments.network === "rinkeby" || buidlerArguments.network === "ganache") {
+	if (
+		buidlerArguments.network === "rinkeby" ||
+		buidlerArguments.network === "ropsten" ||
+		buidlerArguments.network === "ganache"
+	) {
 		const {deployIfDifferent, log} = deployments;
 		const {deployer} = await getNamedAccounts();
 
@@ -13,7 +17,8 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 					["data"],
 					"Orchestrator",
 					{from: deployer, gas: 8000000},
-					"Orchestrator"
+					"Orchestrator",
+					deployer
 				);
 				orchestrator = await deployments.get("Orchestrator");
 				if (deployResult.newlyDeployed) {

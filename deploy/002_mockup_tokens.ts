@@ -1,8 +1,11 @@
-import {ethers} from "ethers";
-import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
+import {buidlerArguments} from "@nomiclabs/buidler";
 require("dotenv").config();
 module.exports = async ({getNamedAccounts, deployments}: any) => {
-	if (buidlerArguments.network === "rinkeby" || buidlerArguments.network === "ganache") {
+	if (
+		buidlerArguments.network === "rinkeby" ||
+		buidlerArguments.network === "ropsten" ||
+		buidlerArguments.network === "ganache"
+	) {
 		const {deployIfDifferent, log} = deployments;
 		const {deployer} = await getNamedAccounts();
 
