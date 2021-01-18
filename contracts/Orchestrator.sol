@@ -231,6 +231,7 @@ contract Orchestrator is Ownable {
    * @notice Retrieves the fees on the orchestrator
    * @dev Only owner can call it
    * @dev Transfer the balance to the contract owner
+	 * TODO: this should be removed with rewards
    */
   function retrieveFees() external onlyOwner {
     uint256 amount = address(this).balance;
