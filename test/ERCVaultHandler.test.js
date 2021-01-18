@@ -1,6 +1,5 @@
 var expect = require("chai").expect;
 var ethersProvider = require("ethers");
-const bre = require("@nomiclabs/buidler");
 
 describe("ERC20 Vault", async function () {
 	let ercTokenHandler,

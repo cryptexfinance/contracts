@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.6.0;
+pragma solidity 0.7.5;
 
 contract AggregatorInterface {
   int256 value = 39752768946;

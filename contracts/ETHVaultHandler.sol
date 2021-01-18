@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.8;
+pragma solidity 0.7.5;
 
 import "./IVaultHandler.sol";
 import "./Orchestrator.sol";
 import "./IWETH.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 /**
  * @title TCAP Vault
@@ -11,6 +12,8 @@ import "./IWETH.sol";
  * @notice Contract in charge of handling the TCAP Vault and stake using a ETH and WETH
  */
 contract ETHVaultHandler is IVaultHandler {
+  using SafeMath for uint256;
+
   constructor(
     Orchestrator orchestrator,
     uint256 _divisor,

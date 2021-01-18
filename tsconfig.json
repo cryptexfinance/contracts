@@ -1,29 +1,12 @@
 {
 	"compilerOptions": {
-		"target": "es2017",
+		"target": "es2018",
 		"module": "commonjs",
 		"strict": true,
-		"moduleResolution": "node",
-		"noImplicitThis": true,
-		"alwaysStrict": true,
-		"experimentalDecorators": true,
-		"emitDecoratorMetadata": true,
-		"forceConsistentCasingInFileNames": true,
-		"lib": ["es2015", "esnext.asynciterable"],
-		"sourceMap": true,
-		"typeRoots": ["./node_modules/@types", "./types"],
-		"types": ["node"],
-		"outDir": "dist",
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
-		"newLine": "crlf"
+		"outDir": "dist"
 	},
-	"include": ["**/*.ts"],
-	"exclude": ["node_modules", "example", "artifacts"],
-	"files": [
-		"./buidler.config.ts",
-		"node_modules/@nomiclabs/buidler-ethers/src/type-extensions.d.ts",
-		"node_modules/@nomiclabs/buidler-etherscan/src/type-extensions.d.ts",
-		"node_modules/@nomiclabs/buidler-waffle/src/type-extensions.d.ts"
-	]
+	"include": ["./hardhat.config.ts", "./scripts", "./deploy", "./test"],
+	"files": ["./hardhat.config.ts"]
 }

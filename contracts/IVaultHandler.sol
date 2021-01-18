@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.8;
+pragma solidity 0.7.5;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -164,7 +164,7 @@ abstract contract IVaultHandler is
     address _collateralAddress,
     address _collateralOracle,
     address _ethOracle
-  ) public {
+  ) {
     require(
       _liquidationPenalty.add(100) < _ratio,
       "VaultHandler::initialize: liquidation penalty too high"
