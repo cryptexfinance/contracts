@@ -337,4 +337,31 @@ describe("Orchestrator Contract", async function () {
 			.to.emit(tcapInstance, "LogAddTokenHandler")
 			.withArgs(orchestratorInstance.address, ethVaultInstance.address);
 	});
+
+	it("...should allow to execute a custom transaction", async () => {
+		let currentOwner = await tcapInstance.owner();
+		expect(currentOwner).to.eq(orchestratorInstance.address);
+		const newOwner = await addr1.getAddress();
+		const abi = new ethers.utils.AbiCoder();
+		const target = tcapInstance.address;
+		const value = 0;
+		const signature = "transferOwnership(address)";
+		const data = abi.encode(["address"], [newOwner]);
+
+		await expect(
+			orchestratorInstance.connect(addr1).executeTransaction(target, value, signature, data)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		const wrongData = abi.encode(["address"], [ethers.constants.AddressZero]);
+		await expect(
+			orchestratorInstance.executeTransaction(target, value, signature, wrongData)
+		).to.be.revertedWith("Orchestrator::executeTransaction: Transaction execution reverted.");
+
+		await expect(orchestratorInstance.executeTransaction(target, value, signature, data))
+			.to.emit(orchestratorInstance, "LogExecuteTransaction")
+			.withArgs(target, value, signature, data);
+
+		currentOwner = await tcapInstance.owner();
+		expect(currentOwner).to.eq(newOwner);
+	});
 });

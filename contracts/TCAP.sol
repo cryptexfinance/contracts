@@ -145,8 +145,8 @@ contract TCAP is ERC20, Ownable, IERC165 {
    */
   function supportsInterface(bytes4 interfaceId)
     external
-    override
     pure
+    override
     returns (bool)
   {
     return (interfaceId == _INTERFACE_ID_TCAP ||

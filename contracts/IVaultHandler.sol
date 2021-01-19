@@ -328,8 +328,8 @@ abstract contract IVaultHandler is
    */
   function burn(uint256 _amount)
     external
-    virtual
     payable
+    virtual
     nonReentrant
     vaultExists
     whenNotPaused
@@ -400,8 +400,8 @@ abstract contract IVaultHandler is
 
   function getOraclePrice(ChainlinkOracle _oracle)
     public
-    virtual
     view
+    virtual
     returns (uint256 price)
   {
     price = _oracle.getLatestAnswer().toUint256().mul(oracleDigits);
@@ -417,7 +417,7 @@ abstract contract IVaultHandler is
    * M = Total Crypto Market Cap
    * d = Divisor
    */
-  function TCAPPrice() public virtual view returns (uint256 price) {
+  function TCAPPrice() public view virtual returns (uint256 price) {
     uint256 totalMarketPrice = getOraclePrice(tcapOracle);
     price = totalMarketPrice.div(divisor);
   }
@@ -437,8 +437,8 @@ abstract contract IVaultHandler is
    */
   function requiredCollateral(uint256 _amount)
     public
-    virtual
     view
+    virtual
     returns (uint256 collateral)
   {
     uint256 tcapPrice = TCAPPrice();
@@ -464,20 +464,17 @@ abstract contract IVaultHandler is
    */
   function requiredLiquidationTCAP(uint256 _vaultId)
     public
-    virtual
     view
+    virtual
     returns (uint256 amount)
   {
     Vault memory vault = vaults[_vaultId];
     uint256 tcapPrice = TCAPPrice();
     uint256 collateralPrice = getOraclePrice(collateralPriceOracle);
-    uint256 collateralTcap = (vault.Collateral.mul(collateralPrice)).div(
-      tcapPrice
-    );
-    uint256 reqDividend = (
-      ((vault.Debt.mul(ratio)).div(100)).sub(collateralTcap)
-    )
-      .mul(100);
+    uint256 collateralTcap =
+      (vault.Collateral.mul(collateralPrice)).div(tcapPrice);
+    uint256 reqDividend =
+      (((vault.Debt.mul(ratio)).div(100)).sub(collateralTcap)).mul(100);
     uint256 reqDivisor = ratio.sub(liquidationPenalty.add(100));
     amount = reqDividend.div(reqDivisor);
   }
@@ -494,8 +491,8 @@ abstract contract IVaultHandler is
    */
   function liquidationReward(uint256 _vaultId)
     public
-    virtual
     view
+    virtual
     returns (uint256 rewardCollateral)
   {
     uint256 req = requiredLiquidationTCAP(_vaultId);
@@ -512,8 +509,8 @@ abstract contract IVaultHandler is
    */
   function getVault(uint256 _id)
     external
-    virtual
     view
+    virtual
     returns (
       uint256,
       uint256,
@@ -538,8 +535,8 @@ abstract contract IVaultHandler is
    */
   function getVaultRatio(uint256 _vaultId)
     public
-    virtual
     view
+    virtual
     returns (uint256 currentRatio)
   {
     Vault memory vault = vaults[_vaultId];
@@ -566,7 +563,7 @@ abstract contract IVaultHandler is
    * A = Amount to Burn
    * b = Burn Fee %
    */
-  function getFee(uint256 _amount) public virtual view returns (uint256 fee) {
+  function getFee(uint256 _amount) public view virtual returns (uint256 fee) {
     uint256 ethPrice = getOraclePrice(ETHPriceOracle);
     fee = (TCAPPrice().mul(_amount).mul(burnFee)).div(100).div(ethPrice);
   }
@@ -605,8 +602,8 @@ abstract contract IVaultHandler is
    */
   function supportsInterface(bytes4 interfaceId)
     external
-    override
     pure
+    override
     returns (bool)
   {
     return (interfaceId == _INTERFACE_ID_IVAULT ||

@@ -16,6 +16,12 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract Orchestrator is Ownable {
   /** @dev Logs all the calls of the functions. */
   event LogSetGuardian(address indexed _owner, address guardian);
+  event LogExecuteTransaction(
+    address indexed target,
+    uint256 value,
+    string signature,
+    bytes data
+  );
 
   /** @dev Interface constants*/
   bytes4 private constant _INTERFACE_ID_IVAULT = 0x9e75ab0c;
@@ -283,6 +289,32 @@ contract Orchestrator is Ownable {
     validVault(_vault)
   {
     _tcap.addTokenHandler(address(_vault));
+  }
+
+  function executeTransaction(
+    address target,
+    uint256 value,
+    string memory signature,
+    bytes memory data
+  ) external payable onlyOwner returns (bytes memory) {
+    bytes memory callData;
+    if (bytes(signature).length == 0) {
+      callData = data;
+    } else {
+      callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
+    }
+
+    // solium-disable-next-line security/no-call-value
+    (bool success, bytes memory returnData) =
+      target.call{value: value}(callData);
+    require(
+      success,
+      "Orchestrator::executeTransaction: Transaction execution reverted."
+    );
+
+    emit LogExecuteTransaction(target, value, signature, data);
+
+    return returnData;
   }
 
   /**
