@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.8;
+pragma solidity 0.7.5;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -164,7 +164,7 @@ abstract contract IVaultHandler is
     address _collateralAddress,
     address _collateralOracle,
     address _ethOracle
-  ) public {
+  ) {
     require(
       _liquidationPenalty.add(100) < _ratio,
       "VaultHandler::initialize: liquidation penalty too high"
@@ -307,9 +307,9 @@ abstract contract IVaultHandler is
     notZero(_amount)
   {
     Vault storage vault = vaults[userToVault[msg.sender]];
-    uint256 requiredCollateral = requiredCollateral(_amount);
+    uint256 collateral = requiredCollateral(_amount);
     require(
-      vault.Collateral >= requiredCollateral,
+      vault.Collateral >= collateral,
       "VaultHandler::mint: not enough collateral"
     );
     vault.Debt = vault.Debt.add(_amount);
@@ -606,7 +606,7 @@ abstract contract IVaultHandler is
   function supportsInterface(bytes4 interfaceId)
     external
     override
-    view
+    pure
     returns (bool)
   {
     return (interfaceId == _INTERFACE_ID_IVAULT ||

@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.8;
+pragma solidity 0.7.5;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/introspection/IERC165.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./Orchestrator.sol";
 
 /**
@@ -12,6 +13,8 @@ import "./Orchestrator.sol";
  * @notice ERC20 token on the Ethereum Blockchain that provides total exposure to the cryptocurrency sector.
  */
 contract TCAP is ERC20, Ownable, IERC165 {
+  using SafeMath for uint256;
+
   /** @dev Logs all the calls of the functions. */
   event LogAddTokenHandler(address indexed _owner, address _tokenHandler);
   event LogSetCap(address indexed _owner, uint256 _amount);
@@ -42,7 +45,7 @@ contract TCAP is ERC20, Ownable, IERC165 {
     string memory _symbol,
     uint256 _cap,
     Orchestrator _orchestrator
-  ) public ERC20(_name, _symbol) {
+  ) ERC20(_name, _symbol) {
     cap = _cap;
     transferOwnership(address(_orchestrator));
   }
@@ -143,7 +146,7 @@ contract TCAP is ERC20, Ownable, IERC165 {
   function supportsInterface(bytes4 interfaceId)
     external
     override
-    view
+    pure
     returns (bool)
   {
     return (interfaceId == _INTERFACE_ID_TCAP ||

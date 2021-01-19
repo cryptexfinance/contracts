@@ -1,13 +1,13 @@
-import {buidlerArguments} from "@nomiclabs/buidler";
+import { hardhatArguments } from "hardhat";
 require("dotenv").config();
-module.exports = async ({getNamedAccounts, deployments}: any) => {
+module.exports = async ({ getNamedAccounts, deployments }: any) => {
 	if (
-		buidlerArguments.network === "rinkeby" ||
-		buidlerArguments.network === "ropsten" ||
-		buidlerArguments.network === "ganache"
+		hardhatArguments.network === "rinkeby" ||
+		hardhatArguments.network === "ropsten" ||
+		hardhatArguments.network === "ganache"
 	) {
-		const {deployIfDifferent, log} = deployments;
-		const {deployer} = await getNamedAccounts();
+		const { deployIfDifferent, log } = deployments;
+		const { deployer } = await getNamedAccounts();
 		const name = process.env.NAME;
 		const symbol = process.env.SYMBOL;
 		const decimals = process.env.DECIMALS;
@@ -23,7 +23,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 			const deployResult = await deployIfDifferent(
 				["data"],
 				"TCAP",
-				{from: deployer, gas: 4000000},
+				{ from: deployer, gas: 4000000 },
 				"TCAP",
 				name,
 				symbol,

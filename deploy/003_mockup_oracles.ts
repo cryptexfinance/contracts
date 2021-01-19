@@ -1,14 +1,14 @@
-import {buidlerArguments} from "@nomiclabs/buidler";
+import { hardhatArguments } from "hardhat";
 require("dotenv").config();
 //TODO: TCAP Oracle shouldn't change
-module.exports = async ({getNamedAccounts, deployments}: any) => {
+module.exports = async ({ getNamedAccounts, deployments }: any) => {
 	if (
-		buidlerArguments.network === "rinkeby" ||
-		buidlerArguments.network === "ropsten" ||
-		buidlerArguments.network === "ganache"
+		hardhatArguments.network === "rinkeby" ||
+		hardhatArguments.network === "ropsten" ||
+		hardhatArguments.network === "ganache"
 	) {
-		const {deployIfDifferent, log} = deployments;
-		const {deployer} = await getNamedAccounts();
+		const { deployIfDifferent, log } = deployments;
+		const { deployer } = await getNamedAccounts();
 
 		let TCAPOracle, BTCOracle, WETHOracle, DAIOracle;
 		try {
@@ -19,7 +19,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 			const deployResult = await deployIfDifferent(
 				["data"],
 				"TCAPOracle",
-				{from: deployer, gas: 4000000},
+				{ from: deployer, gas: 4000000 },
 				"ChainlinkOracle",
 				oracleAddress
 			);
@@ -35,7 +35,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 				const deployResult = await deployIfDifferent(
 					["data"],
 					"BTCOracle",
-					{from: deployer, gas: 4000000},
+					{ from: deployer, gas: 4000000 },
 					"ChainlinkOracle",
 					oracleAddress
 				);
@@ -53,7 +53,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 					const deployResult = await deployIfDifferent(
 						["data"],
 						"WETHOracle",
-						{from: deployer, gas: 4000000},
+						{ from: deployer, gas: 4000000 },
 						"ChainlinkOracle",
 						oracleAddress
 					);
@@ -71,7 +71,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 						const deployResult = await deployIfDifferent(
 							["data"],
 							"DAIOracle",
-							{from: deployer, gas: 4000000},
+							{ from: deployer, gas: 4000000 },
 							"ChainlinkOracle",
 							oracleAddress
 						);

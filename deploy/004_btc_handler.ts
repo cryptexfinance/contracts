@@ -1,13 +1,13 @@
-import {buidlerArguments} from "@nomiclabs/buidler";
+import { hardhatArguments } from "hardhat";
 
-module.exports = async ({getNamedAccounts, deployments}: any) => {
+module.exports = async ({ getNamedAccounts, deployments }: any) => {
 	if (
-		buidlerArguments.network === "rinkeby" ||
-		buidlerArguments.network === "ropsten" ||
-		buidlerArguments.network === "ganache"
+		hardhatArguments.network === "rinkeby" ||
+		hardhatArguments.network === "ropsten" ||
+		hardhatArguments.network === "ganache"
 	) {
-		const {deployIfDifferent, log} = deployments;
-		const {deployer} = await getNamedAccounts();
+		const { deployIfDifferent, log } = deployments;
+		const { deployer } = await getNamedAccounts();
 
 		let handlerContract;
 		let orchestrator = await deployments.get("Orchestrator");
@@ -31,7 +31,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 				const deployResult = await deployIfDifferent(
 					["data"],
 					"BTCVaultHandler",
-					{from: deployer, gas: 8000000},
+					{ from: deployer, gas: 8000000 },
 					"ERC20VaultHandler",
 					orchestrator.address,
 					divisor,

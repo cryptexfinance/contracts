@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.8;
+pragma solidity 0.7.5;
 
 import "./IVaultHandler.sol";
 import "./Orchestrator.sol";
@@ -22,7 +22,6 @@ contract ERC20VaultHandler is IVaultHandler {
     address _collateralOracle,
     address _ethOracle
   )
-    public
     IVaultHandler(
       orchestrator,
       _divisor,

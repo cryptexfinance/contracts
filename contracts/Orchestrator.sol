@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.8;
+pragma solidity 0.7.5;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/introspection/ERC165Checker.sol";
@@ -29,7 +29,7 @@ contract Orchestrator is Ownable {
 
   /** @dev Enum which saves the available functions to emergency call. */
   enum Functions {BURNFEE, LIQUIDATION, PAUSE}
-  /** @notice tracks which vault was emergency called */
+  /** @dev tracks which vault was emergency called */
   mapping(IVaultHandler => mapping(Functions => bool)) private emergencyCalled;
 
   /** @notice Throws if called by any account other than the guardian. */
@@ -84,7 +84,7 @@ contract Orchestrator is Ownable {
    * @notice Construct a new Orchestrator
    * @param _guardian The guardian address
    */
-  constructor(address _guardian) public {
+  constructor(address _guardian) {
     guardian = _guardian;
   }
 
@@ -231,7 +231,7 @@ contract Orchestrator is Ownable {
    * @notice Retrieves the fees on the orchestrator
    * @dev Only owner can call it
    * @dev Transfer the balance to the contract owner
-	 * TODO: this should be removed with rewards
+   * TODO: this should be removed with rewards
    */
   function retrieveFees() external onlyOwner {
     uint256 amount = address(this).balance;

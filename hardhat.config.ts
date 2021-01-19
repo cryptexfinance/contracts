@@ -1,31 +1,38 @@
-require("dotenv").config();
-import {BuidlerConfig, usePlugin} from "@nomiclabs/buidler/config";
+/**
+ * @type import('hardhat/config').HardhatUserConfig
+ */
 
-usePlugin("@nomiclabs/buidler-waffle");
-usePlugin("@nomiclabs/buidler-etherscan");
-usePlugin("buidler-deploy");
-usePlugin("solidity-coverage");
-usePlugin("buidler-gas-reporter");
+require("dotenv").config();
+import {HardhatUserConfig} from "hardhat/config";
+
+import "@nomiclabs/hardhat-waffle";
+import "@nomiclabs/hardhat-ethers";
+import "hardhat-deploy";
+import "@nomiclabs/hardhat-etherscan";
+import "solidity-coverage";
+import "hardhat-gas-reporter";
 
 const mnemonic = process.env.MNENOMIC as string;
 const ganacheMnemonic = process.env.GANACHEMNENOMIC as string;
 
-const config: BuidlerConfig = {
+const config: HardhatUserConfig = {
 	//@ts-ignore
 	namedAccounts: {
 		deployer: {
 			default: 0, // here this will by default take the first account as deployer
 		},
 	},
-	solc: {
-		version: "0.6.8",
-		optimizer: {
-			enabled: true,
-			runs: 200,
+	solidity: {
+		version: "0.7.5",
+		settings: {
+			optimizer: {
+				enabled: true,
+				runs: 200,
+			},
 		},
 	},
 	networks: {
-		buidlerevm: {},
+		hardhat: {},
 		ganache: {
 			url: "http://127.0.0.1:8545",
 			accounts: {mnemonic: ganacheMnemonic},
