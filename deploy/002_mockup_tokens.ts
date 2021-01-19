@@ -1,15 +1,15 @@
-import {buidlerArguments} from "@nomiclabs/buidler";
+import { hardhatArguments } from "hardhat";
 require("dotenv").config();
-module.exports = async ({getNamedAccounts, deployments}: any) => {
+module.exports = async ({ getNamedAccounts, deployments }: any) => {
 	if (
-		buidlerArguments.network === "rinkeby" ||
-		buidlerArguments.network === "ropsten" ||
-		buidlerArguments.network === "ganache"
+		hardhatArguments.network === "rinkeby" ||
+		hardhatArguments.network === "ropsten" ||
+		hardhatArguments.network === "ganache"
 	) {
-		const {deployIfDifferent, log} = deployments;
-		const {deployer} = await getNamedAccounts();
+		const { deployIfDifferent, log } = deployments;
+		const { deployer } = await getNamedAccounts();
 
-		log(`${buidlerArguments.network} found, deploying mockup DAI contracts`);
+		log(`${hardhatArguments.network} found, deploying mockup DAI contracts`);
 
 		//Deploy Mock DAIs
 		let DAI, WBTC, WETH;
@@ -21,7 +21,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 			const deployResult = await deployIfDifferent(
 				["data"],
 				"DAI",
-				{from: deployer, gas: 4000000},
+				{ from: deployer, gas: 4000000 },
 				"DAI"
 			);
 			DAI = await deployments.get("DAI");
@@ -37,7 +37,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 				const deployResult = await deployIfDifferent(
 					["data"],
 					"WBTC",
-					{from: deployer, gas: 4000000},
+					{ from: deployer, gas: 4000000 },
 					"WBTC"
 				);
 				WBTC = await deployments.get("WBTC");
@@ -52,7 +52,7 @@ module.exports = async ({getNamedAccounts, deployments}: any) => {
 					const deployResult = await deployIfDifferent(
 						["data"],
 						"WETH",
-						{from: deployer, gas: 4000000},
+						{ from: deployer, gas: 4000000 },
 						"WETH"
 					);
 					WETH = await deployments.get("WETH");

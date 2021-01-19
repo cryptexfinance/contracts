@@ -1,11 +1,11 @@
-import {ethers as ethersBuidler, buidlerArguments} from "@nomiclabs/buidler";
+import { ethers as ethershardhat, hardhatArguments } from "hardhat";
 require("dotenv").config();
 
-module.exports = async ({deployments}: any) => {
+module.exports = async ({ deployments }: any) => {
 	if (
-		buidlerArguments.network === "rinkeby" ||
-		buidlerArguments.network === "ropsten" ||
-		buidlerArguments.network === "ganache"
+		hardhatArguments.network === "rinkeby" ||
+		hardhatArguments.network === "ropsten" ||
+		hardhatArguments.network === "ganache"
 	) {
 		let DAIHandler = await deployments.get("DAIVaultHandler");
 		let BTCHandler = await deployments.get("BTCVaultHandler");
@@ -14,7 +14,7 @@ module.exports = async ({deployments}: any) => {
 		let tcap = await deployments.get("TCAP");
 		const timelock = process.env.TIMELOCK;
 
-		let orchestrator = await ethersBuidler.getContractAt(
+		let orchestrator = await ethershardhat.getContractAt(
 			"Orchestrator",
 			OrchestratorDeployment.address
 		);
