@@ -307,9 +307,9 @@ abstract contract IVaultHandler is
     notZero(_amount)
   {
     Vault storage vault = vaults[userToVault[msg.sender]];
-    uint256 requiredCollateral = requiredCollateral(_amount);
+    uint256 collateral = requiredCollateral(_amount);
     require(
-      vault.Collateral >= requiredCollateral,
+      vault.Collateral >= collateral,
       "VaultHandler::mint: not enough collateral"
     );
     vault.Debt = vault.Debt.add(_amount);
@@ -606,7 +606,7 @@ abstract contract IVaultHandler is
   function supportsInterface(bytes4 interfaceId)
     external
     override
-    view
+    pure
     returns (bool)
   {
     return (interfaceId == _INTERFACE_ID_IVAULT ||

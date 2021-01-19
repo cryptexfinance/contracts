@@ -84,7 +84,7 @@ contract Orchestrator is Ownable {
    * @notice Construct a new Orchestrator
    * @param _guardian The guardian address
    */
-  constructor(address _guardian) public {
+  constructor(address _guardian) {
     guardian = _guardian;
   }
 

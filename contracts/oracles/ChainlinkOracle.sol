@@ -31,7 +31,7 @@ contract ChainlinkOracle is Ownable, IERC165 {
    * @notice Called once the contract is deployed.
    * Set the Chainlink Oracle as an aggregator.
    */
-  constructor(address _aggregator) public {
+  constructor(address _aggregator)  {
     aggregatorContract = AggregatorV3Interface(_aggregator);
   }
 
@@ -140,7 +140,7 @@ contract ChainlinkOracle is Ownable, IERC165 {
   function supportsInterface(bytes4 interfaceId)
     external
     override
-    view
+    pure
     returns (bool)
   {
     return (interfaceId == _INTERFACE_ID_CHAINLINK_ORACLE ||

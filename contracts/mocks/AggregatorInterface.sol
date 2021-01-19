@@ -4,14 +4,14 @@ pragma solidity 0.7.5;
 contract AggregatorInterface {
   int256 value = 39752768946;
 
-  function latestAnswer() public virtual view returns (int256) {
+  function latestAnswer() public view virtual returns (int256) {
     return value;
   }
 
   function latestRoundData()
     public
-    virtual
     view
+    virtual
     returns (
       uint80,
       int256,

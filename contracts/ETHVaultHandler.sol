@@ -26,7 +26,6 @@ contract ETHVaultHandler is IVaultHandler {
     address _collateralOracle,
     address _ethOracle
   )
-    public
     IVaultHandler(
       orchestrator,
       _divisor,

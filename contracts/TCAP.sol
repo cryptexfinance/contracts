@@ -45,7 +45,7 @@ contract TCAP is ERC20, Ownable, IERC165 {
     string memory _symbol,
     uint256 _cap,
     Orchestrator _orchestrator
-  ) public ERC20(_name, _symbol) {
+  ) ERC20(_name, _symbol) {
     cap = _cap;
     transferOwnership(address(_orchestrator));
   }
@@ -146,7 +146,7 @@ contract TCAP is ERC20, Ownable, IERC165 {
   function supportsInterface(bytes4 interfaceId)
     external
     override
-    view
+    pure
     returns (bool)
   {
     return (interfaceId == _INTERFACE_ID_TCAP ||
