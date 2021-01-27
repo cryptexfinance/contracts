@@ -26,56 +26,20 @@ abstract contract IVaultHandler is
   Pausable,
   IERC165
 {
-  /** @dev Logs all the calls of the functions. */
-  event LogInitializeVault(
-    uint256 _divisor,
-    uint256 _ratio,
-    uint256 _burnFee,
-    uint256 _liquidationPenalty,
-    address _tcapOracle,
-    TCAP _tcapAddress,
-    address _collateralAddress,
-    address _collateralOracle,
-    address _ethOracle
-  );
-  event LogSetRatio(address indexed _owner, uint256 _ratio);
-  event LogSetBurnFee(address indexed _owner, uint256 _burnFee);
-  event LogSetLiquidationPenalty(
-    address indexed _owner,
-    uint256 _liquidationPenalty
-  );
-  event LogCreateVault(address indexed _owner, uint256 indexed _id);
-  event LogAddCollateral(
-    address indexed _owner,
-    uint256 indexed _id,
-    uint256 _amount
-  );
-  event LogRemoveCollateral(
-    address indexed _owner,
-    uint256 indexed _id,
-    uint256 _amount
-  );
-  event LogMint(address indexed _owner, uint256 indexed _id, uint256 _amount);
-  event LogBurn(address indexed _owner, uint256 indexed _id, uint256 _amount);
-  event LogLiquidateVault(
-    uint256 indexed _vaultId,
-    address indexed _liquidator,
-    uint256 _liquidationCollateral,
-    uint256 _reward
-  );
-  event LogRetrieveFees(address indexed _owner, uint256 _amount);
-
-  /** @dev Open Zeppelin libraries */
+  /// @notice Open Zeppelin libraries
   using SafeMath for uint256;
   using SafeCast for int256;
   using Counters for Counters.Counter;
 
-  /** @dev vault id counter */
+  /// @notice Vault Id counter
   Counters.Counter public counter;
 
   /**
-   * @notice There is one vault per user. it saves an unique identifier,
-   * the current collateral provided by the owner, the debt and the owner address
+   * @notice Vault object created to manage the mint and burns of TCAP tokens
+   * @param Id, unique identifier of the vault
+   * @param Collateral, current collateral on vault
+   * @param Debt, current amount of TCAP tokens minted
+   * @param Owner, owner of the vault
    */
   struct Vault {
     uint256 Id;
@@ -83,47 +47,42 @@ abstract contract IVaultHandler is
     uint256 Debt;
     address Owner;
   }
-  /** @dev TCAP Token Address */
+
+  /// @notice TCAP Token Address
   TCAP public TCAPToken;
-  /** @dev Total Market Cap Oracle */
+
+  /// @notice Total Market Cap/USD Oracle Address
   ChainlinkOracle public tcapOracle;
-  /** @dev Collateral Token Address*/
+
+  /// @notice Collateral Token Address*/
   IERC20 public collateralContract;
-  /** @dev Collateral Oracle Address*/
+
+  /// @notice Collateral/USD Oracle Address*/
   ChainlinkOracle public collateralPriceOracle;
-  /** @dev Collateral Oracle Address*/
+
+  /// @notice ETH/USD Oracle Address*/
   ChainlinkOracle public ETHPriceOracle;
 
-  /** @dev divisor value used with the total market cap, just like the S&P 500 or any major financial index would to define the final tcap token price */
+  /// @notice divisor value used with the total market cap, just like the S&P 500 or any major financial index would to define the final tcap token price
   uint256 public divisor;
-  /** @dev Liquidation Ratio */
+
+  /// @notice Minimun ratio required to prevent liquidation of vault
   uint256 public ratio;
-  /** @dev Fee charged when burning TCAP Tokens */
+
+  /// @notice Fee charged when burning TCAP Tokens
   uint256 public burnFee;
-  /** @dev Penalty charged when an account gets liquidated */
+
+  /// @notice Penalty charged to vault owner when a vault is liquidated, this value goes to the liquidator
   uint256 public liquidationPenalty;
-  /** @dev Owner to Vault Id */
+
+  /// @notice Owner address to Vault Id
   mapping(address => uint256) public userToVault;
-  /** @dev Id To Vault */
+
+  /// @notice Id To Vault
   mapping(uint256 => Vault) public vaults;
 
-  /** @dev value used to multiply chainlink oracle for handling decimals */
+  /// @notice value used to multiply chainlink oracle for handling decimals
   uint256 public constant oracleDigits = 10000000000;
-
-  /** @notice Throws if vault hasn't been created. */
-  modifier vaultExists() {
-    require(
-      userToVault[msg.sender] != 0,
-      "VaultHandler::vaultExists: no vault created"
-    );
-    _;
-  }
-
-  /** @notice Throws if value is 0. */
-  modifier notZero(uint256 _value) {
-    require(_value != 0, "VaultHandler::notZero: value can't be 0");
-    _;
-  }
 
   /**
    * @dev the computed interface ID according to ERC-165. The interface ID is a XOR of interface method selectors.
@@ -136,12 +95,65 @@ abstract contract IVaultHandler is
    */
   bytes4 private constant _INTERFACE_ID_IVAULT = 0x9e75ab0c;
 
-  /* bytes4(keccak256('supportsInterface(bytes4)')) == 0x01ffc9a7 */
+  /// @dev bytes4(keccak256('supportsInterface(bytes4)')) == 0x01ffc9a7
   bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
 
-  /** @dev counter starts in one as 0 is reserved for empty objects */
+  /// @notice An event emitted when a the ratio is updated
+  event NewRatio(address indexed _owner, uint256 _ratio);
+
+  /// @notice An event emitted when the burn fee is updated
+  event NewBurnFee(address indexed _owner, uint256 _burnFee);
+
+  /// @notice An event emitted when a the liquidation penalty is updated
+  event NewLiquidationPenalty(
+    address indexed _owner,
+    uint256 _liquidationPenalty
+  );
+
+  /// @notice An event emitted when a vault is created
+  event VaultCreated(address indexed _owner, uint256 indexed _id);
+
+  /// @notice An event emitted when collateral is added to a vault
+  event CollateralAdded(
+    address indexed _owner,
+    uint256 indexed _id,
+    uint256 _amount
+  );
+
+  /// @notice An event emitted when collateral is removed from a vault
+  event CollateralRemoved(
+    address indexed _owner,
+    uint256 indexed _id,
+    uint256 _amount
+  );
+
+  /// @notice An event emitted when tokens are minted
+  event TokensMinted(
+    address indexed _owner,
+    uint256 indexed _id,
+    uint256 _amount
+  );
+
+  /// @notice An event emitted when tokens are burned
+  event TokensBurned(
+    address indexed _owner,
+    uint256 indexed _id,
+    uint256 _amount
+  );
+
+  /// @notice An event emitted when a vault is liquidated
+  event VaultLiquidated(
+    uint256 indexed _vaultId,
+    address indexed _liquidator,
+    uint256 _liquidationCollateral,
+    uint256 _reward
+  );
+
+  ///  @notice An event emitted when fees are retrieved
+  event FeesRetrieved(address indexed _owner, uint256 _amount);
+
   /**
-   * @notice Allows the orchestrator to initialize the contract
+   * @notice Constructor
    * @param _orchestrator address
    * @param _divisor uint256
    * @param _ratio uint256
@@ -169,6 +181,7 @@ abstract contract IVaultHandler is
       _liquidationPenalty.add(100) < _ratio,
       "VaultHandler::initialize: liquidation penalty too high"
     );
+
     divisor = _divisor;
     ratio = _ratio;
     burnFee = _burnFee;
@@ -178,9 +191,28 @@ abstract contract IVaultHandler is
     collateralPriceOracle = ChainlinkOracle(_collateralOracle);
     ETHPriceOracle = ChainlinkOracle(_ethOracle);
     TCAPToken = _tcapAddress;
+
+    /// @dev counter starts in 1 as 0 is reserved for empty objects
     counter.increment();
+
+    /// @dev transfer ownership to orchestrator
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     transferOwnership(address(_orchestrator));
+  }
+
+  /** @notice Reverts if the user hasn't created a vault. */
+  modifier vaultExists() {
+    require(
+      userToVault[msg.sender] != 0,
+      "VaultHandler::vaultExists: no vault created"
+    );
+    _;
+  }
+
+  /** @notice Reverts if value is 0. */
+  modifier notZero(uint256 _value) {
+    require(_value != 0, "VaultHandler::notZero: value can't be 0");
+    _;
   }
 
   /**
@@ -190,7 +222,7 @@ abstract contract IVaultHandler is
    */
   function setRatio(uint256 _ratio) external virtual onlyOwner {
     ratio = _ratio;
-    emit LogSetRatio(msg.sender, _ratio);
+    emit NewRatio(msg.sender, _ratio);
   }
 
   /**
@@ -200,13 +232,14 @@ abstract contract IVaultHandler is
    */
   function setBurnFee(uint256 _burnFee) external virtual onlyOwner {
     burnFee = _burnFee;
-    emit LogSetBurnFee(msg.sender, _burnFee);
+    emit NewBurnFee(msg.sender, _burnFee);
   }
 
   /**
    * @notice Sets the liquidation penalty % charged on liquidation
    * @param _liquidationPenalty uint
    * @dev Only owner can call it
+   * @dev recommended value is between 1-15% and can't be above 100%
    */
   function setLiquidationPenalty(uint256 _liquidationPenalty)
     external
@@ -217,12 +250,13 @@ abstract contract IVaultHandler is
       _liquidationPenalty.add(100) < ratio,
       "VaultHandler::setLiquidationPenalty: liquidation penalty too high"
     );
+
     liquidationPenalty = _liquidationPenalty;
-    emit LogSetLiquidationPenalty(msg.sender, _liquidationPenalty);
+    emit NewLiquidationPenalty(msg.sender, _liquidationPenalty);
   }
 
   /**
-   * @notice Creates a Vault
+   * @notice Allows an user to create an unique Vault
    * @dev Only one vault per address can be created
    */
   function createVault() external virtual whenNotPaused {
@@ -230,18 +264,20 @@ abstract contract IVaultHandler is
       userToVault[msg.sender] == 0,
       "VaultHandler::createVault: vault already created"
     );
+
     uint256 id = counter.current();
     userToVault[msg.sender] = id;
     Vault memory vault = Vault(id, 0, 0, msg.sender);
     vaults[id] = vault;
     counter.increment();
-    emit LogCreateVault(msg.sender, id);
+    emit VaultCreated(msg.sender, id);
   }
 
   /**
-   * @notice Adds collateral to vault
-   * @param _amount of collateral to add
+   * @notice Allows users to add collateral to their vaults
+   * @param _amount of collateral to be added
    * @dev _amount should be higher than 0
+   * @dev ERC20 token must be approved first
    */
   function addCollateral(uint256 _amount)
     external
@@ -255,15 +291,18 @@ abstract contract IVaultHandler is
       collateralContract.transferFrom(msg.sender, address(this), _amount),
       "VaultHandler::addCollateral: ERC20 transfer did not succeed"
     );
+
     Vault storage vault = vaults[userToVault[msg.sender]];
     vault.Collateral = vault.Collateral.add(_amount);
-    emit LogAddCollateral(msg.sender, vault.Id, _amount);
+    emit CollateralAdded(msg.sender, vault.Id, _amount);
   }
 
   /**
-   * @notice Removes not used collateral from vault
+   * @notice Allows users to remove collateral currently not being used to generate TCAP tokens from their vaults
    * @param _amount of collateral to remove
+   * @dev reverts if the resulting ratio is less than the minimun ratio
    * @dev _amount should be higher than 0
+   * @dev transfers the collateral back to the user
    */
   function removeCollateral(uint256 _amount)
     external
@@ -275,10 +314,12 @@ abstract contract IVaultHandler is
   {
     Vault storage vault = vaults[userToVault[msg.sender]];
     uint256 currentRatio = getVaultRatio(vault.Id);
+
     require(
       vault.Collateral >= _amount,
       "VaultHandler::removeCollateral: retrieve amount higher than collateral"
     );
+
     vault.Collateral = vault.Collateral.sub(_amount);
     if (currentRatio != 0) {
       require(
@@ -290,13 +331,14 @@ abstract contract IVaultHandler is
       collateralContract.transfer(msg.sender, _amount),
       "VaultHandler::removeCollateral: ERC20 transfer did not succeed"
     );
-    emit LogRemoveCollateral(msg.sender, vault.Id, _amount);
+    emit CollateralRemoved(msg.sender, vault.Id, _amount);
   }
 
   /**
-   * @notice Mints TCAP Tokens staking the collateral
+   * @notice Uses collateral to generate debt on TCAP Tokens which are minted and assigend to caller
    * @param _amount of tokens to mint
    * @dev _amount should be higher than 0
+   * @dev requires to have a vault ratio above the minimum ratio
    */
   function mint(uint256 _amount)
     external
@@ -308,23 +350,28 @@ abstract contract IVaultHandler is
   {
     Vault storage vault = vaults[userToVault[msg.sender]];
     uint256 collateral = requiredCollateral(_amount);
+
     require(
       vault.Collateral >= collateral,
       "VaultHandler::mint: not enough collateral"
     );
+
     vault.Debt = vault.Debt.add(_amount);
     require(
       getVaultRatio(vault.Id) >= ratio,
       "VaultHandler::mint: collateral below min required ratio"
     );
+
     TCAPToken.mint(msg.sender, _amount);
-    emit LogMint(msg.sender, vault.Id, _amount);
+    emit TokensMinted(msg.sender, vault.Id, _amount);
   }
 
   /**
-   * @notice Burns TCAP Tokens releasing the staked collateral
+   * @notice Pays the debt of TCAP tokens resulting them on burn, this releases collateral up to minimun vault ratio
    * @param _amount of tokens to burn
    * @dev _amount should be higher than 0
+   * @dev A fee of exactly burnFee must be sent as value on ETH
+   * @dev The fee goes to the treasury contract //TODO
    */
   function burn(uint256 _amount)
     external
@@ -338,13 +385,16 @@ abstract contract IVaultHandler is
     Vault memory vault = vaults[userToVault[msg.sender]];
     _checkBurnFee(_amount);
     _burn(vault.Id, _amount);
-    emit LogBurn(msg.sender, vault.Id, _amount);
+    emit TokensBurned(msg.sender, vault.Id, _amount);
   }
 
   /**
-   * @notice Allow users to liquidate vaults with low collateral ratio
+   * @notice Allow users to burn TCAP tokens to liquidate vaults with vault collateral ratio under the minium ratio, the liquidator receives the staked collateral of the liquidated vault at a premium
    * @param _vaultId to liquidate
    * @param _requiredTCAP amount of TCAP to liquidate vault
+   * @dev Resulting ratio must be above or equal minimun ratio
+   * @dev A fee of exactly burnFee must be sent as value on ETH
+   * @dev The fee goes to the treasury contract //TODO
    */
   function liquidateVault(uint256 _vaultId, uint256 _requiredTCAP)
     external
@@ -354,16 +404,19 @@ abstract contract IVaultHandler is
   {
     Vault storage vault = vaults[_vaultId];
     require(vault.Id != 0, "VaultHandler::liquidateVault: no vault created");
+
     uint256 vaultRatio = getVaultRatio(vault.Id);
     require(
       vaultRatio < ratio,
       "VaultHandler::liquidateVault: vault is not liquidable"
     );
+
     uint256 req = requiredLiquidationTCAP(vault.Id);
     require(
       _requiredTCAP == req,
       "VaultHandler::liquidateVault: liquidation amount different than required"
     );
+
     uint256 reward = liquidationReward(vault.Id);
     _checkBurnFee(_requiredTCAP);
     _burn(vault.Id, _requiredTCAP);
@@ -372,7 +425,8 @@ abstract contract IVaultHandler is
       collateralContract.transfer(msg.sender, reward),
       "VaultHandler::liquidateVault: ERC20 transfer did not succeed"
     );
-    emit LogLiquidateVault(vault.Id, msg.sender, req, reward);
+
+    emit VaultLiquidated(vault.Id, msg.sender, req, reward);
   }
 
   /**
@@ -390,14 +444,54 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Sends the owner of the contract the Fees saved on ETH
+   * @notice ERC165 Standard for support of interfaces
+   * @param _interfaceId bytes of interface
+   * @return bool
+   */
+  function supportsInterface(bytes4 _interfaceId)
+    external
+    pure
+    override
+    returns (bool)
+  {
+    return (_interfaceId == _INTERFACE_ID_IVAULT ||
+      _interfaceId == _INTERFACE_ID_ERC165);
+  }
+
+  /**
+   * @notice Sends the owner of the contract the Fees saved on ETH //TODO: this should be updated to reclaim eth
    */
   function retrieveFees() external virtual onlyOwner {
     uint256 amount = address(this).balance;
     payable(owner()).transfer(amount);
-    emit LogRetrieveFees(msg.sender, amount);
+    emit FeesRetrieved(msg.sender, amount);
   }
 
+  /**
+   * @notice Returns the Vault information of specified identifier
+   * @param _id of vault
+   * @return Id, Collateral, Owner, Debt
+   */
+  function getVault(uint256 _id)
+    external
+    view
+    virtual
+    returns (
+      uint256,
+      uint256,
+      address,
+      uint256
+    )
+  {
+    Vault memory vault = vaults[_id];
+    return (vault.Id, vault.Collateral, vault.Owner, vault.Debt);
+  }
+
+  /**
+   * @notice Returns the price of the chainlink oracle multiplied by the digits to get 18 decimals format
+   * @param _oracle to be the price called
+   * @return price
+   */
   function getOraclePrice(ChainlinkOracle _oracle)
     public
     view
@@ -412,9 +506,9 @@ abstract contract IVaultHandler is
    * @return price of the TCAP Token
    * @dev TCAP token is 18 decimals
    * @dev oracle totalMarketPrice must be in wei format
-   * @dev P = M / d
+   * @dev P = T / d
    * P = TCAP Token Price
-   * M = Total Crypto Market Cap
+   * T = Total Crypto Market Cap
    * d = Divisor
    */
   function TCAPPrice() public view virtual returns (uint256 price) {
@@ -480,10 +574,10 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Returns Reward for liquidating a vault
+   * @notice Returns the Reward for liquidating a vault
    * @param _vaultId of the vault to liquidate
    * @return rewardCollateral for liquidating Vault
-   * @dev the returned value is returned on the vault collateral
+   * @dev the returned value is returned as collateral currency
    * @dev R = (LT * (p  + 100)) / 100
    * R = Liquidation Reward
    * LT = Required Liquidation TCAP
@@ -500,26 +594,6 @@ abstract contract IVaultHandler is
     uint256 collateralPrice = getOraclePrice(collateralPriceOracle);
     uint256 reward = (req.mul(liquidationPenalty.add(100))).div(100);
     rewardCollateral = (reward.mul(tcapPrice)).div(collateralPrice);
-  }
-
-  /**
-   * @notice Returns the Vault information
-   * @param _id of vault
-   * @return Id, Collateral, Owner, Debt
-   */
-  function getVault(uint256 _id)
-    external
-    view
-    virtual
-    returns (
-      uint256,
-      uint256,
-      address,
-      uint256
-    )
-  {
-    Vault memory vault = vaults[_id];
-    return (vault.Id, vault.Collateral, vault.Owner, vault.Debt);
   }
 
   /**
@@ -569,8 +643,8 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Returns the required fee to burn the TCAP tokens
-   * @param _amount to burn
+   * @notice reverts if burn is different than required
+   * @param _amount to burn //TODO: this should be modifier
    */
   function _checkBurnFee(uint256 _amount) internal {
     uint256 fee = getFee(_amount);
@@ -593,20 +667,5 @@ abstract contract IVaultHandler is
     );
     vault.Debt = vault.Debt.sub(_amount);
     TCAPToken.burn(msg.sender, _amount);
-  }
-
-  /**
-   * @notice ERC165 Standard for support of interfaces
-   * @param interfaceId bytes of interface
-   * @return bool
-   */
-  function supportsInterface(bytes4 interfaceId)
-    external
-    pure
-    override
-    returns (bool)
-  {
-    return (interfaceId == _INTERFACE_ID_IVAULT ||
-      interfaceId == _INTERFACE_ID_ERC165);
   }
 }
