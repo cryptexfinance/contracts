@@ -336,9 +336,43 @@ describe("Orchestrator Contract", async function () {
 		await expect(orchestratorInstance.addTCAPVault(tcapInstance.address, ethVaultInstance.address))
 			.to.emit(tcapInstance, "VaultHandlerAdded")
 			.withArgs(orchestratorInstance.address, ethVaultInstance.address);
+
+		expect(await tcapInstance.vaultHandlers(ethVaultInstance.address)).to.eq(true);
+	});
+
+	it("...should remove vault to TCAP token", async () => {
+		await expect(
+			orchestratorInstance
+				.connect(addr1)
+				.removeTCAPVault(tcapInstance.address, ethVaultInstance.address)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		await expect(
+			orchestratorInstance.removeTCAPVault(
+				ethersProvider.constants.AddressZero,
+				ethVaultInstance.address
+			)
+		).to.be.revertedWith("Orchestrator::validTCAP: not a valid TCAP ERC20");
+
+		await expect(
+			orchestratorInstance.removeTCAPVault(
+				tcapInstance.address,
+				ethersProvider.constants.AddressZero
+			)
+		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
+
+		await expect(
+			orchestratorInstance.removeTCAPVault(tcapInstance.address, ethVaultInstance.address)
+		)
+			.to.emit(tcapInstance, "VaultHandlerRemoved")
+			.withArgs(orchestratorInstance.address, ethVaultInstance.address);
+
+		expect(await tcapInstance.vaultHandlers(ethVaultInstance.address)).to.eq(false);
 	});
 
 	it("...should allow to execute a custom transaction", async () => {
+		await orchestratorInstance.addTCAPVault(tcapInstance.address, ethVaultInstance.address);
+
 		let currentOwner = await tcapInstance.owner();
 		expect(currentOwner).to.eq(orchestratorInstance.address);
 		const newOwner = await addr1.getAddress();

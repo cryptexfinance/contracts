@@ -293,6 +293,23 @@ contract Orchestrator is Ownable {
     _tcap.addVaultHandler(address(_vault));
   }
 
+  /**
+   * @notice Removes Vault to TCAP ERC20
+   * @param _tcap address
+   * @param _vault address
+   * @dev Only owner can call it
+   * @dev Validates if _tcap is valid
+   * @dev Validates if _vault is valid
+   */
+  function removeTCAPVault(TCAP _tcap, IVaultHandler _vault)
+    external
+    onlyOwner
+    validTCAP(_tcap)
+    validVault(_vault)
+  {
+    _tcap.removeVaultHandler(address(_vault));
+  }
+
   function executeTransaction(
     address target,
     uint256 value,
