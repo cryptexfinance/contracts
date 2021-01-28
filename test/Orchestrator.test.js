@@ -266,7 +266,7 @@ describe("Orchestrator Contract", async function () {
 		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
 
 		await expect(orchestratorInstance.retrieveVaultFees(ethVaultInstance.address))
-			.to.emit(ethVaultInstance, "LogRetrieveFees")
+			.to.emit(ethVaultInstance, "FeesRetrieved")
 			.withArgs(orchestratorInstance.address, 0);
 	});
 
@@ -291,7 +291,7 @@ describe("Orchestrator Contract", async function () {
 		).to.be.revertedWith("Orchestrator::validTCAP: not a valid TCAP ERC20");
 
 		await expect(orchestratorInstance.enableTCAPCap(tcapInstance.address, enableCap))
-			.to.emit(tcapInstance, "LogEnableCap")
+			.to.emit(tcapInstance, "NewCapEnabled")
 			.withArgs(orchestratorInstance.address, enableCap);
 
 		expect(enableCap).to.eq(await tcapInstance.capEnabled());
@@ -309,7 +309,7 @@ describe("Orchestrator Contract", async function () {
 		).to.be.revertedWith("Orchestrator::validTCAP: not a valid TCAP ERC20");
 
 		await expect(orchestratorInstance.setTCAPCap(tcapInstance.address, tcapCap))
-			.to.emit(tcapInstance, "LogSetCap")
+			.to.emit(tcapInstance, "NewCap")
 			.withArgs(orchestratorInstance.address, tcapCap);
 
 		expect(tcapCap).to.eq(await tcapInstance.cap());
@@ -334,7 +334,7 @@ describe("Orchestrator Contract", async function () {
 		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
 
 		await expect(orchestratorInstance.addTCAPVault(tcapInstance.address, ethVaultInstance.address))
-			.to.emit(tcapInstance, "LogAddTokenHandler")
+			.to.emit(tcapInstance, "VaultHandlerAdded")
 			.withArgs(orchestratorInstance.address, ethVaultInstance.address);
 	});
 

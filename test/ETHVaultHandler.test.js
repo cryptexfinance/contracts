@@ -90,7 +90,7 @@ describe("ETH Vault", async function () {
 		let vaultId = await ethTokenHandler.userToVault(accounts[1]);
 		expect(vaultId).eq(0);
 		await expect(ethTokenHandler.connect(addr1).createVault())
-			.to.emit(ethTokenHandler, "LogCreateVault")
+			.to.emit(ethTokenHandler, "VaultCreated")
 			.withArgs(accounts[1], 1);
 		vaultId = await ethTokenHandler.userToVault(accounts[1]);
 		expect(vaultId).eq(1);
@@ -123,7 +123,7 @@ describe("ETH Vault", async function () {
 		expect(balance).to.eq(0);
 
 		await expect(ethTokenHandler.connect(addr1).addCollateral(amount)).to.be.revertedWith("");
-		await wethTokenInstance.connect(addr1).deposit({value: amount});
+		await wethTokenInstance.connect(addr1).deposit({ value: amount });
 		let wethbalance = await wethTokenInstance.balanceOf(accounts[1]);
 		expect(wethbalance).to.eq(amount);
 
@@ -136,7 +136,7 @@ describe("ETH Vault", async function () {
 			"VaultHandler::notZero: value can't be 0"
 		);
 		await expect(ethTokenHandler.connect(addr1).addCollateral(amount))
-			.to.emit(ethTokenHandler, "LogAddCollateral")
+			.to.emit(ethTokenHandler, "CollateralAdded")
 			.withArgs(accounts[1], 1, amount);
 		let vault = await ethTokenHandler.getVault(1);
 		expect(vault[0]).to.eq(1);
@@ -147,7 +147,7 @@ describe("ETH Vault", async function () {
 		expect(balance).to.eq(0);
 		balance = await wethTokenInstance.balanceOf(ethTokenHandler.address);
 		expect(balance).to.eq(amount);
-		await wethTokenInstance.connect(addr1).deposit({value: amount});
+		await wethTokenInstance.connect(addr1).deposit({ value: amount });
 		await wethTokenInstance.connect(addr1).approve(ethTokenHandler.address, amount);
 		await ethTokenHandler.connect(addr1).addCollateral(amount);
 		vault = await ethTokenHandler.getVault(1);
@@ -169,8 +169,8 @@ describe("ETH Vault", async function () {
 			"ETHVaultHandler::addCollateralETH: value can't be 0"
 		);
 
-		await expect(ethTokenHandler.connect(addr1).addCollateralETH({value: amount}))
-			.to.emit(ethTokenHandler, "LogAddCollateral")
+		await expect(ethTokenHandler.connect(addr1).addCollateralETH({ value: amount }))
+			.to.emit(ethTokenHandler, "CollateralAdded")
 			.withArgs(accounts[1], 1, amount);
 		vault = await ethTokenHandler.getVault(1);
 		expect(vault[0]).to.eq(1);
@@ -183,7 +183,7 @@ describe("ETH Vault", async function () {
 		balance = await wethTokenInstance.balanceOf(ethTokenHandler.address);
 		expect(balance).to.eq(vaultBalance.add(amount));
 
-		await wethTokenInstance.connect(addr1).deposit({value: amount});
+		await wethTokenInstance.connect(addr1).deposit({ value: amount });
 		await wethTokenInstance.connect(addr1).approve(ethTokenHandler.address, amount);
 		await ethTokenHandler.connect(addr1).addCollateral(amount);
 		vault = await ethTokenHandler.getVault(1);
@@ -212,7 +212,7 @@ describe("ETH Vault", async function () {
 			"ETHVaultHandler::removeCollateralETH: value can't be 0"
 		);
 		await expect(ethTokenHandler.connect(addr1).removeCollateralETH(amount))
-			.to.emit(ethTokenHandler, "LogRemoveCollateral")
+			.to.emit(ethTokenHandler, "CollateralRemoved")
 			.withArgs(accounts[1], 1, amount);
 
 		vault = await ethTokenHandler.getVault(1);
@@ -253,7 +253,7 @@ describe("ETH Vault", async function () {
 			"VaultHandler::notZero: value can't be 0"
 		);
 		await expect(ethTokenHandler.connect(addr1).removeCollateral(amount))
-			.to.emit(ethTokenHandler, "LogRemoveCollateral")
+			.to.emit(ethTokenHandler, "CollateralRemoved")
 			.withArgs(accounts[1], 1, amount);
 
 		let vault = await ethTokenHandler.getVault(1);
@@ -294,7 +294,7 @@ describe("ETH Vault", async function () {
 		const bigAmount = ethersProvider.utils.parseEther("100");
 		const reqAmount2 = await ethTokenHandler.requiredCollateral(amount2);
 
-		await wethTokenInstance.connect(addr1).deposit({value: reqAmount2});
+		await wethTokenInstance.connect(addr1).deposit({ value: reqAmount2 });
 		let tcapBalance = await tcapInstance.balanceOf(accounts[1]);
 		expect(tcapBalance).to.eq(0);
 		await wethTokenInstance.connect(addr1).approve(ethTokenHandler.address, reqAmount2);
@@ -306,7 +306,7 @@ describe("ETH Vault", async function () {
 			"VaultHandler::mint: not enough collateral"
 		);
 		await expect(ethTokenHandler.connect(addr1).mint(amount))
-			.to.emit(ethTokenHandler, "LogMint")
+			.to.emit(ethTokenHandler, "TokensMinted")
 			.withArgs(accounts[1], 1, amount);
 		tcapBalance = await tcapInstance.balanceOf(accounts[1]);
 		expect(tcapBalance).to.eq(amount);
@@ -364,13 +364,13 @@ describe("ETH Vault", async function () {
 			"VaultHandler::burn: burn fee different than required"
 		);
 		await expect(
-			ethTokenHandler.connect(addr1).burn(bigAmount, {value: ethAmount2})
+			ethTokenHandler.connect(addr1).burn(bigAmount, { value: ethAmount2 })
 		).to.be.revertedWith("VaultHandler::burn: amount greater than debt");
 		await expect(
-			ethTokenHandler.connect(addr1).burn(amount, {value: ethHighAmount})
+			ethTokenHandler.connect(addr1).burn(amount, { value: ethHighAmount })
 		).to.be.revertedWith("VaultHandler::burn: burn fee different than required");
-		await expect(ethTokenHandler.connect(addr1).burn(amount, {value: ethAmount}))
-			.to.emit(ethTokenHandler, "LogBurn")
+		await expect(ethTokenHandler.connect(addr1).burn(amount, { value: ethAmount }))
+			.to.emit(ethTokenHandler, "TokensBurned")
 			.withArgs(accounts[1], 1, amount);
 		let tcapBalance = await tcapInstance.balanceOf(accounts[1]);
 		expect(tcapBalance).to.eq(0);
@@ -392,7 +392,7 @@ describe("ETH Vault", async function () {
 	it("...should allow users to retrieve stake when debt is paid", async () => {
 		let vault = await ethTokenHandler.getVault(1);
 		await expect(ethTokenHandler.connect(addr1).removeCollateral(vault[1]))
-			.to.emit(ethTokenHandler, "LogRemoveCollateral")
+			.to.emit(ethTokenHandler, "CollateralRemoved")
 			.withArgs(accounts[1], 1, vault[1]);
 		vault = await ethTokenHandler.getVault(1);
 		expect(vault[0]).to.eq(1);
@@ -409,7 +409,7 @@ describe("ETH Vault", async function () {
 			"Ownable: caller is not the owner"
 		);
 		await expect(orchestratorInstance.connect(owner).retrieveVaultFees(ethTokenHandler.address))
-			.to.emit(ethTokenHandler, "LogRetrieveFees")
+			.to.emit(ethTokenHandler, "FeesRetrieved")
 			.withArgs(orchestratorInstance.address, ethBalance);
 		let currentAccountBalance = await ethers.provider.getBalance(orchestratorInstance.address);
 		expect(currentAccountBalance).to.eq(orchestratorBalance.add(ethBalance));
@@ -432,7 +432,7 @@ describe("ETH Vault", async function () {
 
 		//liquidated
 		await ethTokenHandler.connect(lq).createVault();
-		await wethTokenInstance.connect(lq).deposit({value: reqAmount});
+		await wethTokenInstance.connect(lq).deposit({ value: reqAmount });
 		await wethTokenInstance.connect(lq).approve(ethTokenHandler.address, reqAmount);
 		await ethTokenHandler.connect(lq).addCollateral(reqAmount);
 		await ethTokenHandler.connect(lq).mint(amount);
@@ -495,7 +495,7 @@ describe("ETH Vault", async function () {
 			ethersProvider.utils.parseEther("110")
 		);
 		await ethTokenHandler.connect(addr3).createVault();
-		await wethTokenInstance.connect(addr3).deposit({value: reqLiquidatorAmount});
+		await wethTokenInstance.connect(addr3).deposit({ value: reqLiquidatorAmount });
 		await wethTokenInstance.connect(addr3).approve(ethTokenHandler.address, reqLiquidatorAmount);
 		await ethTokenHandler.connect(addr3).addCollateral(reqLiquidatorAmount);
 		await ethTokenHandler.connect(addr3).mint(liquidatorAmount);
@@ -510,14 +510,14 @@ describe("ETH Vault", async function () {
 			ethTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation)
 		).to.be.revertedWith("VaultHandler::burn: burn fee different than required");
 		await expect(
-			ethTokenHandler.connect(addr3).liquidateVault(2, 1, {value: burnAmount})
+			ethTokenHandler.connect(addr3).liquidateVault(2, 1, { value: burnAmount })
 		).to.be.revertedWith(
 			"VaultHandler::liquidateVault: liquidation amount different than required"
 		);
 		await expect(
-			ethTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation, {value: burnAmount})
+			ethTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation, { value: burnAmount })
 		)
-			.to.emit(ethTokenHandler, "LogLiquidateVault")
+			.to.emit(ethTokenHandler, "VaultLiquidated")
 			.withArgs(2, accounts[3], reqLiquidation, liquidationReward);
 
 		vaultRatio = await ethTokenHandler.getVaultRatio(2);

@@ -8,6 +8,8 @@ import "./TCAP.sol";
 import "./oracles/ChainlinkOracle.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @title TCAP Orchestrator
  * @author Cristian Espinoza
@@ -25,7 +27,7 @@ contract Orchestrator is Ownable {
 
   /** @dev Interface constants*/
   bytes4 private constant _INTERFACE_ID_IVAULT = 0x9e75ab0c;
-  bytes4 private constant _INTERFACE_ID_TCAP = 0xa9ccee51;
+  bytes4 private constant _INTERFACE_ID_TCAP = 0xbd115939;
   bytes4 private constant _INTERFACE_ID_CHAINLINK_ORACLE = 0x85be402b;
 
   /**
@@ -288,7 +290,7 @@ contract Orchestrator is Ownable {
     validTCAP(_tcap)
     validVault(_vault)
   {
-    _tcap.addTokenHandler(address(_vault));
+    _tcap.addVaultHandler(address(_vault));
   }
 
   function executeTransaction(

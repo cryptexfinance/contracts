@@ -92,7 +92,7 @@ describe("ERC20 Vault", async function () {
 		let vaultId = await ercTokenHandler.userToVault(accounts[1]);
 		expect(vaultId).eq(0);
 		await expect(ercTokenHandler.connect(addr1).createVault())
-			.to.emit(ercTokenHandler, "LogCreateVault")
+			.to.emit(ercTokenHandler, "VaultCreated")
 			.withArgs(accounts[1], 1);
 		vaultId = await ercTokenHandler.userToVault(accounts[1]);
 		expect(vaultId).eq(1);
@@ -140,7 +140,7 @@ describe("ERC20 Vault", async function () {
 		);
 
 		await expect(ercTokenHandler.connect(addr1).addCollateral(amount))
-			.to.emit(ercTokenHandler, "LogAddCollateral")
+			.to.emit(ercTokenHandler, "CollateralAdded")
 			.withArgs(accounts[1], 1, amount);
 		let vault = await ercTokenHandler.getVault(1);
 		expect(vault[0]).to.eq(1);
@@ -179,7 +179,7 @@ describe("ERC20 Vault", async function () {
 			"VaultHandler::notZero: value can't be 0"
 		);
 		await expect(ercTokenHandler.connect(addr1).removeCollateral(amount))
-			.to.emit(ercTokenHandler, "LogRemoveCollateral")
+			.to.emit(ercTokenHandler, "CollateralRemoved")
 			.withArgs(accounts[1], 1, amount);
 
 		let vault = await ercTokenHandler.getVault(1);
@@ -255,7 +255,7 @@ describe("ERC20 Vault", async function () {
 			"VaultHandler::notZero: value can't be 0"
 		);
 		await expect(ercTokenHandler.connect(addr1).mint(amount))
-			.to.emit(ercTokenHandler, "LogMint")
+			.to.emit(ercTokenHandler, "TokensMinted")
 			.withArgs(accounts[1], 1, amount);
 		tcapBalance = await tcapInstance.balanceOf(accounts[1]);
 		expect(tcapBalance).to.eq(amount);
@@ -329,16 +329,16 @@ describe("ERC20 Vault", async function () {
 			"VaultHandler::burn: burn fee different than required"
 		);
 		await expect(
-			ercTokenHandler.connect(addr1).burn(bigAmount, {value: ethAmount2})
+			ercTokenHandler.connect(addr1).burn(bigAmount, { value: ethAmount2 })
 		).to.be.revertedWith("VaultHandler::burn: amount greater than debt");
 		await expect(
-			ercTokenHandler.connect(addr1).burn(amount, {value: ethHighAmount})
+			ercTokenHandler.connect(addr1).burn(amount, { value: ethHighAmount })
 		).to.be.revertedWith("VaultHandler::burn: burn fee different than required");
 		await expect(ercTokenHandler.connect(addr1).burn(0)).to.be.revertedWith(
 			"VaultHandler::notZero: value can't be 0"
 		);
-		await expect(ercTokenHandler.connect(addr1).burn(amount, {value: ethAmount}))
-			.to.emit(ercTokenHandler, "LogBurn")
+		await expect(ercTokenHandler.connect(addr1).burn(amount, { value: ethAmount }))
+			.to.emit(ercTokenHandler, "TokensBurned")
 			.withArgs(accounts[1], 1, amount);
 		let tcapBalance = await tcapInstance.balanceOf(accounts[1]);
 		expect(tcapBalance).to.eq(0);
@@ -360,7 +360,7 @@ describe("ERC20 Vault", async function () {
 	it("...should allow users to retrieve stake when debt is paid", async () => {
 		let vault = await ercTokenHandler.getVault(1);
 		await expect(ercTokenHandler.connect(addr1).removeCollateral(vault[1]))
-			.to.emit(ercTokenHandler, "LogRemoveCollateral")
+			.to.emit(ercTokenHandler, "CollateralRemoved")
 			.withArgs(accounts[1], 1, vault[1]);
 		vault = await ercTokenHandler.getVault(1);
 		expect(vault[0]).to.eq(1);
@@ -377,7 +377,7 @@ describe("ERC20 Vault", async function () {
 			"Ownable: caller is not the owner"
 		);
 		await expect(orchestratorInstance.connect(owner).retrieveVaultFees(ercTokenHandler.address))
-			.to.emit(ercTokenHandler, "LogRetrieveFees")
+			.to.emit(ercTokenHandler, "FeesRetrieved")
 			.withArgs(orchestratorInstance.address, ethBalance);
 		let currentAccountBalance = await ethers.provider.getBalance(orchestratorInstance.address);
 		expect(currentAccountBalance).to.eq(orchestratorBalance.add(ethBalance));
@@ -478,14 +478,14 @@ describe("ERC20 Vault", async function () {
 			ercTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation)
 		).to.be.revertedWith("VaultHandler::burn: burn fee different than required");
 		await expect(
-			ercTokenHandler.connect(addr3).liquidateVault(2, 1, {value: burnAmount})
+			ercTokenHandler.connect(addr3).liquidateVault(2, 1, { value: burnAmount })
 		).to.be.revertedWith(
 			"VaultHandler::liquidateVault: liquidation amount different than required"
 		);
 		await expect(
-			ercTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation, {value: burnAmount})
+			ercTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation, { value: burnAmount })
 		)
-			.to.emit(ercTokenHandler, "LogLiquidateVault")
+			.to.emit(ercTokenHandler, "VaultLiquidated")
 			.withArgs(2, accounts[3], reqLiquidation, liquidationReward);
 
 		vaultRatio = await ercTokenHandler.getVaultRatio(2);

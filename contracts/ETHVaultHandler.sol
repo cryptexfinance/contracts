@@ -120,8 +120,8 @@ contract ETHVaultHandler is IVaultHandler {
 
   /**
    * @notice Allows the safe transfer of ETH
-   * @param _to
-   * @param _value
+   * @param _to account to transfer ETH
+   * @param _value amount of ETH
    */
   function safeTransferETH(address _to, uint256 _value) internal {
     (bool success, ) = _to.call{value: _value}(new bytes(0));

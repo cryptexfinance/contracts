@@ -200,7 +200,7 @@ abstract contract IVaultHandler is
     transferOwnership(address(_orchestrator));
   }
 
-  /** @notice Reverts if the user hasn't created a vault. */
+  /// @notice Reverts if the user hasn't created a vault.
   modifier vaultExists() {
     require(
       userToVault[msg.sender] != 0,
@@ -209,7 +209,7 @@ abstract contract IVaultHandler is
     _;
   }
 
-  /** @notice Reverts if value is 0. */
+  /// @notice Reverts if value is 0.
   modifier notZero(uint256 _value) {
     require(_value != 0, "VaultHandler::notZero: value can't be 0");
     _;
