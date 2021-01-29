@@ -397,6 +397,7 @@ describe("ETH Vault", async function () {
 	});
 
 	it("...should allow users to burn tokens", async () => {
+		let beforeReward = await rewardTokenInstance.balanceOf(accounts[1]);
 		const amount = ethers.utils.parseEther("10");
 		const amount2 = ethers.utils.parseEther("11");
 		const bigAmount = ethers.utils.parseEther("100");
@@ -430,6 +431,11 @@ describe("ETH Vault", async function () {
 
 		let ethBalance = await ethers.provider.getBalance(ethTokenHandler.address);
 		expect(ethBalance).to.eq(ethAmount);
+
+		// it should exit the rewards
+
+		let afterReward = await rewardTokenInstance.balanceOf(accounts[1]);
+		expect(afterReward).to.be.gt(beforeReward);
 	});
 
 	// TODO: remove stake from burn

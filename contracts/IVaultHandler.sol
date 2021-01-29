@@ -19,7 +19,7 @@ interface IRewardHandler {
 
   function withdraw(address _staker, uint256 amount) external;
 
-  function exit(address _staker) external;
+  function getRewardFromVault(address _staker) external;
 }
 
 /**
@@ -405,6 +405,7 @@ abstract contract IVaultHandler is
    * @dev _amount should be higher than 0
    * @dev A fee of exactly burnFee must be sent as value on ETH
    * @dev The fee goes to the treasury contract //TODO
+   * @dev if reward handler is set exit rewards
    */
   function burn(uint256 _amount)
     external
@@ -418,6 +419,11 @@ abstract contract IVaultHandler is
     Vault memory vault = vaults[userToVault[msg.sender]];
     _checkBurnFee(_amount);
     _burn(vault.Id, _amount);
+
+    if (address(rewardHandler) != address(0)) {
+      rewardHandler.withdraw(msg.sender, _amount);
+      rewardHandler.getRewardFromVault(msg.sender);
+    }
     emit TokensBurned(msg.sender, vault.Id, _amount);
   }
 
@@ -453,7 +459,15 @@ abstract contract IVaultHandler is
     uint256 reward = liquidationReward(vault.Id);
     _checkBurnFee(_requiredTCAP);
     _burn(vault.Id, _requiredTCAP);
+
+    //Removes the collateral that is rewarded to liquidator
     vault.Collateral = vault.Collateral.sub(reward);
+
+    // Triggers update of CTX Rewards
+    if (address(rewardHandler) != address(0)) {
+      rewardHandler.withdraw(vault.Owner, _requiredTCAP);
+    }
+
     require(
       collateralContract.transfer(msg.sender, reward),
       "VaultHandler::liquidateVault: ERC20 transfer did not succeed"
