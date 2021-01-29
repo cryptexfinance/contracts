@@ -118,6 +118,20 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
     emit Withdrawn(_staker, amount);
   }
 
+  function getRewardFromVault(address _staker)
+    public
+    onlyVault
+    nonReentrant
+    updateReward(_staker)
+  {
+    uint256 reward = rewards[_staker];
+    if (reward > 0) {
+      rewards[_staker] = 0;
+      rewardsToken.safeTransfer(_staker, reward);
+      emit RewardPaid(_staker, reward);
+    }
+  }
+
   function getReward() public nonReentrant updateReward(msg.sender) {
     uint256 reward = rewards[msg.sender];
     if (reward > 0) {
@@ -129,7 +143,7 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
 
   function exit(address _staker) external onlyVault {
     withdraw(_staker, _balances[_staker]);
-    getReward();
+    getRewardFromVault(_staker);
   }
 
   /* ========== RESTRICTED FUNCTIONS ========== */

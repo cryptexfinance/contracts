@@ -433,7 +433,8 @@ describe("ETH Vault", async function () {
 	});
 
 	// TODO: remove stake from burn
-
+	// TODO: claim rewards
+	// TODO: exit
 	it("...should update the collateral ratio", async () => {
 		let ratio = await ethTokenHandler.getVaultRatio(1);
 		expect(ratio).to.eq(0);
