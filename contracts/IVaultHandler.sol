@@ -14,6 +14,14 @@ import "./TCAP.sol";
 import "./Orchestrator.sol";
 import "./oracles/ChainlinkOracle.sol";
 
+interface IRewardHandler {
+  function stake(address _staker, uint256 amount) external;
+
+  function withdraw(address _staker, uint256 amount) external;
+
+  function exit(address _staker) external;
+}
+
 /**
  * @title TCAP Vault Handler
  * @author Cristian Espinoza
@@ -75,6 +83,9 @@ abstract contract IVaultHandler is
   /// @notice Penalty charged to vault owner when a vault is liquidated, this value goes to the liquidator
   uint256 public liquidationPenalty;
 
+  /// @notice Address of the contract that gives rewards to minters of TCAP, rewards are only given if address is set before minting
+  IRewardHandler public rewardHandler;
+
   /// @notice Owner address to Vault Id
   mapping(address => uint256) public userToVault;
 
@@ -98,17 +109,20 @@ abstract contract IVaultHandler is
   /// @dev bytes4(keccak256('supportsInterface(bytes4)')) == 0x01ffc9a7
   bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
 
-  /// @notice An event emitted when a the ratio is updated
+  /// @notice An event emitted when the ratio is updated
   event NewRatio(address indexed _owner, uint256 _ratio);
 
   /// @notice An event emitted when the burn fee is updated
   event NewBurnFee(address indexed _owner, uint256 _burnFee);
 
-  /// @notice An event emitted when a the liquidation penalty is updated
+  /// @notice An event emitted when the liquidation penalty is updated
   event NewLiquidationPenalty(
     address indexed _owner,
     uint256 _liquidationPenalty
   );
+
+  /// @notice An event emitted when the reward handler contract is updated
+  event NewRewardHandler(address indexed _owner, address _rewardHandler);
 
   /// @notice An event emitted when a vault is created
   event VaultCreated(address indexed _owner, uint256 indexed _id);
@@ -164,6 +178,7 @@ abstract contract IVaultHandler is
    * @param _collateralAddress address
    * @param _collateralOracle address
    * @param _ethOracle address
+   * @param _rewardHandler address
    */
   constructor(
     Orchestrator _orchestrator,
@@ -175,7 +190,8 @@ abstract contract IVaultHandler is
     TCAP _tcapAddress,
     address _collateralAddress,
     address _collateralOracle,
-    address _ethOracle
+    address _ethOracle,
+    address _rewardHandler
   ) {
     require(
       _liquidationPenalty.add(100) < _ratio,
@@ -191,6 +207,7 @@ abstract contract IVaultHandler is
     collateralPriceOracle = ChainlinkOracle(_collateralOracle);
     ETHPriceOracle = ChainlinkOracle(_ethOracle);
     TCAPToken = _tcapAddress;
+    rewardHandler = IRewardHandler(_rewardHandler);
 
     /// @dev counter starts in 1 as 0 is reserved for empty objects
     counter.increment();
@@ -253,6 +270,17 @@ abstract contract IVaultHandler is
 
     liquidationPenalty = _liquidationPenalty;
     emit NewLiquidationPenalty(msg.sender, _liquidationPenalty);
+  }
+
+  /**
+   * @notice Sets the reward handler address
+   * @param _rewardHandler address
+   * @dev Only owner can call it
+   * @dev if not set rewards are not given
+   */
+  function setRewardHandler(address _rewardHandler) external virtual onlyOwner {
+    rewardHandler = IRewardHandler(_rewardHandler);
+    emit NewRewardHandler(msg.sender, _rewardHandler);
   }
 
   /**
@@ -339,6 +367,7 @@ abstract contract IVaultHandler is
    * @param _amount of tokens to mint
    * @dev _amount should be higher than 0
    * @dev requires to have a vault ratio above the minimum ratio
+   * @dev if reward handler is set stake to earn rewards
    */
   function mint(uint256 _amount)
     external
@@ -361,6 +390,10 @@ abstract contract IVaultHandler is
       getVaultRatio(vault.Id) >= ratio,
       "VaultHandler::mint: collateral below min required ratio"
     );
+
+    if (address(rewardHandler) != address(0)) {
+      rewardHandler.stake(msg.sender, _amount);
+    }
 
     TCAPToken.mint(msg.sender, _amount);
     emit TokensMinted(msg.sender, vault.Id, _amount);

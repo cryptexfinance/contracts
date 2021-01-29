@@ -73,7 +73,8 @@ describe("ERC20 Vault", async function () {
 			tcapInstance.address,
 			ercTokenInstance.address,
 			priceOracleInstance.address,
-			priceOracleInstance.address
+			priceOracleInstance.address,
+			ethers.constants.AddressZero
 		);
 		await ercTokenHandler.deployed();
 		expect(ercTokenHandler.address).properAddress;

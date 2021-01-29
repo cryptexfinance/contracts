@@ -27,6 +27,7 @@ contract ETHVaultHandler is IVaultHandler {
    * @param _collateralAddress address
    * @param _collateralOracle address
    * @param _ethOracle address
+   * @param _rewardHandler address
    */
   constructor(
     Orchestrator _orchestrator,
@@ -38,7 +39,8 @@ contract ETHVaultHandler is IVaultHandler {
     TCAP _tcapAddress,
     address _collateralAddress,
     address _collateralOracle,
-    address _ethOracle
+    address _ethOracle,
+    address _rewardHandler
   )
     IVaultHandler(
       _orchestrator,
@@ -50,7 +52,8 @@ contract ETHVaultHandler is IVaultHandler {
       _tcapAddress,
       _collateralAddress,
       _collateralOracle,
-      _ethOracle
+      _ethOracle,
+      _rewardHandler
     )
   {}
 

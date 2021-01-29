@@ -1,5 +1,4 @@
 var expect = require("chai").expect;
-var ethersProvider = require("ethers");
 
 describe("ETH Vault", async function () {
 	let ethTokenHandler,
@@ -8,13 +7,16 @@ describe("ETH Vault", async function () {
 		tcapOracleInstance,
 		priceOracleInstance,
 		aggregatorTCAPInstance,
-		orchestratorInstance;
+		orchestratorInstance,
+		rewardHandlerInstance,
+		rewardTokenInstance;
 	let [owner, addr1, addr2, addr3, lq, guardian] = [];
 	let accounts = [];
 	let divisor = "10000000000";
 	let ratio = "150";
 	let burnFee = "1";
 	let liquidationPenalty = "10";
+	const ONE_DAY = 86400;
 
 	before("Set Accounts", async () => {
 		let [acc0, acc1, acc3, acc4, acc5, acc6] = await ethers.getSigners();
@@ -60,6 +62,9 @@ describe("ETH Vault", async function () {
 		const weth = await ethers.getContractFactory("WETH");
 		wethTokenInstance = await weth.deploy();
 
+		const rewardToken = await ethers.getContractFactory("DAI");
+		rewardTokenInstance = await rewardToken.deploy();
+
 		const ethVault = await ethers.getContractFactory("ETHVaultHandler");
 		ethTokenHandler = await ethVault.deploy(
 			orchestratorInstance.address,
@@ -71,7 +76,8 @@ describe("ETH Vault", async function () {
 			tcapInstance.address,
 			wethTokenInstance.address,
 			priceOracleInstance.address,
-			priceOracleInstance.address
+			priceOracleInstance.address,
+			ethers.constants.AddressZero
 		);
 		await ethTokenHandler.deployed();
 		expect(ethTokenHandler.address).properAddress;
@@ -110,12 +116,12 @@ describe("ETH Vault", async function () {
 		vault = await ethTokenHandler.getVault(100);
 		expect(vault[0]).to.eq(0);
 		expect(vault[1]).to.eq(0);
-		expect(vault[2]).to.eq(ethersProvider.constants.AddressZero);
+		expect(vault[2]).to.eq(ethers.constants.AddressZero);
 		expect(vault[3]).to.eq(0);
 	});
 
 	it("...should allow user to stake weth collateral", async () => {
-		const amount = ethersProvider.utils.parseEther("375");
+		const amount = ethers.utils.parseEther("375");
 		await expect(ethTokenHandler.connect(addr3).addCollateral(amount)).to.be.revertedWith(
 			"VaultHandler::vaultExists: no vault created"
 		);
@@ -161,7 +167,7 @@ describe("ETH Vault", async function () {
 
 	it("...should allow user to stake eth collateral", async () => {
 		let balance = await ethers.provider.getBalance(accounts[1]);
-		const amount = ethersProvider.utils.parseEther("375");
+		const amount = ethers.utils.parseEther("375");
 		let vault = await ethTokenHandler.getVault(1);
 		let vaultBalance = vault[1];
 
@@ -196,8 +202,8 @@ describe("ETH Vault", async function () {
 	});
 
 	it("...should allow user to retrieve unused collateral on eth", async () => {
-		const amount = ethersProvider.utils.parseEther("375");
-		const bigAmount = ethersProvider.utils.parseEther("100375");
+		const amount = ethers.utils.parseEther("375");
+		const bigAmount = ethers.utils.parseEther("100375");
 		let userBalance = await ethers.provider.getBalance(accounts[1]);
 		let vault = await ethTokenHandler.getVault(1);
 		let vaultBalance = vault[1];
@@ -238,8 +244,8 @@ describe("ETH Vault", async function () {
 	});
 
 	it("...should allow user to retrieve unused collateral on weth", async () => {
-		const amount = ethersProvider.utils.parseEther("375");
-		const bigAmount = ethersProvider.utils.parseEther("100375");
+		const amount = ethers.utils.parseEther("375");
+		const bigAmount = ethers.utils.parseEther("100375");
 		let balance = await wethTokenInstance.balanceOf(accounts[1]);
 		expect(balance).to.eq(0);
 
@@ -278,7 +284,7 @@ describe("ETH Vault", async function () {
 	});
 
 	it("...should return the correct minimal collateral required", async () => {
-		let amount = ethersProvider.utils.parseEther("1");
+		let amount = ethers.utils.parseEther("1");
 		const reqAmount = await ethTokenHandler.requiredCollateral(amount);
 		const ethPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
 		const tcapPrice = await ethTokenHandler.TCAPPrice();
@@ -287,11 +293,43 @@ describe("ETH Vault", async function () {
 		expect(reqAmount).to.eq(result);
 	});
 
+	it("...should allow to earn fees if reward address is set", async () => {
+		// set reward handler
+		const reward = await ethers.getContractFactory("RewardHandler");
+		rewardHandlerInstance = await reward.deploy(
+			orchestratorInstance.address,
+			rewardTokenInstance.address,
+			wethTokenInstance.address,
+			ethTokenHandler.address
+		);
+		await rewardHandlerInstance.deployed();
+		await orchestratorInstance.setRewardHandler(
+			ethTokenHandler.address,
+			rewardHandlerInstance.address
+		);
+
+		let rewardAmount = ethers.utils.parseEther("100");
+		await rewardTokenInstance.mint(accounts[0], rewardAmount);
+		await rewardTokenInstance.connect(owner).transfer(rewardHandlerInstance.address, rewardAmount);
+		const abi = new ethers.utils.AbiCoder();
+		const target = rewardHandlerInstance.address;
+		const value = 0;
+		const signature = "notifyRewardAmount(uint256)";
+		const data = abi.encode(["uint256"], [rewardAmount]);
+		await expect(
+			orchestratorInstance.connect(owner).executeTransaction(target, value, signature, data)
+		)
+			.to.emit(rewardHandlerInstance, "RewardAdded")
+			.withArgs(rewardAmount);
+
+		expect(await rewardTokenInstance.balanceOf(rewardHandlerInstance.address)).to.eq(rewardAmount);
+	});
+
 	it("...should allow user to mint tokens", async () => {
-		const amount = ethersProvider.utils.parseEther("10");
-		const amount2 = ethersProvider.utils.parseEther("11");
-		const lowAmount = ethersProvider.utils.parseEther("1");
-		const bigAmount = ethersProvider.utils.parseEther("100");
+		const amount = ethers.utils.parseEther("10");
+		const amount2 = ethers.utils.parseEther("11");
+		const lowAmount = ethers.utils.parseEther("1");
+		const bigAmount = ethers.utils.parseEther("100");
 		const reqAmount2 = await ethTokenHandler.requiredCollateral(amount2);
 
 		await wethTokenInstance.connect(addr1).deposit({ value: reqAmount2 });
@@ -320,6 +358,16 @@ describe("ETH Vault", async function () {
 		);
 	});
 
+	it("...should allow user to earn rewards", async () => {
+		//fast-forward
+		let _before = await rewardHandlerInstance.earned(accounts[1]);
+		await ethers.provider.send("evm_increaseTime", [ONE_DAY]);
+		await ethers.provider.send("evm_mine", []);
+		let _after = await rewardHandlerInstance.earned(accounts[1]);
+		expect(_after.gt(_before)).to.be.true;
+		expect(_after > 0).to.be.true;
+	});
+
 	it("...should allow users to get collateral ratio", async () => {
 		let ratio = await ethTokenHandler.getVaultRatio(2);
 		expect(ratio).to.eq(0);
@@ -335,24 +383,24 @@ describe("ETH Vault", async function () {
 	});
 
 	it("...should calculate the burn fee", async () => {
-		let amount = ethersProvider.utils.parseEther("10");
+		let amount = ethers.utils.parseEther("10");
 		let divisor = 100;
 		let tcapPrice = await ethTokenHandler.TCAPPrice();
 		let ethPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
 		let result = tcapPrice.mul(amount).div(divisor).div(ethPrice);
 		let fee = await ethTokenHandler.getFee(amount);
 		expect(fee).to.eq(result);
-		amount = ethersProvider.utils.parseEther("100");
+		amount = ethers.utils.parseEther("100");
 		result = tcapPrice.mul(amount).div(divisor).div(ethPrice);
 		fee = await ethTokenHandler.getFee(amount);
 		expect(fee).to.eq(result);
 	});
 
 	it("...should allow users to burn tokens", async () => {
-		const amount = ethersProvider.utils.parseEther("10");
-		const amount2 = ethersProvider.utils.parseEther("11");
-		const bigAmount = ethersProvider.utils.parseEther("100");
-		const ethHighAmount = ethersProvider.utils.parseEther("50");
+		const amount = ethers.utils.parseEther("10");
+		const amount2 = ethers.utils.parseEther("11");
+		const bigAmount = ethers.utils.parseEther("100");
+		const ethHighAmount = ethers.utils.parseEther("50");
 		const reqAmount2 = await ethTokenHandler.requiredCollateral(amount2);
 		const ethAmount = await ethTokenHandler.getFee(amount);
 		const ethAmount2 = await ethTokenHandler.getFee(bigAmount);
@@ -383,6 +431,8 @@ describe("ETH Vault", async function () {
 		let ethBalance = await ethers.provider.getBalance(ethTokenHandler.address);
 		expect(ethBalance).to.eq(ethAmount);
 	});
+
+	// TODO: remove stake from burn
 
 	it("...should update the collateral ratio", async () => {
 		let ratio = await ethTokenHandler.getVaultRatio(1);
@@ -424,11 +474,9 @@ describe("ETH Vault", async function () {
 
 	it("...should test liquidation requirements", async () => {
 		//Prepare for liquidation tests
-		let amount = ethersProvider.utils.parseEther("10");
+		let amount = ethers.utils.parseEther("10");
 
-		const reqAmount = await ethTokenHandler.requiredCollateral(
-			ethersProvider.utils.parseEther("11")
-		);
+		const reqAmount = await ethTokenHandler.requiredCollateral(ethers.utils.parseEther("11"));
 
 		//liquidated
 		await ethTokenHandler.connect(lq).createVault();
@@ -473,7 +521,7 @@ describe("ETH Vault", async function () {
 	});
 
 	it("...should allow liquidators to return profits", async () => {
-		const divisor = ethersProvider.utils.parseEther("1");
+		const divisor = ethers.utils.parseEther("1");
 		const liquidationReward = await ethTokenHandler.liquidationReward(2);
 		const reqLiquidation = await ethTokenHandler.requiredLiquidationTCAP(2);
 		const tcapPrice = await ethTokenHandler.TCAPPrice();
@@ -490,9 +538,9 @@ describe("ETH Vault", async function () {
 		let ethBalance = await ethers.provider.getBalance(ethTokenHandler.address);
 
 		//liquidator setup
-		let liquidatorAmount = ethersProvider.utils.parseEther("20");
+		let liquidatorAmount = ethers.utils.parseEther("20");
 		const reqLiquidatorAmount = await ethTokenHandler.requiredCollateral(
-			ethersProvider.utils.parseEther("110")
+			ethers.utils.parseEther("110")
 		);
 		await ethTokenHandler.connect(addr3).createVault();
 		await wethTokenInstance.connect(addr3).deposit({ value: reqLiquidatorAmount });

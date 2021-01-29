@@ -189,6 +189,22 @@ contract Orchestrator is Ownable {
   }
 
   /**
+   * @notice Sets the reward handler address of a vault
+   * @param _vault address
+   * @param _rewardHandler address
+   * @dev Only owner can call it
+   */
+  function setRewardHandler(IVaultHandler _vault, address _rewardHandler)
+    external
+    onlyOwner
+    validVault(_vault)
+  {
+    _vault.setRewardHandler(_rewardHandler);
+  }
+
+  /**
+
+  /**
    * @notice Pauses the Vault
    * @param _vault address
    * @dev Only guardian can call it
