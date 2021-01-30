@@ -8,6 +8,8 @@ import "./TCAP.sol";
 import "./oracles/ChainlinkOracle.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @title TCAP Orchestrator
  * @author Cristian Espinoza
@@ -16,10 +18,16 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract Orchestrator is Ownable {
   /** @dev Logs all the calls of the functions. */
   event LogSetGuardian(address indexed _owner, address guardian);
+  event LogExecuteTransaction(
+    address indexed target,
+    uint256 value,
+    string signature,
+    bytes data
+  );
 
   /** @dev Interface constants*/
   bytes4 private constant _INTERFACE_ID_IVAULT = 0x9e75ab0c;
-  bytes4 private constant _INTERFACE_ID_TCAP = 0xa9ccee51;
+  bytes4 private constant _INTERFACE_ID_TCAP = 0xbd115939;
   bytes4 private constant _INTERFACE_ID_CHAINLINK_ORACLE = 0x85be402b;
 
   /**
@@ -181,6 +189,22 @@ contract Orchestrator is Ownable {
   }
 
   /**
+   * @notice Sets the reward handler address of a vault
+   * @param _vault address
+   * @param _rewardHandler address
+   * @dev Only owner can call it
+   */
+  function setRewardHandler(IVaultHandler _vault, address _rewardHandler)
+    external
+    onlyOwner
+    validVault(_vault)
+  {
+    _vault.setRewardHandler(_rewardHandler);
+  }
+
+  /**
+
+  /**
    * @notice Pauses the Vault
    * @param _vault address
    * @dev Only guardian can call it
@@ -282,7 +306,50 @@ contract Orchestrator is Ownable {
     validTCAP(_tcap)
     validVault(_vault)
   {
-    _tcap.addTokenHandler(address(_vault));
+    _tcap.addVaultHandler(address(_vault));
+  }
+
+  /**
+   * @notice Removes Vault to TCAP ERC20
+   * @param _tcap address
+   * @param _vault address
+   * @dev Only owner can call it
+   * @dev Validates if _tcap is valid
+   * @dev Validates if _vault is valid
+   */
+  function removeTCAPVault(TCAP _tcap, IVaultHandler _vault)
+    external
+    onlyOwner
+    validTCAP(_tcap)
+    validVault(_vault)
+  {
+    _tcap.removeVaultHandler(address(_vault));
+  }
+
+  function executeTransaction(
+    address target,
+    uint256 value,
+    string memory signature,
+    bytes memory data
+  ) external payable onlyOwner returns (bytes memory) {
+    bytes memory callData;
+    if (bytes(signature).length == 0) {
+      callData = data;
+    } else {
+      callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
+    }
+
+    // solium-disable-next-line security/no-call-value
+    (bool success, bytes memory returnData) =
+      target.call{value: value}(callData);
+    require(
+      success,
+      "Orchestrator::executeTransaction: Transaction execution reverted."
+    );
+
+    emit LogExecuteTransaction(target, value, signature, data);
+
+    return returnData;
   }
 
   /**

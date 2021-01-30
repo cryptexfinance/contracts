@@ -7,15 +7,30 @@ import "./IWETH.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 /**
- * @title TCAP Vault
+ * @title ETH TCAP Vault
  * @author Cristian Espinoza
  * @notice Contract in charge of handling the TCAP Vault and stake using a ETH and WETH
  */
 contract ETHVaultHandler is IVaultHandler {
+  /// @notice Open Zeppelin libraries
   using SafeMath for uint256;
 
+  /**
+   * @notice Constructor
+   * @param _orchestrator address
+   * @param _divisor uint256
+   * @param _ratio uint256
+   * @param _burnFee uint256
+   * @param _liquidationPenalty uint256
+   * @param _tcapOracle address
+   * @param _tcapAddress address
+   * @param _collateralAddress address
+   * @param _collateralOracle address
+   * @param _ethOracle address
+   * @param _rewardHandler address
+   */
   constructor(
-    Orchestrator orchestrator,
+    Orchestrator _orchestrator,
     uint256 _divisor,
     uint256 _ratio,
     uint256 _burnFee,
@@ -24,10 +39,11 @@ contract ETHVaultHandler is IVaultHandler {
     TCAP _tcapAddress,
     address _collateralAddress,
     address _collateralOracle,
-    address _ethOracle
+    address _ethOracle,
+    address _rewardHandler
   )
     IVaultHandler(
-      orchestrator,
+      _orchestrator,
       _divisor,
       _ratio,
       _burnFee,
@@ -36,16 +52,25 @@ contract ETHVaultHandler is IVaultHandler {
       _tcapAddress,
       _collateralAddress,
       _collateralOracle,
-      _ethOracle
+      _ethOracle,
+      _rewardHandler
     )
   {}
 
   /**
+   * @notice only accept ETH via fallback from the WETH contract
+   */
+  receive() external payable {
+    assert(msg.sender == address(collateralContract));
+  }
+
+  /**
    * @notice Adds collateral to vault using ETH
    * @dev value should be higher than 0
+   * @dev ETH is turned into WETH
    */
   function addCollateralETH()
-    public
+    external
     payable
     nonReentrant
     vaultExists
@@ -58,16 +83,17 @@ contract ETHVaultHandler is IVaultHandler {
     IWETH(address(collateralContract)).deposit{value: msg.value}();
     Vault storage vault = vaults[userToVault[msg.sender]];
     vault.Collateral = vault.Collateral.add(msg.value);
-    emit LogAddCollateral(msg.sender, vault.Id, msg.value);
+    emit CollateralAdded(msg.sender, vault.Id, msg.value);
   }
 
   /**
    * @notice Removes not used collateral from vault
    * @param _amount of collateral to remove
    * @dev _amount should be higher than 0
+   * @dev WETH is turned into ETH
    */
   function removeCollateralETH(uint256 _amount)
-    public
+    external
     nonReentrant
     vaultExists
     whenNotPaused
@@ -92,21 +118,16 @@ contract ETHVaultHandler is IVaultHandler {
 
     IWETH(address(collateralContract)).withdraw(_amount);
     safeTransferETH(msg.sender, _amount);
-    emit LogRemoveCollateral(msg.sender, vault.Id, _amount);
+    emit CollateralRemoved(msg.sender, vault.Id, _amount);
   }
 
   /**
    * @notice Allows the safe transfer of ETH
+   * @param _to account to transfer ETH
+   * @param _value amount of ETH
    */
-  function safeTransferETH(address to, uint256 value) internal {
-    (bool success, ) = to.call{value: value}(new bytes(0));
+  function safeTransferETH(address _to, uint256 _value) internal {
+    (bool success, ) = _to.call{value: _value}(new bytes(0));
     require(success, "ETHVaultHandler::safeTransferETH: ETH transfer failed");
-  }
-
-  /**
-   * @notice only accept ETH via fallback from the WETH contract
-   */
-  receive() external payable {
-    assert(msg.sender == address(collateralContract));
   }
 }

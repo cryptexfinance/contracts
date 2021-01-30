@@ -2,7 +2,12 @@ var expect = require("chai").expect;
 var ethersProvider = require("ethers");
 
 describe("Orchestrator Contract", async function () {
-	let orchestratorInstance, tcapInstance, tcapInstance2, ethVaultInstance, btcVaultInstance;
+	let orchestratorInstance,
+		tcapInstance,
+		tcapInstance2,
+		ethVaultInstance,
+		btcVaultInstance,
+		wethTokenInstance;
 	let [owner, addr1, handler, handler2, guardian] = [];
 	let accounts = [];
 	let divisor = "10000000000";
@@ -66,7 +71,7 @@ describe("Orchestrator Contract", async function () {
 		ethOracle = chainlinkInstance.address;
 		//Collateral
 		const weth = await ethers.getContractFactory("WETH");
-		let wethTokenInstance = await weth.deploy();
+		wethTokenInstance = await weth.deploy();
 		collateralAddress = wethTokenInstance.address;
 
 		//Vaults
@@ -81,7 +86,8 @@ describe("Orchestrator Contract", async function () {
 			tcapInstance.address,
 			collateralAddress,
 			collateralOracle,
-			ethOracle
+			ethOracle,
+			ethers.constants.AddressZero
 		);
 		await ethVaultInstance.deployed();
 		expect(ethVaultInstance.address).properAddress;
@@ -96,7 +102,8 @@ describe("Orchestrator Contract", async function () {
 			tcapInstance.address,
 			collateralAddress,
 			collateralOracle,
-			ethOracle
+			ethOracle,
+			ethers.constants.AddressZero
 		);
 		await btcVaultInstance.deployed();
 		expect(btcVaultInstance.address).properAddress;
@@ -177,6 +184,36 @@ describe("Orchestrator Contract", async function () {
 		await expect(
 			orchestratorInstance.setLiquidationPenalty(ethVaultInstance.address, liquidationPenalty)
 		).to.be.revertedWith("VaultHandler::setLiquidationPenalty: liquidation penalty too high");
+	});
+
+	it("...should set the reward handler", async () => {
+		const rewardToken = await ethers.getContractFactory("WETH");
+		rewardTokenInstance = await rewardToken.deploy();
+		const reward = await ethers.getContractFactory("RewardHandler");
+		let rewardHandlerInstance = await reward.deploy(
+			orchestratorInstance.address,
+			rewardTokenInstance.address,
+			ethVaultInstance.address
+		);
+		await rewardHandlerInstance.deployed();
+		await expect(
+			orchestratorInstance
+				.connect(addr1)
+				.setRewardHandler(ethVaultInstance.address, ethersProvider.constants.AddressZero)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		await expect(
+			orchestratorInstance.setRewardHandler(
+				ethersProvider.constants.AddressZero,
+				ethersProvider.constants.AddressZero
+			)
+		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
+
+		await orchestratorInstance.setRewardHandler(
+			ethVaultInstance.address,
+			rewardTokenInstance.address
+		);
+		expect(rewardTokenInstance.address).to.eq(await ethVaultInstance.rewardHandler());
 	});
 
 	it("...should pause the Vault", async () => {
@@ -266,7 +303,7 @@ describe("Orchestrator Contract", async function () {
 		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
 
 		await expect(orchestratorInstance.retrieveVaultFees(ethVaultInstance.address))
-			.to.emit(ethVaultInstance, "LogRetrieveFees")
+			.to.emit(ethVaultInstance, "FeesRetrieved")
 			.withArgs(orchestratorInstance.address, 0);
 	});
 
@@ -291,7 +328,7 @@ describe("Orchestrator Contract", async function () {
 		).to.be.revertedWith("Orchestrator::validTCAP: not a valid TCAP ERC20");
 
 		await expect(orchestratorInstance.enableTCAPCap(tcapInstance.address, enableCap))
-			.to.emit(tcapInstance, "LogEnableCap")
+			.to.emit(tcapInstance, "NewCapEnabled")
 			.withArgs(orchestratorInstance.address, enableCap);
 
 		expect(enableCap).to.eq(await tcapInstance.capEnabled());
@@ -309,7 +346,7 @@ describe("Orchestrator Contract", async function () {
 		).to.be.revertedWith("Orchestrator::validTCAP: not a valid TCAP ERC20");
 
 		await expect(orchestratorInstance.setTCAPCap(tcapInstance.address, tcapCap))
-			.to.emit(tcapInstance, "LogSetCap")
+			.to.emit(tcapInstance, "NewCap")
 			.withArgs(orchestratorInstance.address, tcapCap);
 
 		expect(tcapCap).to.eq(await tcapInstance.cap());
@@ -334,7 +371,68 @@ describe("Orchestrator Contract", async function () {
 		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
 
 		await expect(orchestratorInstance.addTCAPVault(tcapInstance.address, ethVaultInstance.address))
-			.to.emit(tcapInstance, "LogAddTokenHandler")
+			.to.emit(tcapInstance, "VaultHandlerAdded")
 			.withArgs(orchestratorInstance.address, ethVaultInstance.address);
+
+		expect(await tcapInstance.vaultHandlers(ethVaultInstance.address)).to.eq(true);
+	});
+
+	it("...should remove vault to TCAP token", async () => {
+		await expect(
+			orchestratorInstance
+				.connect(addr1)
+				.removeTCAPVault(tcapInstance.address, ethVaultInstance.address)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		await expect(
+			orchestratorInstance.removeTCAPVault(
+				ethersProvider.constants.AddressZero,
+				ethVaultInstance.address
+			)
+		).to.be.revertedWith("Orchestrator::validTCAP: not a valid TCAP ERC20");
+
+		await expect(
+			orchestratorInstance.removeTCAPVault(
+				tcapInstance.address,
+				ethersProvider.constants.AddressZero
+			)
+		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
+
+		await expect(
+			orchestratorInstance.removeTCAPVault(tcapInstance.address, ethVaultInstance.address)
+		)
+			.to.emit(tcapInstance, "VaultHandlerRemoved")
+			.withArgs(orchestratorInstance.address, ethVaultInstance.address);
+
+		expect(await tcapInstance.vaultHandlers(ethVaultInstance.address)).to.eq(false);
+	});
+
+	it("...should allow to execute a custom transaction", async () => {
+		await orchestratorInstance.addTCAPVault(tcapInstance.address, ethVaultInstance.address);
+
+		let currentOwner = await tcapInstance.owner();
+		expect(currentOwner).to.eq(orchestratorInstance.address);
+		const newOwner = await addr1.getAddress();
+		const abi = new ethers.utils.AbiCoder();
+		const target = tcapInstance.address;
+		const value = 0;
+		const signature = "transferOwnership(address)";
+		const data = abi.encode(["address"], [newOwner]);
+
+		await expect(
+			orchestratorInstance.connect(addr1).executeTransaction(target, value, signature, data)
+		).to.be.revertedWith("Ownable: caller is not the owner");
+
+		const wrongData = abi.encode(["address"], [ethers.constants.AddressZero]);
+		await expect(
+			orchestratorInstance.executeTransaction(target, value, signature, wrongData)
+		).to.be.revertedWith("Orchestrator::executeTransaction: Transaction execution reverted.");
+
+		await expect(orchestratorInstance.executeTransaction(target, value, signature, data))
+			.to.emit(orchestratorInstance, "LogExecuteTransaction")
+			.withArgs(target, value, signature, data);
+
+		currentOwner = await tcapInstance.owner();
+		expect(currentOwner).to.eq(newOwner);
 	});
 });
