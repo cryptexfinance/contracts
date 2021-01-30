@@ -8,50 +8,104 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
-import "hardhat/console.sol";
-
 contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
+  /// @notice Open Zeppelin libraries
   using SafeMath for uint256;
   using SafeERC20 for IERC20;
 
-  /* ========== STATE VARIABLES ========== */
-
+  /// @notice Address of the reward
   IERC20 public rewardsToken;
-  IERC20 public stakingToken;
-  uint256 public periodFinish = 0;
-  uint256 public rewardRate = 0;
-  uint256 public rewardsDuration = 7 days;
-  uint256 public lastUpdateTime;
-  uint256 public rewardPerTokenStored;
 
-  mapping(address => uint256) public userRewardPerTokenPaid;
-  mapping(address => uint256) public rewards;
-
-  uint256 private _totalSupply;
-  mapping(address => uint256) private _balances;
+  /// @notice Address of the vault
   address public vault;
 
-  /* ========== CONSTRUCTOR ========== */
+  /// @notice Tracks the period where users stop earning rewards
+  uint256 public periodFinish = 0;
 
+  uint256 public rewardRate = 0;
+
+  /// @notice How long the rewards lasts, it updates when more rewards are added
+  uint256 public rewardsDuration = 7 days;
+
+  /// @notice Last time rewards were updated
+  uint256 public lastUpdateTime;
+
+  uint256 public rewardPerTokenStored;
+
+  /// @notice Track the rewards paid to users
+  mapping(address => uint256) public userRewardPerTokenPaid;
+
+  /// @notice Tracks the user rewards
+  mapping(address => uint256) public rewards;
+
+  /// @dev Tracks the total supply of the minted TCAPs
+  uint256 private _totalSupply;
+
+  /// @dev Tracks the amount of TCAP minted per user
+  mapping(address => uint256) private _balances;
+
+  /// @notice An event emitted when a reward is added
+  event RewardAdded(uint256 reward);
+
+  /// @notice An event emitted when TCAP is minted and staked to earn rewards
+  event Staked(address indexed user, uint256 amount);
+
+  /// @notice An event emitted when TCAP is burned and removed of stake
+  event Withdrawn(address indexed user, uint256 amount);
+
+  /// @notice An event emitted when reward is paid to a user
+  event RewardPaid(address indexed user, uint256 reward);
+
+  /// @notice An event emitted when the rewards duration is updated
+  event RewardsDurationUpdated(uint256 newDuration);
+
+  /// @notice An event emitted when a erc20 token is recovered
+  event Recovered(address token, uint256 amount);
+
+  /**
+   * @notice Constructor
+   * @param _owner address
+   * @param _rewardsToken address
+   * @param _vault uint256
+   */
   constructor(
     address _owner,
     address _rewardsToken,
-    address _stakingToken,
     address _vault
   ) {
     rewardsToken = IERC20(_rewardsToken);
-    stakingToken = IERC20(_stakingToken);
     vault = _vault;
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     transferOwnership(_owner);
   }
 
-  /* ========== VIEWS ========== */
+  /// @notice Updates the reward and time on call.
+  modifier updateReward(address account) {
+    rewardPerTokenStored = rewardPerToken();
+    lastUpdateTime = lastTimeRewardApplicable();
 
+    if (account != address(0)) {
+      rewards[account] = earned(account);
+      userRewardPerTokenPaid[account] = rewardPerTokenStored;
+    }
+    _;
+  }
+
+  /// @notice Reverts if the caller is not a vault.
+  modifier onlyVault() {
+    require(
+      msg.sender == vault,
+      "RewardHandler::OnlyVault: not calling from vault"
+    );
+    _;
+  }
+
+  /// @notice Returns the total amount of TCAP tokens minted and getting reward on this vault
   function totalSupply() external view returns (uint256) {
     return _totalSupply;
   }
 
+  /// @notice Returns the amount of TCAP tokens minted and getting reward from specific user
   function balanceOf(address account) external view returns (uint256) {
     return _balances[account];
   }
@@ -183,8 +237,7 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
   {
     // Cannot recover the staking token or the rewards token
     require(
-      tokenAddress != address(stakingToken) &&
-        tokenAddress != address(rewardsToken),
+      tokenAddress != address(rewardsToken),
       "Cannot withdraw the staking or rewards tokens"
     );
     IERC20(tokenAddress).safeTransfer(owner(), tokenAmount);
@@ -200,33 +253,5 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
     emit RewardsDurationUpdated(rewardsDuration);
   }
 
-  /* ========== MODIFIERS ========== */
-
-  modifier updateReward(address account) {
-    rewardPerTokenStored = rewardPerToken();
-
-    lastUpdateTime = lastTimeRewardApplicable();
-    if (account != address(0)) {
-      rewards[account] = earned(account);
-      userRewardPerTokenPaid[account] = rewardPerTokenStored;
-    }
-    _;
-  }
-
-  modifier onlyVault() {
-    require(
-      msg.sender == vault,
-      "RewardHandler::OnlyVault: not calling from vault"
-    );
-    _;
-  }
-
   /* ========== EVENTS ========== */
-
-  event RewardAdded(uint256 reward);
-  event Staked(address indexed user, uint256 amount);
-  event Withdrawn(address indexed user, uint256 amount);
-  event RewardPaid(address indexed user, uint256 reward);
-  event RewardsDurationUpdated(uint256 newDuration);
-  event Recovered(address token, uint256 amount);
 }
