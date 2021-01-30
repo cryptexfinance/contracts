@@ -131,50 +131,8 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
     return _balances[_account];
   }
 
-  /// @notice Returns the minimun between current block timestamp or the finish period of rewards.
-  function lastTimeRewardApplicable() public view returns (uint256) {
-    return min(block.timestamp, periodFinish);
-  }
-
-  /// @notice Returns the calculated reward per token deposited.
-  function rewardPerToken() public view returns (uint256) {
-    if (_totalSupply == 0) {
-      return rewardPerTokenStored;
-    }
-
-    return
-      rewardPerTokenStored.add(
-        lastTimeRewardApplicable()
-          .sub(lastUpdateTime)
-          .mul(rewardRate)
-          .mul(1e18)
-          .div(_totalSupply)
-      );
-  }
-
-  /**
-   * @notice Returns the amount of reward tokens a user has earned.
-   * @param _account address
-   */
-  function earned(address _account) public view returns (uint256) {
-    return
-      _balances[_account]
-        .mul(rewardPerToken().sub(userRewardPerTokenPaid[_account]))
-        .div(1e18)
-        .add(rewards[_account]);
-  }
-
   function getRewardForDuration() external view returns (uint256) {
     return rewardRate.mul(rewardsDuration);
-  }
-
-  /**
-   * @notice Returns the minimun between two variables
-   * @param _a uint
-   * @param _b uint
-   */
-  function min(uint256 _a, uint256 _b) public pure returns (uint256) {
-    return _a < _b ? _a : _b;
   }
 
   /**
@@ -195,58 +153,6 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
     _totalSupply = _totalSupply.add(_amount);
     _balances[_staker] = _balances[_staker].add(_amount);
     emit Staked(_staker, _amount);
-  }
-
-  /**
-   * @notice Called when TCAP is burned or liquidated, removes the burned value as stake
-   * @param _staker address
-   * @param _amount uint
-   * @dev Only vault can call it
-   * @dev updates rewards on call
-   */
-  function withdraw(address _staker, uint256 _amount)
-    public
-    onlyVault
-    nonReentrant
-    updateReward(_staker)
-  {
-    require(_amount > 0, "Cannot withdraw 0");
-    _totalSupply = _totalSupply.sub(_amount);
-    _balances[_staker] = _balances[_staker].sub(_amount);
-    emit Withdrawn(_staker, _amount);
-  }
-
-  /**
-   * @notice Called when TCAP is burned or liquidated, transfers to the staker the current amount of rewards tokens earned.
-   * @param _staker address
-   * @dev Only vault can call it
-   * @dev updates rewards on call
-   */
-  function getRewardFromVault(address _staker)
-    public
-    onlyVault
-    nonReentrant
-    updateReward(_staker)
-  {
-    uint256 reward = rewards[_staker];
-    if (reward > 0) {
-      rewards[_staker] = 0;
-      rewardsToken.safeTransfer(_staker, reward);
-      emit RewardPaid(_staker, reward);
-    }
-  }
-
-  /**
-   * @notice Transfers to the caller the current amount of rewards tokens earned.
-   * @dev updates rewards on call
-   */
-  function getReward() public nonReentrant updateReward(msg.sender) {
-    uint256 reward = rewards[msg.sender];
-    if (reward > 0) {
-      rewards[msg.sender] = 0;
-      rewardsToken.safeTransfer(msg.sender, reward);
-      emit RewardPaid(msg.sender, reward);
-    }
   }
 
   /**
@@ -325,5 +231,99 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
     );
     rewardsDuration = _rewardsDuration;
     emit RewardsDurationUpdated(rewardsDuration);
+  }
+
+  /// @notice Returns the minimun between current block timestamp or the finish period of rewards.
+  function lastTimeRewardApplicable() public view returns (uint256) {
+    return min(block.timestamp, periodFinish);
+  }
+
+  /// @notice Returns the calculated reward per token deposited.
+  function rewardPerToken() public view returns (uint256) {
+    if (_totalSupply == 0) {
+      return rewardPerTokenStored;
+    }
+
+    return
+      rewardPerTokenStored.add(
+        lastTimeRewardApplicable()
+          .sub(lastUpdateTime)
+          .mul(rewardRate)
+          .mul(1e18)
+          .div(_totalSupply)
+      );
+  }
+
+  /**
+   * @notice Returns the amount of reward tokens a user has earned.
+   * @param _account address
+   */
+  function earned(address _account) public view returns (uint256) {
+    return
+      _balances[_account]
+        .mul(rewardPerToken().sub(userRewardPerTokenPaid[_account]))
+        .div(1e18)
+        .add(rewards[_account]);
+  }
+
+  /**
+   * @notice Returns the minimun between two variables
+   * @param _a uint
+   * @param _b uint
+   */
+  function min(uint256 _a, uint256 _b) public pure returns (uint256) {
+    return _a < _b ? _a : _b;
+  }
+
+  /**
+   * @notice Called when TCAP is burned or liquidated, removes the burned value as stake
+   * @param _staker address
+   * @param _amount uint
+   * @dev Only vault can call it
+   * @dev updates rewards on call
+   */
+  function withdraw(address _staker, uint256 _amount)
+    public
+    onlyVault
+    nonReentrant
+    updateReward(_staker)
+  {
+    require(_amount > 0, "Cannot withdraw 0");
+    _totalSupply = _totalSupply.sub(_amount);
+    _balances[_staker] = _balances[_staker].sub(_amount);
+    emit Withdrawn(_staker, _amount);
+  }
+
+  /**
+   * @notice Called when TCAP is burned or liquidated, transfers to the staker the current amount of rewards tokens earned.
+   * @param _staker address
+   * @dev Only vault can call it
+   * @dev updates rewards on call
+   */
+  function getRewardFromVault(address _staker)
+    public
+    onlyVault
+    nonReentrant
+    updateReward(_staker)
+  {
+    uint256 reward = rewards[_staker];
+    if (reward > 0) {
+      rewards[_staker] = 0;
+      rewardsToken.safeTransfer(_staker, reward);
+      emit RewardPaid(_staker, reward);
+    }
+  }
+
+  /**
+   * @notice Transfers to the caller the current amount of rewards tokens earned.
+   * @dev updates rewards on call
+   */
+  function getReward() public nonReentrant updateReward(msg.sender) {
+    uint256 reward = rewards[msg.sender];
+    if (reward > 0) {
+      rewards[msg.sender] = 0;
+      rewardsToken.safeTransfer(msg.sender, reward);
+      emit RewardPaid(msg.sender, reward);
+    }
   }
 }
