@@ -193,7 +193,6 @@ describe("Orchestrator Contract", async function () {
 		let rewardHandlerInstance = await reward.deploy(
 			orchestratorInstance.address,
 			rewardTokenInstance.address,
-			wethTokenInstance.address,
 			ethVaultInstance.address
 		);
 		await rewardHandlerInstance.deployed();

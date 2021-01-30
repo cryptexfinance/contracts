@@ -29,8 +29,7 @@ describe("Reward Handler", async () => {
 		rewardHandlerInstance = await rewardHandler.deploy(
 			ownerAddr,
 			rewardTokenInstance.address,
-			ercTokenInstance.address,
-			await vaultAddr
+			vaultAddr
 		);
 		await rewardHandlerInstance.deployed();
 		expect(rewardHandlerInstance.address).properAddress;
@@ -39,7 +38,6 @@ describe("Reward Handler", async () => {
 	it("...should set the constructor values", async () => {
 		expect(ownerAddr).to.eq(await rewardHandlerInstance.owner());
 		expect(rewardTokenInstance.address).to.eq(await rewardHandlerInstance.rewardsToken());
-		expect(ercTokenInstance.address).to.eq(await rewardHandlerInstance.stakingToken());
 	});
 
 	it("...should allow a vault to stake for a user", async () => {

@@ -299,7 +299,6 @@ describe("ETH Vault", async function () {
 		rewardHandlerInstance = await reward.deploy(
 			orchestratorInstance.address,
 			rewardTokenInstance.address,
-			wethTokenInstance.address,
 			ethTokenHandler.address
 		);
 		await rewardHandlerInstance.deployed();
