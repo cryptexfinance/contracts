@@ -1,4 +1,19 @@
 // SPDX-License-Identifier: MIT
+
+/*
+   ____            __   __        __   _
+  / __/__ __ ___  / /_ / /  ___  / /_ (_)__ __
+ _\ \ / // // _ \/ __// _ \/ -_)/ __// / \ \ /
+/___/ \_, //_//_/\__//_//_/\__/ \__//_/ /_\_\
+     /___/
+
+* Based on Synthetix Staking Rewards contract
+* Synthetix: StakingRewards.sol
+*
+* Latest source (may be newer): https://github.com/Synthetixio/synthetix/blob/v2.37.0/contracts/StakingRewards.sol
+* Docs: https://docs.synthetix.io/contracts/source/contracts/StakingRewards/
+*/
+
 pragma solidity 0.7.5;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -79,14 +94,17 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
     transferOwnership(_owner);
   }
 
-  /// @notice Updates the reward and time on call.
-  modifier updateReward(address account) {
+  /**
+   * @notice Updates the reward and time on call.
+   * @param _account address
+   */
+  modifier updateReward(address _account) {
     rewardPerTokenStored = rewardPerToken();
     lastUpdateTime = lastTimeRewardApplicable();
 
-    if (account != address(0)) {
-      rewards[account] = earned(account);
-      userRewardPerTokenPaid[account] = rewardPerTokenStored;
+    if (_account != address(0)) {
+      rewards[_account] = earned(_account);
+      userRewardPerTokenPaid[_account] = rewardPerTokenStored;
     }
     _;
   }
@@ -100,20 +118,25 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
     _;
   }
 
-  /// @notice Returns the total amount of TCAP tokens minted and getting reward on this vault
+  /// @notice Returns the total amount of TCAP tokens minted and getting reward on this vault.
   function totalSupply() external view returns (uint256) {
     return _totalSupply;
   }
 
-  /// @notice Returns the amount of TCAP tokens minted and getting reward from specific user
-  function balanceOf(address account) external view returns (uint256) {
-    return _balances[account];
+  /**
+   * @notice Returns the amount of TCAP tokens minted and getting reward from specific user.
+   * @param _account address
+   */
+  function balanceOf(address _account) external view returns (uint256) {
+    return _balances[_account];
   }
 
+  /// @notice Returns the minimun between current block timestamp or the finish period of rewards.
   function lastTimeRewardApplicable() public view returns (uint256) {
     return min(block.timestamp, periodFinish);
   }
 
+  /// @notice Returns the calculated reward per token deposited.
   function rewardPerToken() public view returns (uint256) {
     if (_totalSupply == 0) {
       return rewardPerTokenStored;
@@ -129,49 +152,76 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
       );
   }
 
-  function earned(address account) public view returns (uint256) {
+  /**
+   * @notice Returns the amount of reward tokens a user has earned.
+   * @param _account address
+   */
+  function earned(address _account) public view returns (uint256) {
     return
-      _balances[account]
-        .mul(rewardPerToken().sub(userRewardPerTokenPaid[account]))
+      _balances[_account]
+        .mul(rewardPerToken().sub(userRewardPerTokenPaid[_account]))
         .div(1e18)
-        .add(rewards[account]);
+        .add(rewards[_account]);
   }
 
   function getRewardForDuration() external view returns (uint256) {
     return rewardRate.mul(rewardsDuration);
   }
 
-  function min(uint256 a, uint256 b) public pure returns (uint256) {
-    return a < b ? a : b;
+  /**
+   * @notice Returns the minimun between two variables
+   * @param _a uint
+   * @param _b uint
+   */
+  function min(uint256 _a, uint256 _b) public pure returns (uint256) {
+    return _a < _b ? _a : _b;
   }
 
-  /* ========== MUTATIVE FUNCTIONS ========== */
-
-  function stake(address _staker, uint256 amount)
+  /**
+   * @notice Called when TCAP is minted, adds the minted value as stake
+   * @param _staker address
+   * @param _amount uint
+   * @dev Only vault can call it
+   * @dev updates rewards on call
+   */
+  function stake(address _staker, uint256 _amount)
     external
     onlyVault
     nonReentrant
     whenNotPaused
     updateReward(_staker)
   {
-    require(amount > 0, "Cannot stake 0");
-    _totalSupply = _totalSupply.add(amount);
-    _balances[_staker] = _balances[_staker].add(amount);
-    emit Staked(_staker, amount);
+    require(_amount > 0, "Cannot stake 0");
+    _totalSupply = _totalSupply.add(_amount);
+    _balances[_staker] = _balances[_staker].add(_amount);
+    emit Staked(_staker, _amount);
   }
 
-  function withdraw(address _staker, uint256 amount)
+  /**
+   * @notice Called when TCAP is burned or liquidated, removes the burned value as stake
+   * @param _staker address
+   * @param _amount uint
+   * @dev Only vault can call it
+   * @dev updates rewards on call
+   */
+  function withdraw(address _staker, uint256 _amount)
     public
     onlyVault
     nonReentrant
     updateReward(_staker)
   {
-    require(amount > 0, "Cannot withdraw 0");
-    _totalSupply = _totalSupply.sub(amount);
-    _balances[_staker] = _balances[_staker].sub(amount);
-    emit Withdrawn(_staker, amount);
+    require(_amount > 0, "Cannot withdraw 0");
+    _totalSupply = _totalSupply.sub(_amount);
+    _balances[_staker] = _balances[_staker].sub(_amount);
+    emit Withdrawn(_staker, _amount);
   }
 
+  /**
+   * @notice Called when TCAP is burned or liquidated, transfers to the staker the current amount of rewards tokens earned.
+   * @param _staker address
+   * @dev Only vault can call it
+   * @dev updates rewards on call
+   */
   function getRewardFromVault(address _staker)
     public
     onlyVault
@@ -186,6 +236,10 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
     }
   }
 
+  /**
+   * @notice Transfers to the caller the current amount of rewards tokens earned.
+   * @dev updates rewards on call
+   */
   function getReward() public nonReentrant updateReward(msg.sender) {
     uint256 reward = rewards[msg.sender];
     if (reward > 0) {
@@ -195,24 +249,33 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
     }
   }
 
+  /**
+   * @notice Removes all stake and transfers all rewards to the staker.
+   * @param _staker address
+   * @dev Only vault can call it
+   */
   function exit(address _staker) external onlyVault {
     withdraw(_staker, _balances[_staker]);
     getRewardFromVault(_staker);
   }
 
-  /* ========== RESTRICTED FUNCTIONS ========== */
-
-  function notifyRewardAmount(uint256 reward)
+  /**
+   * @notice Notifies the contract that reward has been added to be given.
+   * @param _reward uint
+   * @dev Only owner  can call it
+   * @dev Increases duration of rewards
+   */
+  function notifyRewardAmount(uint256 _reward)
     external
     onlyOwner
     updateReward(address(0))
   {
     if (block.timestamp >= periodFinish) {
-      rewardRate = reward.div(rewardsDuration);
+      rewardRate = _reward.div(rewardsDuration);
     } else {
       uint256 remaining = periodFinish.sub(block.timestamp);
       uint256 leftover = remaining.mul(rewardRate);
-      rewardRate = reward.add(leftover).div(rewardsDuration);
+      rewardRate = _reward.add(leftover).div(rewardsDuration);
     }
 
     // Ensure the provided reward amount is not more than the balance in the contract.
@@ -227,23 +290,34 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
 
     lastUpdateTime = block.timestamp;
     periodFinish = block.timestamp.add(rewardsDuration);
-    emit RewardAdded(reward);
+    emit RewardAdded(_reward);
   }
 
-  // Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
-  function recoverERC20(address tokenAddress, uint256 tokenAmount)
+  /**
+   * @notice  Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
+   * @param _tokenAddress address
+   * @param _tokenAmount uint
+   * @dev Only owner  can call it
+   */
+  function recoverERC20(address _tokenAddress, uint256 _tokenAmount)
     external
     onlyOwner
   {
     // Cannot recover the staking token or the rewards token
     require(
-      tokenAddress != address(rewardsToken),
+      _tokenAddress != address(rewardsToken),
       "Cannot withdraw the staking or rewards tokens"
     );
-    IERC20(tokenAddress).safeTransfer(owner(), tokenAmount);
-    emit Recovered(tokenAddress, tokenAmount);
+    IERC20(_tokenAddress).safeTransfer(owner(), _tokenAmount);
+    emit Recovered(_tokenAddress, _tokenAmount);
   }
 
+  /**
+   * @notice  Updates the reward duration
+   * @param _rewardsDuration uint
+   * @dev Only owner  can call it
+   * @dev Previous rewards must be complete
+   */
   function setRewardsDuration(uint256 _rewardsDuration) external onlyOwner {
     require(
       block.timestamp > periodFinish,
@@ -252,6 +326,4 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
     rewardsDuration = _rewardsDuration;
     emit RewardsDurationUpdated(rewardsDuration);
   }
-
-  /* ========== EVENTS ========== */
 }

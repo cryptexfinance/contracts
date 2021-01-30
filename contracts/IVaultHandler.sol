@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/SafeCast.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
@@ -38,6 +38,7 @@ abstract contract IVaultHandler is
   using SafeMath for uint256;
   using SafeCast for int256;
   using Counters for Counters.Counter;
+  using SafeERC20 for IERC20;
 
   /// @notice Vault Id counter
   Counters.Counter public counter;
@@ -165,6 +166,9 @@ abstract contract IVaultHandler is
 
   ///  @notice An event emitted when fees are retrieved
   event FeesRetrieved(address indexed _owner, uint256 _amount);
+
+  /// @notice An event emitted when a erc20 token is recovered
+  event Recovered(address _token, uint256 _amount);
 
   /**
    * @notice Constructor
@@ -512,6 +516,26 @@ abstract contract IVaultHandler is
     uint256 amount = address(this).balance;
     payable(owner()).transfer(amount);
     emit FeesRetrieved(msg.sender, amount);
+  }
+
+  /**
+   * @notice  Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
+   * @param _tokenAddress address
+   * @param _tokenAmount uint
+   * @dev Only owner  can call it
+   */
+  function recoverERC20(address _tokenAddress, uint256 _tokenAmount)
+    external
+    onlyOwner
+  {
+    // Cannot recover the staking token or the tcap token
+    require(
+      _tokenAddress != address(TCAPToken) ||
+        _tokenAddress != address(collateralContract),
+      "Cannot withdraw the staking, collateral or rewards tokens"
+    );
+    IERC20(_tokenAddress).safeTransfer(owner(), _tokenAmount);
+    emit Recovered(_tokenAddress, _tokenAmount);
   }
 
   /**
