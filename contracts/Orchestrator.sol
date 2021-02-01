@@ -238,28 +238,13 @@ contract Orchestrator is Ownable {
   }
 
   /**
-   * @notice Retrieves a vault fees and put it on the Orchestrator
-   * @param _vault address
+   * @notice Retrieves the eth stuck on the orchestrator
+   * @param _to address
    * @dev Only owner can call it
-   * @dev Validates if _vault is valid
    */
-  function retrieveVaultFees(IVaultHandler _vault)
-    external
-    onlyOwner
-    validVault(_vault)
-  {
-    _vault.retrieveFees();
-  }
-
-  /**
-   * @notice Retrieves the fees on the orchestrator
-   * @dev Only owner can call it
-   * @dev Transfer the balance to the contract owner
-   * TODO: this should be removed with rewards
-   */
-  function retrieveFees() external onlyOwner {
+  function retrieveETH(address _to) external onlyOwner {
     uint256 amount = address(this).balance;
-    payable(owner()).transfer(amount);
+    payable(_to).transfer(amount);
   }
 
   /**

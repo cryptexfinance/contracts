@@ -87,6 +87,7 @@ describe("Orchestrator Contract", async function () {
 			collateralAddress,
 			collateralOracle,
 			ethOracle,
+			ethers.constants.AddressZero,
 			ethers.constants.AddressZero
 		);
 		await ethVaultInstance.deployed();
@@ -103,6 +104,7 @@ describe("Orchestrator Contract", async function () {
 			collateralAddress,
 			collateralOracle,
 			ethOracle,
+			ethers.constants.AddressZero,
 			ethers.constants.AddressZero
 		);
 		await btcVaultInstance.deployed();
@@ -293,27 +295,12 @@ describe("Orchestrator Contract", async function () {
 		expect(await btcVaultInstance.burnFee()).to.eq(0);
 	});
 
-	it("...should be able to retrieve funds from vault", async () => {
-		await expect(
-			orchestratorInstance.connect(addr1).retrieveVaultFees(ethVaultInstance.address)
-		).to.be.revertedWith("Ownable: caller is not the owner");
-
-		await expect(
-			orchestratorInstance.retrieveVaultFees(ethersProvider.constants.AddressZero)
-		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
-
-		await expect(orchestratorInstance.retrieveVaultFees(ethVaultInstance.address))
-			.to.emit(ethVaultInstance, "FeesRetrieved")
-			.withArgs(orchestratorInstance.address, 0);
-	});
-
 	it("...should be able to send funds to owner of orchestrator", async () => {
-		await expect(orchestratorInstance.connect(addr1).retrieveFees()).to.be.revertedWith(
+		await expect(orchestratorInstance.connect(addr1).retrieveETH(accounts[0])).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
 
-		//tested on vault
-		await orchestratorInstance.retrieveFees();
+		await orchestratorInstance.retrieveETH(accounts[0]);
 	});
 
 	it("...should enable the TCAP cap", async () => {

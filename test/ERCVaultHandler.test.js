@@ -9,7 +9,7 @@ describe("ERC20 Vault", async function () {
 		priceOracleInstance,
 		aggregatorTCAPInstance,
 		orchestratorInstance;
-	let [owner, addr1, addr2, addr3, lq, guardian] = [];
+	let [owner, addr1, addr2, addr3, lq, guardian, treasury] = [];
 	let accounts = [];
 	let divisor = "10000000000";
 	let ratio = "150";
@@ -17,11 +17,12 @@ describe("ERC20 Vault", async function () {
 	let liquidationPenalty = "10";
 
 	before("Set Accounts", async () => {
-		let [acc0, acc1, acc3, acc4, acc5, acc6] = await ethers.getSigners();
+		let [acc0, acc1, acc3, acc4, acc5, acc6, acc7] = await ethers.getSigners();
 		owner = acc0;
 		addr1 = acc1;
 		addr2 = acc3;
 		addr3 = acc4;
+		treasury = acc7;
 		lq = acc5;
 		guardian = acc6;
 		if (owner && addr1) {
@@ -74,12 +75,29 @@ describe("ERC20 Vault", async function () {
 			ercTokenInstance.address,
 			priceOracleInstance.address,
 			priceOracleInstance.address,
+			ethers.constants.AddressZero,
 			ethers.constants.AddressZero
 		);
 		await ercTokenHandler.deployed();
 		expect(ercTokenHandler.address).properAddress;
 
 		await orchestratorInstance.addTCAPVault(tcapInstance.address, ercTokenHandler.address);
+	});
+
+	it("...should allow the owner to set the treasury address", async () => {
+		const abi = new ethers.utils.AbiCoder();
+		const target = ercTokenHandler.address;
+		const value = 0;
+		const signature = "setTreasury(address)";
+		const treasuryAddress = await treasury.getAddress();
+		const data = abi.encode(["address"], [treasuryAddress]);
+		await expect(
+			orchestratorInstance.connect(owner).executeTransaction(target, value, signature, data)
+		)
+			.to.emit(ercTokenHandler, "NewTreasury")
+			.withArgs(orchestratorInstance.address, treasuryAddress);
+
+		expect(await ercTokenHandler.treasury()).to.eq(treasuryAddress);
 	});
 
 	it("...should return the token price", async () => {
@@ -314,7 +332,31 @@ describe("ERC20 Vault", async function () {
 		expect(fee).to.eq(result);
 	});
 
+	// it("...should allow owner to retrieve fees in the contract", async () => {
+	// 	let ethBalance = await ethers.provider.getBalance(ercTokenHandler.address);
+	// 	let accountBalance = await ethers.provider.getBalance(accounts[0]);
+	// 	let orchestratorBalance = await ethers.provider.getBalance(orchestratorInstance.address);
+	// 	await expect(ercTokenHandler.connect(addr3).retrieveFees()).to.be.revertedWith(
+	// 		"Ownable: caller is not the owner"
+	// 	);
+	// 	await expect(orchestratorInstance.connect(owner).retrieveVaultFees(ercTokenHandler.address))
+	// 		.to.emit(ercTokenHandler, "FeesRetrieved")
+	// 		.withArgs(orchestratorInstance.address, ethBalance);
+	// 	let currentAccountBalance = await ethers.provider.getBalance(orchestratorInstance.address);
+	// 	expect(currentAccountBalance).to.eq(orchestratorBalance.add(ethBalance));
+	// 	await orchestratorInstance.connect(owner).retrieveFees();
+	// 	currentAccountBalance = await ethers.provider.getBalance(accounts[0]);
+	// 	expect(currentAccountBalance).to.gt(accountBalance);
+	// 	ethBalance = await ethers.provider.getBalance(ercTokenHandler.address);
+	// 	expect(ethBalance).to.eq(0);
+	// 	ethBalance = await ethers.provider.getBalance(orchestratorInstance.address);
+	// 	expect(ethBalance).to.eq(0);
+	// });
+
 	it("...should allow users to burn tokens", async () => {
+		const treasuryAddress = await treasury.getAddress();
+		const beforeTreasury = await ethers.provider.getBalance(treasuryAddress);
+
 		const amount = ethersProvider.utils.parseEther("10");
 		const amount2 = ethersProvider.utils.parseEther("11");
 		const bigAmount = ethersProvider.utils.parseEther("100");
@@ -349,8 +391,8 @@ describe("ERC20 Vault", async function () {
 		expect(vault[2]).to.eq(accounts[1]);
 		expect(vault[3]).to.eq(0);
 
-		let ethBalance = await ethers.provider.getBalance(ercTokenHandler.address);
-		expect(ethBalance).to.eq(ethAmount);
+		const afterTreasury = await ethers.provider.getBalance(treasuryAddress);
+		expect(afterTreasury.gt(beforeTreasury)).eq(true);
 	});
 
 	it("...should update the collateral ratio", async () => {
@@ -368,27 +410,6 @@ describe("ERC20 Vault", async function () {
 		expect(vault[1]).to.eq(0);
 		expect(vault[2]).to.eq(accounts[1]);
 		expect(vault[3]).to.eq(0);
-	});
-
-	it("...should allow owner to retrieve fees in the contract", async () => {
-		let ethBalance = await ethers.provider.getBalance(ercTokenHandler.address);
-		let accountBalance = await ethers.provider.getBalance(accounts[0]);
-		let orchestratorBalance = await ethers.provider.getBalance(orchestratorInstance.address);
-		await expect(ercTokenHandler.connect(addr3).retrieveFees()).to.be.revertedWith(
-			"Ownable: caller is not the owner"
-		);
-		await expect(orchestratorInstance.connect(owner).retrieveVaultFees(ercTokenHandler.address))
-			.to.emit(ercTokenHandler, "FeesRetrieved")
-			.withArgs(orchestratorInstance.address, ethBalance);
-		let currentAccountBalance = await ethers.provider.getBalance(orchestratorInstance.address);
-		expect(currentAccountBalance).to.eq(orchestratorBalance.add(ethBalance));
-		await orchestratorInstance.connect(owner).retrieveFees();
-		currentAccountBalance = await ethers.provider.getBalance(accounts[0]);
-		expect(currentAccountBalance).to.gt(accountBalance);
-		ethBalance = await ethers.provider.getBalance(ercTokenHandler.address);
-		expect(ethBalance).to.eq(0);
-		ethBalance = await ethers.provider.getBalance(orchestratorInstance.address);
-		expect(ethBalance).to.eq(0);
 	});
 
 	it("...should test liquidation requirements", async () => {

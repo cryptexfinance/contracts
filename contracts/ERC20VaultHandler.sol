@@ -23,6 +23,7 @@ contract ERC20VaultHandler is IVaultHandler {
    * @param _collateralOracle address
    * @param _ethOracle address
    * @param _rewardHandler address
+   * @param _treasury address
    */
   constructor(
     Orchestrator _orchestrator,
@@ -35,7 +36,8 @@ contract ERC20VaultHandler is IVaultHandler {
     address _collateralAddress,
     address _collateralOracle,
     address _ethOracle,
-    address _rewardHandler
+    address _rewardHandler,
+    address _treasury
   )
     IVaultHandler(
       _orchestrator,
@@ -48,7 +50,8 @@ contract ERC20VaultHandler is IVaultHandler {
       _collateralAddress,
       _collateralOracle,
       _ethOracle,
-      _rewardHandler
+      _rewardHandler,
+      _treasury
     )
   {}
 }

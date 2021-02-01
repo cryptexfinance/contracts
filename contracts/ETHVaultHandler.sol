@@ -28,6 +28,7 @@ contract ETHVaultHandler is IVaultHandler {
    * @param _collateralOracle address
    * @param _ethOracle address
    * @param _rewardHandler address
+   * @param _treasury address
    */
   constructor(
     Orchestrator _orchestrator,
@@ -40,7 +41,8 @@ contract ETHVaultHandler is IVaultHandler {
     address _collateralAddress,
     address _collateralOracle,
     address _ethOracle,
-    address _rewardHandler
+    address _rewardHandler,
+    address _treasury
   )
     IVaultHandler(
       _orchestrator,
@@ -53,7 +55,8 @@ contract ETHVaultHandler is IVaultHandler {
       _collateralAddress,
       _collateralOracle,
       _ethOracle,
-      _rewardHandler
+      _rewardHandler,
+      _treasury
     )
   {}
 
@@ -119,15 +122,5 @@ contract ETHVaultHandler is IVaultHandler {
     IWETH(address(collateralContract)).withdraw(_amount);
     safeTransferETH(msg.sender, _amount);
     emit CollateralRemoved(msg.sender, vault.Id, _amount);
-  }
-
-  /**
-   * @notice Allows the safe transfer of ETH
-   * @param _to account to transfer ETH
-   * @param _value amount of ETH
-   */
-  function safeTransferETH(address _to, uint256 _value) internal {
-    (bool success, ) = _to.call{value: _value}(new bytes(0));
-    require(success, "ETHVaultHandler::safeTransferETH: ETH transfer failed");
   }
 }

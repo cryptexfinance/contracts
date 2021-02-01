@@ -77,6 +77,7 @@ describe("ETH Vault", async function () {
 			wethTokenInstance.address,
 			priceOracleInstance.address,
 			priceOracleInstance.address,
+			ethers.constants.AddressZero,
 			ethers.constants.AddressZero
 		);
 		await ethTokenHandler.deployed();
@@ -428,18 +429,10 @@ describe("ETH Vault", async function () {
 		expect(vault[2]).to.eq(accounts[1]);
 		expect(vault[3]).to.eq(0);
 
-		let ethBalance = await ethers.provider.getBalance(ethTokenHandler.address);
-		expect(ethBalance).to.eq(ethAmount);
-
-		// it should exit the rewards
-
 		let afterReward = await rewardTokenInstance.balanceOf(accounts[1]);
 		expect(afterReward).to.be.gt(beforeReward);
 	});
 
-	// TODO: remove stake from burn
-	// TODO: claim rewards
-	// TODO: exit
 	it("...should update the collateral ratio", async () => {
 		let ratio = await ethTokenHandler.getVaultRatio(1);
 		expect(ratio).to.eq(0);
@@ -455,27 +448,6 @@ describe("ETH Vault", async function () {
 		expect(vault[1]).to.eq(0);
 		expect(vault[2]).to.eq(accounts[1]);
 		expect(vault[3]).to.eq(0);
-	});
-
-	it("...should allow owner to retrieve fees in the contract", async () => {
-		let ethBalance = await ethers.provider.getBalance(ethTokenHandler.address);
-		let accountBalance = await ethers.provider.getBalance(accounts[0]);
-		let orchestratorBalance = await ethers.provider.getBalance(orchestratorInstance.address);
-		await expect(ethTokenHandler.connect(addr3).retrieveFees()).to.be.revertedWith(
-			"Ownable: caller is not the owner"
-		);
-		await expect(orchestratorInstance.connect(owner).retrieveVaultFees(ethTokenHandler.address))
-			.to.emit(ethTokenHandler, "FeesRetrieved")
-			.withArgs(orchestratorInstance.address, ethBalance);
-		let currentAccountBalance = await ethers.provider.getBalance(orchestratorInstance.address);
-		expect(currentAccountBalance).to.eq(orchestratorBalance.add(ethBalance));
-		await orchestratorInstance.connect(owner).retrieveFees();
-		currentAccountBalance = await ethers.provider.getBalance(accounts[0]);
-		expect(currentAccountBalance).to.gt(accountBalance);
-		ethBalance = await ethers.provider.getBalance(ethTokenHandler.address);
-		expect(ethBalance).to.eq(0);
-		ethBalance = await ethers.provider.getBalance(orchestratorInstance.address);
-		expect(ethBalance).to.eq(0);
 	});
 
 	it("...should test liquidation requirements", async () => {
