@@ -28,11 +28,6 @@ const governance: DeployFunction = async function (hre: HardhatRuntimeEnvironmen
 			nonce: nonce++,
 		});
 
-		const treasuryAddress = ethers.utils.getContractAddress({
-			from: namedAccounts.deployer,
-			nonce: nonce++,
-		});
-
 		const ctxDeployment = await deployments.deploy("Ctx", {
 			from: namedAccounts.deployer,
 			args: [namedAccounts.deployer, timelockAddress, oneYear],
@@ -58,13 +53,9 @@ const governance: DeployFunction = async function (hre: HardhatRuntimeEnvironmen
 			`Governor Alpha deployed at ${governorDeployment.address} for ${governorDeployment.receipt?.gasUsed}`
 		);
 
-		if (
-			governorDeployment.address === governorAddress &&
-			ctxAddress === ctxDeployment.address &&
-			timelockAddress === timelockDeployment.address
-		) {
-			log("Address Match!");
-		}
+		log(
+			`Governor Alpha deployed at ${governorDeployment.address} for ${governorDeployment.receipt?.gasUsed}`
+		);
 	} else {
 		log("Ctx Token already deployed");
 	}

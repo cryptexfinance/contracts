@@ -2,6 +2,7 @@ import { hardhatArguments } from "hardhat";
 module.exports = async ({ getNamedAccounts, deployments }: any) => {
 	if (
 		hardhatArguments.network === "rinkeby" ||
+		hardhatArguments.network === "hardhat" ||
 		hardhatArguments.network === "ropsten" ||
 		hardhatArguments.network === "ganache"
 	) {

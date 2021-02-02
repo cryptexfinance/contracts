@@ -3,6 +3,7 @@ require("dotenv").config();
 module.exports = async ({ getNamedAccounts, deployments }: any) => {
 	if (
 		hardhatArguments.network === "rinkeby" ||
+		hardhatArguments.network === "hardhat" ||
 		hardhatArguments.network === "ropsten" ||
 		hardhatArguments.network === "ganache"
 	) {
@@ -10,7 +11,6 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		const { deployer } = await getNamedAccounts();
 		const name = process.env.NAME;
 		const symbol = process.env.SYMBOL;
-		const decimals = process.env.DECIMALS;
 
 		let orchestrator = await deployments.get("Orchestrator");
 
@@ -27,7 +27,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 				"TCAP",
 				name,
 				symbol,
-				decimals,
+				0,
 				orchestrator.address
 			);
 			TCAP = await deployments.get("TCAP");
