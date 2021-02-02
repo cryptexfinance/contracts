@@ -52,10 +52,6 @@ const governance: DeployFunction = async function (hre: HardhatRuntimeEnvironmen
 		log(
 			`Governor Alpha deployed at ${governorDeployment.address} for ${governorDeployment.receipt?.gasUsed}`
 		);
-
-		log(
-			`Governor Alpha deployed at ${governorDeployment.address} for ${governorDeployment.receipt?.gasUsed}`
-		);
 	} else {
 		log("Ctx Token already deployed");
 	}
