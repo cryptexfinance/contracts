@@ -20,11 +20,11 @@ module.exports = async ({ deployments }: any) => {
 			OrchestratorDeployment.address
 		);
 
-		console.log("adding vault Handlers");
+		console.log("Adding vault Handlers");
 		await orchestrator.addTCAPVault(tcap.address, DAIHandler.address);
 		await orchestrator.addTCAPVault(tcap.address, BTCHandler.address);
 		await orchestrator.addTCAPVault(tcap.address, WETHHandler.address);
-		await orchestrator.transferOwnership(timelock.address);
+		// await orchestrator.transferOwnership(timelock.address);
 	}
 };
 module.exports.tags = ["Initialize"];

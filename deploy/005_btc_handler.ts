@@ -25,7 +25,7 @@ const BTCVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 			try {
 				let tcap = await deployments.get("TCAP");
 
-				let DAIContract = await deployments.get("DAI");
+				let BTCContract = await deployments.get("WBTC");
 
 				let divisor = process.env.DIVISOR as string;
 				let ratio = process.env.RATIO as string;
@@ -34,7 +34,7 @@ const BTCVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 
 				let tcapOracle = await deployments.get("TCAPOracle");
 				let priceFeedETH = await deployments.get("WETHOracle");
-				let priceFeedDAI = await deployments.get("DAIOracle");
+				let priceFeedBTC = await deployments.get("BTCOracle");
 				let nonce = await owner.getTransactionCount();
 
 				const vaultAddress = ethers.utils.getContractAddress({
@@ -59,8 +59,8 @@ const BTCVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						liquidationPenalty,
 						tcapOracle.address,
 						tcap.address,
-						DAIContract.address,
-						priceFeedDAI.address,
+						BTCContract.address,
+						priceFeedBTC.address,
 						priceFeedETH.address,
 						rewardAddress,
 						deployer,
