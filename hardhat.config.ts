@@ -3,7 +3,7 @@
  */
 
 require("dotenv").config();
-import {HardhatUserConfig} from "hardhat/config";
+import { HardhatUserConfig } from "hardhat/config";
 
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-ethers";
@@ -35,19 +35,19 @@ const config: HardhatUserConfig = {
 		hardhat: {},
 		ganache: {
 			url: "http://127.0.0.1:8545",
-			accounts: {mnemonic: ganacheMnemonic},
+			accounts: { mnemonic: ganacheMnemonic },
 		},
 		ropsten: {
 			url: process.env.ROPSTEN_API_URL,
-			accounts: {mnemonic: mnemonic},
+			accounts: { mnemonic: mnemonic },
 		},
 		rinkeby: {
 			url: process.env.RINKEBY_API_URL,
-			accounts: {mnemonic: mnemonic},
+			accounts: { mnemonic: mnemonic },
 		},
 		goerli: {
 			url: process.env.GOERLI_API_URL,
-			accounts: {mnemonic: mnemonic},
+			accounts: { mnemonic: mnemonic },
 		},
 	},
 	etherscan: {
