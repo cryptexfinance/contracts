@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.6.8;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.7.5;
 
 import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -31,7 +31,7 @@ contract ChainlinkOracle is Ownable, IERC165 {
    * @notice Called once the contract is deployed.
    * Set the Chainlink Oracle as an aggregator.
    */
-  constructor(address _aggregator) public {
+  constructor(address _aggregator)  {
     aggregatorContract = AggregatorV3Interface(_aggregator);
   }
 
@@ -140,7 +140,7 @@ contract ChainlinkOracle is Ownable, IERC165 {
   function supportsInterface(bytes4 interfaceId)
     external
     override
-    view
+    pure
     returns (bool)
   {
     return (interfaceId == _INTERFACE_ID_CHAINLINK_ORACLE ||

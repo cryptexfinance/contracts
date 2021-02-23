@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.6.8;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.7.5;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/introspection/ERC165Checker.sol";
@@ -8,48 +8,43 @@ import "./TCAP.sol";
 import "./oracles/ChainlinkOracle.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @title TCAP Orchestrator
  * @author Cristian Espinoza
  * @notice Orchestrator contract in charge of managing the settings of the vaults and TCAP token
  */
 contract Orchestrator is Ownable {
-  /** @dev Logs the unlock function. */
-  event LogUnlock(address indexed _contract, Functions _fn, bytes32 _hash);
-  /** @dev Enum which saves the available functions to unlock. */
-  enum Functions {RATIO, BURNFEE, LIQUIDATION, ENABLECAP, SETCAP}
-  /** @dev Mapping that checks if Function on vault is timelocked */
-  mapping(address => mapping(Functions => uint256)) public timelock;
-  /** @dev Mapping that saves a hash of the value to be updated to make sure it updates the same value */
-  mapping(address => mapping(Functions => bytes32)) public timelockValue;
-  /** @dev vault functions are timelocked for 3 days*/
-  uint256 public constant _TIMELOCK = 3 days;
+  /** @dev Logs all the calls of the functions. */
+  event LogSetGuardian(address indexed _owner, address guardian);
+  event LogExecuteTransaction(
+    address indexed target,
+    uint256 value,
+    string signature,
+    bytes data
+  );
 
   /** @dev Interface constants*/
   bytes4 private constant _INTERFACE_ID_IVAULT = 0x9e75ab0c;
-  bytes4 private constant _INTERFACE_ID_TCAP = 0xa9ccee51;
+  bytes4 private constant _INTERFACE_ID_TCAP = 0xbd115939;
   bytes4 private constant _INTERFACE_ID_CHAINLINK_ORACLE = 0x85be402b;
 
   /**
-   * @notice Throws if vault is locked.
-   * @param _contract address
-   * @param _fn function identifier
-   * @param _value hash of value
-   * @dev checks if the timelocked value is the same
+   * @notice guardian address that can set to 0 the fees in an emergency event to promote liquidations.
    */
-  modifier notLocked(
-    address _contract,
-    Functions _fn,
-    bytes32 _value
-  ) {
+  address public guardian;
+
+  /** @dev Enum which saves the available functions to emergency call. */
+  enum Functions {BURNFEE, LIQUIDATION, PAUSE}
+  /** @dev tracks which vault was emergency called */
+  mapping(IVaultHandler => mapping(Functions => bool)) private emergencyCalled;
+
+  /** @notice Throws if called by any account other than the guardian. */
+  modifier onlyGuardian() {
     require(
-      timelock[_contract][_fn] != 0 &&
-        timelock[_contract][_fn] <= block.timestamp,
-      "Function is timelocked"
-    );
-    require(
-      timelockValue[_contract][_fn] == _value,
-      "Not defined timelock value"
+      msg.sender == guardian,
+      "Orchestrator::onlyGuardian: caller is not the guardian"
     );
     _;
   }
@@ -61,7 +56,7 @@ contract Orchestrator is Ownable {
   modifier validVault(IVaultHandler _vault) {
     require(
       ERC165Checker.supportsInterface(address(_vault), _INTERFACE_ID_IVAULT),
-      "Not a valid vault"
+      "Orchestrator::validVault: not a valid vault"
     );
     _;
   }
@@ -73,7 +68,7 @@ contract Orchestrator is Ownable {
   modifier validTCAP(TCAP _tcap) {
     require(
       ERC165Checker.supportsInterface(address(_tcap), _INTERFACE_ID_TCAP),
-      "Not a valid TCAP ERC20"
+      "Orchestrator::validTCAP: not a valid TCAP ERC20"
     );
     _;
   }
@@ -88,110 +83,30 @@ contract Orchestrator is Ownable {
         address(_oracle),
         _INTERFACE_ID_CHAINLINK_ORACLE
       ),
-      "Not a valid Chainlink Oracle"
+      "Orchestrator::validChainlinkOrchestrator: not a valid Chainlink Oracle"
     );
     _;
   }
 
   /**
-   * @dev CREATED AS STACK IS TOO DEEP ON INITIALIZE
-   * @notice Throws if Chainlink Oracle is not valid
-   * @param _oracle address
+   * @notice Construct a new Orchestrator
+   * @param _guardian The guardian address
    */
-  function _validChainlinkOracle(address _oracle) private view {
+  constructor(address _guardian) {
+    guardian = _guardian;
+  }
+
+  /**
+   * @notice Sets the guardian of the orchestrator
+   * @param _guardian address of the guardian
+   * @dev Only owner can call it
+   */
+  function setGuardian(address _guardian) external onlyOwner {
     require(
-      ERC165Checker.supportsInterface(
-        address(_oracle),
-        _INTERFACE_ID_CHAINLINK_ORACLE
-      ),
-      "Not a valid Chainlink Oracle"
+      _guardian != address(0),
+      "Orchestrator::setGuardian: guardian can't be zero"
     );
-  }
-
-  /**
-   * @notice Intialize the Vault Contract
-   * @param _vault address
-   * @param _divisor uint256
-   * @param _ratio uint256
-   * @param _burnFee uint256
-   * @param _liquidationPenalty uint256
-   * @param _tcapOracle address
-   * @param _tcapAddress address
-   * @param _collateralAddress address
-   * @param _collateralOracle address
-   * @param _ethOracle address
-   * @dev Only owner can call it
-   * @dev Validates if contracts support their interface
-   */
-  function initializeVault(
-    IVaultHandler _vault,
-    uint256 _divisor,
-    uint256 _ratio,
-    uint256 _burnFee,
-    uint256 _liquidationPenalty,
-    address _tcapOracle,
-    TCAP _tcapAddress,
-    address _collateralAddress,
-    address _collateralOracle,
-    address _ethOracle
-  ) external onlyOwner validVault(_vault) validTCAP(_tcapAddress) {
-    _validChainlinkOracle(_tcapOracle);
-    _validChainlinkOracle(_collateralOracle);
-    _validChainlinkOracle(_ethOracle);
-    _vault.initialize(
-      _divisor,
-      _ratio,
-      _burnFee,
-      _liquidationPenalty,
-      _tcapOracle,
-      _tcapAddress,
-      _collateralAddress,
-      _collateralOracle,
-      _ethOracle
-    );
-  }
-
-  /**
-   * @notice Unlocks contract function
-   * @param _contract address
-   * @param _fn to be unlocked
-   * @dev Only owner can call it
-   * @dev Unlock time is = block.timestamp + _TIMELOCK
-   * @dev A hash of the value to save is passed as proof for users that the changing value is correct.
-   */
-  function unlockFunction(
-    address _contract,
-    Functions _fn,
-    bytes32 _hash
-  ) external onlyOwner {
-    timelock[address(_contract)][_fn] = block.timestamp + _TIMELOCK;
-    timelockValue[address(_contract)][_fn] = _hash;
-    emit LogUnlock(_contract, _fn, _hash);
-  }
-
-  /**
-   * @notice Locks contract function
-   * @param _contract address
-   * @param _fn to be locked
-   * @dev Lock happens immediately
-   */
-  function _lockFunction(address _contract, Functions _fn) private {
-    timelock[address(_contract)][_fn] = 0;
-    timelockValue[address(_contract)][_fn] = 0;
-  }
-
-  /**
-   * @notice Locks vault function
-   * @param _vault address
-   * @param _fn to be locked
-   * @dev Only owner can call it
-   * @dev Lock happens immediately
-   */
-  function lockVaultFunction(IVaultHandler _vault, Functions _fn)
-    external
-    onlyOwner
-  {
-    _lockFunction(address(_vault), _fn);
+    emit LogSetGuardian(msg.sender, _guardian);
   }
 
   /**
@@ -199,21 +114,13 @@ contract Orchestrator is Ownable {
    * @param _vault address
    * @param _ratio value
    * @dev Only owner can call it
-   * @dev Validates if _vault is valid and not locked
-   * @dev Locks function after using
    */
   function setRatio(IVaultHandler _vault, uint256 _ratio)
     external
     onlyOwner
     validVault(_vault)
-    notLocked(
-      address(_vault),
-      Functions.RATIO,
-      keccak256(abi.encodePacked(_ratio))
-    )
   {
     _vault.setRatio(_ratio);
-    _lockFunction(address(_vault), Functions.RATIO);
   }
 
   /**
@@ -221,21 +128,13 @@ contract Orchestrator is Ownable {
    * @param _vault address
    * @param _burnFee value
    * @dev Only owner can call it
-   * @dev Validates if _vault is valid and not locked
-   * @dev Locks function after using
    */
   function setBurnFee(IVaultHandler _vault, uint256 _burnFee)
     external
     onlyOwner
     validVault(_vault)
-    notLocked(
-      address(_vault),
-      Functions.BURNFEE,
-      keccak256(abi.encodePacked(_burnFee))
-    )
   {
     _vault.setBurnFee(_burnFee);
-    _lockFunction(address(_vault), Functions.BURNFEE);
   }
 
   /**
@@ -243,15 +142,18 @@ contract Orchestrator is Ownable {
    * @param _vault address
    * @dev Only owner can call it
    * @dev Validates if _vault is valid
-   * @dev Locks function after using
    */
   function setEmergencyBurnFee(IVaultHandler _vault)
     external
-    onlyOwner
+    onlyGuardian
     validVault(_vault)
   {
+    require(
+      emergencyCalled[_vault][Functions.BURNFEE] != true,
+      "Orchestrator::setEmergencyBurnFee: emergency call already used"
+    );
+    emergencyCalled[_vault][Functions.BURNFEE] = true;
     _vault.setBurnFee(0);
-    _lockFunction(address(_vault), Functions.BURNFEE);
   }
 
   /**
@@ -259,24 +161,12 @@ contract Orchestrator is Ownable {
    * @param _vault address
    * @param _liquidationPenalty value
    * @dev Only owner can call it
-   * @dev Validates if _vault is valid and not locked
-   * @dev Locks function after using
    */
   function setLiquidationPenalty(
     IVaultHandler _vault,
     uint256 _liquidationPenalty
-  )
-    external
-    onlyOwner
-    validVault(_vault)
-    notLocked(
-      address(_vault),
-      Functions.LIQUIDATION,
-      keccak256(abi.encodePacked(_liquidationPenalty))
-    )
-  {
+  ) external onlyOwner validVault(_vault) {
     _vault.setLiquidationPenalty(_liquidationPenalty);
-    _lockFunction(address(_vault), Functions.LIQUIDATION);
   }
 
   /**
@@ -284,67 +174,77 @@ contract Orchestrator is Ownable {
    * @param _vault address
    * @dev Only owner can call it
    * @dev Validates if _vault is valid
-   * @dev Locks function after using
    */
   function setEmergencyLiquidationPenalty(IVaultHandler _vault)
+    external
+    onlyGuardian
+    validVault(_vault)
+  {
+    require(
+      emergencyCalled[_vault][Functions.LIQUIDATION] != true,
+      "Orchestrator::setEmergencyLiquidationPenalty: emergency call already used"
+    );
+    emergencyCalled[_vault][Functions.LIQUIDATION] = true;
+    _vault.setLiquidationPenalty(0);
+  }
+
+  /**
+   * @notice Sets the reward handler address of a vault
+   * @param _vault address
+   * @param _rewardHandler address
+   * @dev Only owner can call it
+   */
+  function setRewardHandler(IVaultHandler _vault, address _rewardHandler)
     external
     onlyOwner
     validVault(_vault)
   {
-    _vault.setLiquidationPenalty(0);
-    _lockFunction(address(_vault), Functions.LIQUIDATION);
+    _vault.setRewardHandler(_rewardHandler);
   }
+
+  /**
 
   /**
    * @notice Pauses the Vault
    * @param _vault address
-   * @dev Only owner can call it
+   * @dev Only guardian can call it
    * @dev Validates if _vault is valid
    */
   function pauseVault(IVaultHandler _vault)
     external
-    onlyOwner
+    onlyGuardian
     validVault(_vault)
   {
+    require(
+      emergencyCalled[_vault][Functions.PAUSE] != true,
+      "Orchestrator::pauseVault: emergency call already used"
+    );
+    emergencyCalled[_vault][Functions.PAUSE] = true;
     _vault.pause();
   }
 
   /**
    * @notice Unpauses the Vault
    * @param _vault address
-   * @dev Only owner can call it
+   * @dev Only guardian can call it
    * @dev Validates if _vault is valid
    */
   function unpauseVault(IVaultHandler _vault)
     external
-    onlyOwner
+    onlyGuardian
     validVault(_vault)
   {
     _vault.unpause();
   }
 
   /**
-   * @notice Retrieves a vault fees and put it on the Orchestrator
-   * @param _vault address
+   * @notice Retrieves the eth stuck on the orchestrator
+   * @param _to address
    * @dev Only owner can call it
-   * @dev Validates if _vault is valid
    */
-  function retrieveVaultFees(IVaultHandler _vault)
-    external
-    onlyOwner
-    validVault(_vault)
-  {
-    _vault.retrieveFees();
-  }
-
-  /**
-   * @notice Retrieves the fees on the orchestrator
-   * @dev Only owner can call it
-   * @dev Transfer the balance to the contract owner
-   */
-  function retrieveFees() external onlyOwner {
+  function retrieveETH(address _to) external onlyOwner {
     uint256 amount = address(this).balance;
-    payable(owner()).transfer(amount);
+    payable(_to).transfer(amount);
   }
 
   /**
@@ -358,14 +258,8 @@ contract Orchestrator is Ownable {
     external
     onlyOwner
     validTCAP(_tcap)
-    notLocked(
-      address(_tcap),
-      Functions.ENABLECAP,
-      keccak256(abi.encodePacked(_enable))
-    )
   {
     _tcap.enableCap(_enable);
-    _lockFunction(address(_tcap), Functions.ENABLECAP);
   }
 
   /**
@@ -379,14 +273,8 @@ contract Orchestrator is Ownable {
     external
     onlyOwner
     validTCAP(_tcap)
-    notLocked(
-      address(_tcap),
-      Functions.SETCAP,
-      keccak256(abi.encodePacked(_cap))
-    )
   {
     _tcap.setCap(_cap);
-    _lockFunction(address(_tcap), Functions.SETCAP);
   }
 
   /**
@@ -403,7 +291,50 @@ contract Orchestrator is Ownable {
     validTCAP(_tcap)
     validVault(_vault)
   {
-    _tcap.addTokenHandler(address(_vault));
+    _tcap.addVaultHandler(address(_vault));
+  }
+
+  /**
+   * @notice Removes Vault to TCAP ERC20
+   * @param _tcap address
+   * @param _vault address
+   * @dev Only owner can call it
+   * @dev Validates if _tcap is valid
+   * @dev Validates if _vault is valid
+   */
+  function removeTCAPVault(TCAP _tcap, IVaultHandler _vault)
+    external
+    onlyOwner
+    validTCAP(_tcap)
+    validVault(_vault)
+  {
+    _tcap.removeVaultHandler(address(_vault));
+  }
+
+  function executeTransaction(
+    address target,
+    uint256 value,
+    string memory signature,
+    bytes memory data
+  ) external payable onlyOwner returns (bytes memory) {
+    bytes memory callData;
+    if (bytes(signature).length == 0) {
+      callData = data;
+    } else {
+      callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
+    }
+
+    // solium-disable-next-line security/no-call-value
+    (bool success, bytes memory returnData) =
+      target.call{value: value}(callData);
+    require(
+      success,
+      "Orchestrator::executeTransaction: Transaction execution reverted."
+    );
+
+    emit LogExecuteTransaction(target, value, signature, data);
+
+    return returnData;
   }
 
   /**

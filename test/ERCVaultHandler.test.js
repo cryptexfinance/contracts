@@ -1,6 +1,5 @@
 var expect = require("chai").expect;
 var ethersProvider = require("ethers");
-const bre = require("@nomiclabs/buidler");
 
 describe("ERC20 Vault", async function () {
 	let ercTokenHandler,
@@ -10,29 +9,22 @@ describe("ERC20 Vault", async function () {
 		priceOracleInstance,
 		aggregatorTCAPInstance,
 		orchestratorInstance;
-	let [owner, addr1, addr2, addr3, lq] = [];
+	let [owner, addr1, addr2, addr3, lq, guardian, treasury] = [];
 	let accounts = [];
 	let divisor = "10000000000";
 	let ratio = "150";
 	let burnFee = "1";
 	let liquidationPenalty = "10";
-	const THREE_DAYS = 259200;
-
-	const fns = {
-		RATIO: 0,
-		BURNFEE: 1,
-		LIQUIDATION: 2,
-		ENABLECAP: 3,
-		SETCAP: 4,
-	};
 
 	before("Set Accounts", async () => {
-		let [acc0, acc1, acc3, acc4, acc5] = await ethers.getSigners();
+		let [acc0, acc1, acc3, acc4, acc5, acc6, acc7] = await ethers.getSigners();
 		owner = acc0;
 		addr1 = acc1;
 		addr2 = acc3;
 		addr3 = acc4;
+		treasury = acc7;
 		lq = acc5;
+		guardian = acc6;
 		if (owner && addr1) {
 			accounts.push(await owner.getAddress());
 			accounts.push(await addr1.getAddress());
@@ -44,7 +36,7 @@ describe("ERC20 Vault", async function () {
 
 	it("...should deploy the contract", async () => {
 		const orchestrator = await ethers.getContractFactory("Orchestrator");
-		orchestratorInstance = await orchestrator.deploy();
+		orchestratorInstance = await orchestrator.deploy(await guardian.getAddress());
 		await orchestratorInstance.deployed();
 		expect(orchestratorInstance.address).properAddress;
 
@@ -56,10 +48,6 @@ describe("ERC20 Vault", async function () {
 			orchestratorInstance.address
 		);
 		await tcapInstance.deployed();
-		const ercVault = await ethers.getContractFactory("ERC20VaultHandler");
-		ercTokenHandler = await ercVault.deploy(orchestratorInstance.address);
-		await ercTokenHandler.deployed();
-		expect(ercTokenHandler.address).properAddress;
 		const collateralOracle = await ethers.getContractFactory("ChainlinkOracle");
 		const oracle = await ethers.getContractFactory("ChainlinkOracle");
 		const aggregator = await ethers.getContractFactory("AggregatorInterface");
@@ -69,14 +57,15 @@ describe("ERC20 Vault", async function () {
 		priceOracleInstance = await collateralOracle.deploy(aggregatorInstance.address);
 		tcapOracleInstance = await oracle.deploy(aggregatorTCAPInstance.address);
 		await priceOracleInstance.deployed();
-		await orchestratorInstance.addTCAPVault(tcapInstance.address, ercTokenHandler.address);
+
 		const wbtc = await ethers.getContractFactory("WBTC");
 		ercTokenInstance = await wbtc.deploy();
 
 		// Initialize Vault
 
-		await orchestratorInstance.initializeVault(
-			ercTokenHandler.address,
+		const ercVault = await ethers.getContractFactory("ERC20VaultHandler");
+		ercTokenHandler = await ercVault.deploy(
+			orchestratorInstance.address,
 			divisor,
 			ratio,
 			burnFee,
@@ -85,8 +74,30 @@ describe("ERC20 Vault", async function () {
 			tcapInstance.address,
 			ercTokenInstance.address,
 			priceOracleInstance.address,
-			priceOracleInstance.address
+			priceOracleInstance.address,
+			ethers.constants.AddressZero,
+			ethers.constants.AddressZero
 		);
+		await ercTokenHandler.deployed();
+		expect(ercTokenHandler.address).properAddress;
+
+		await orchestratorInstance.addTCAPVault(tcapInstance.address, ercTokenHandler.address);
+	});
+
+	it("...should allow the owner to set the treasury address", async () => {
+		const abi = new ethers.utils.AbiCoder();
+		const target = ercTokenHandler.address;
+		const value = 0;
+		const signature = "setTreasury(address)";
+		const treasuryAddress = await treasury.getAddress();
+		const data = abi.encode(["address"], [treasuryAddress]);
+		await expect(
+			orchestratorInstance.connect(owner).executeTransaction(target, value, signature, data)
+		)
+			.to.emit(ercTokenHandler, "NewTreasury")
+			.withArgs(orchestratorInstance.address, treasuryAddress);
+
+		expect(await ercTokenHandler.treasury()).to.eq(treasuryAddress);
 	});
 
 	it("...should return the token price", async () => {
@@ -100,14 +111,14 @@ describe("ERC20 Vault", async function () {
 		let vaultId = await ercTokenHandler.userToVault(accounts[1]);
 		expect(vaultId).eq(0);
 		await expect(ercTokenHandler.connect(addr1).createVault())
-			.to.emit(ercTokenHandler, "LogCreateVault")
+			.to.emit(ercTokenHandler, "VaultCreated")
 			.withArgs(accounts[1], 1);
 		vaultId = await ercTokenHandler.userToVault(accounts[1]);
 		expect(vaultId).eq(1);
 		vaultId = await ercTokenHandler.userToVault(accounts[2]);
 		expect(vaultId).eq(0);
 		await expect(ercTokenHandler.connect(addr1).createVault()).to.be.revertedWith(
-			"Vault already created"
+			"VaultHandler::createVault: vault already created"
 		);
 	});
 
@@ -127,7 +138,7 @@ describe("ERC20 Vault", async function () {
 	it("...should allow user to stake collateral", async () => {
 		const amount = ethersProvider.utils.parseEther("375");
 		await expect(ercTokenHandler.connect(addr3).addCollateral(amount)).to.be.revertedWith(
-			"No Vault created"
+			"VaultHandler::vaultExists: no vault created"
 		);
 		let balance = await ercTokenInstance.balanceOf(accounts[1]);
 		expect(balance).to.eq(0);
@@ -144,11 +155,11 @@ describe("ERC20 Vault", async function () {
 		expect(balance).to.eq(amount);
 
 		await expect(ercTokenHandler.connect(addr1).addCollateral(0)).to.be.revertedWith(
-			"Value can't be 0"
+			"VaultHandler::notZero: value can't be 0"
 		);
 
 		await expect(ercTokenHandler.connect(addr1).addCollateral(amount))
-			.to.emit(ercTokenHandler, "LogAddCollateral")
+			.to.emit(ercTokenHandler, "CollateralAdded")
 			.withArgs(accounts[1], 1, amount);
 		let vault = await ercTokenHandler.getVault(1);
 		expect(vault[0]).to.eq(1);
@@ -178,16 +189,16 @@ describe("ERC20 Vault", async function () {
 		expect(balance).to.eq(0);
 
 		await expect(ercTokenHandler.connect(addr3).removeCollateral(amount)).to.be.revertedWith(
-			"No Vault created"
+			"VaultHandler::vaultExists: no vault created"
 		);
 		await expect(ercTokenHandler.connect(addr1).removeCollateral(bigAmount)).to.be.revertedWith(
-			"Retrieve amount higher than collateral"
+			"VaultHandler::removeCollateral: retrieve amount higher than collateral"
 		);
 		await expect(ercTokenHandler.connect(addr1).removeCollateral(0)).to.be.revertedWith(
-			"Value can't be 0"
+			"VaultHandler::notZero: value can't be 0"
 		);
 		await expect(ercTokenHandler.connect(addr1).removeCollateral(amount))
-			.to.emit(ercTokenHandler, "LogRemoveCollateral")
+			.to.emit(ercTokenHandler, "CollateralRemoved")
 			.withArgs(accounts[1], 1, amount);
 
 		let vault = await ercTokenHandler.getVault(1);
@@ -234,22 +245,13 @@ describe("ERC20 Vault", async function () {
 		let enableHash = ethers.utils.solidityKeccak256(["bool"], [enableCap]);
 
 		let tcapCap = 1;
-		let capHash = ethers.utils.solidityKeccak256(["uint256"], [tcapCap]);
-
-		await orchestratorInstance.unlockFunction(tcapInstance.address, fns.ENABLECAP, enableHash);
-		await orchestratorInstance.unlockFunction(tcapInstance.address, fns.SETCAP, capHash);
-		//fast-forward
-		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
 		await orchestratorInstance.enableTCAPCap(tcapInstance.address, enableCap);
 		await orchestratorInstance.setTCAPCap(tcapInstance.address, tcapCap);
 		await expect(ercTokenHandler.connect(addr1).mint(reqAmount)).to.be.revertedWith(
-			"ERC20: cap exceeded"
+			"TCAP::Transfer: TCAP cap exceeded"
 		);
 		// Remove Cap
 		enableCap = false;
-		enableHash = ethers.utils.solidityKeccak256(["bool"], [enableCap]);
-		await orchestratorInstance.unlockFunction(tcapInstance.address, fns.ENABLECAP, enableHash);
-		bre.network.provider.send("evm_increaseTime", [THREE_DAYS]);
 		await orchestratorInstance.enableTCAPCap(tcapInstance.address, enableCap);
 	});
 
@@ -263,14 +265,16 @@ describe("ERC20 Vault", async function () {
 		let tcapBalance = await tcapInstance.balanceOf(accounts[1]);
 		expect(tcapBalance).to.eq(0);
 		await expect(ercTokenHandler.connect(addr3).mint(amount)).to.be.revertedWith(
-			"No Vault created"
+			"VaultHandler::vaultExists: no vault created"
 		);
 		await expect(ercTokenHandler.connect(addr1).mint(bigAmount)).to.be.revertedWith(
-			"Not enough collateral"
+			"VaultHandler::mint: not enough collateral"
 		);
-		await expect(ercTokenHandler.connect(addr1).mint(0)).to.be.revertedWith("Value can't be 0");
+		await expect(ercTokenHandler.connect(addr1).mint(0)).to.be.revertedWith(
+			"VaultHandler::notZero: value can't be 0"
+		);
 		await expect(ercTokenHandler.connect(addr1).mint(amount))
-			.to.emit(ercTokenHandler, "LogMint")
+			.to.emit(ercTokenHandler, "TokensMinted")
 			.withArgs(accounts[1], 1, amount);
 		tcapBalance = await tcapInstance.balanceOf(accounts[1]);
 		expect(tcapBalance).to.eq(amount);
@@ -280,7 +284,7 @@ describe("ERC20 Vault", async function () {
 		expect(vault[2]).to.eq(accounts[1]);
 		expect(vault[3]).to.eq(amount);
 		await expect(ercTokenHandler.connect(addr1).mint(lowAmount)).to.be.revertedWith(
-			"Collateral below min required ratio"
+			"VaultHandler::mint: collateral below min required ratio"
 		);
 	});
 
@@ -297,7 +301,7 @@ describe("ERC20 Vault", async function () {
 		let tcapBalance = await tcapInstance.balanceOf(accounts[1]);
 		await expect(
 			tcapInstance.connect(addr1).transfer(tcapInstance.address, tcapBalance)
-		).to.be.revertedWith("Can't transfer to TCAP contract");
+		).to.be.revertedWith("TCAP::transfer: can't transfer to TCAP contract");
 	});
 
 	it("...should allow users to get collateral ratio", async () => {
@@ -310,7 +314,7 @@ describe("ERC20 Vault", async function () {
 	it("...shouln't allow users to retrieve stake unless debt is paid", async () => {
 		let vault = await ercTokenHandler.getVault(1);
 		await expect(ercTokenHandler.connect(addr1).removeCollateral(vault[1])).to.be.revertedWith(
-			"Collateral below min required ratio"
+			"VaultHandler::removeCollateral: collateral below min required ratio"
 		);
 	});
 
@@ -328,7 +332,31 @@ describe("ERC20 Vault", async function () {
 		expect(fee).to.eq(result);
 	});
 
+	// it("...should allow owner to retrieve fees in the contract", async () => {
+	// 	let ethBalance = await ethers.provider.getBalance(ercTokenHandler.address);
+	// 	let accountBalance = await ethers.provider.getBalance(accounts[0]);
+	// 	let orchestratorBalance = await ethers.provider.getBalance(orchestratorInstance.address);
+	// 	await expect(ercTokenHandler.connect(addr3).retrieveFees()).to.be.revertedWith(
+	// 		"Ownable: caller is not the owner"
+	// 	);
+	// 	await expect(orchestratorInstance.connect(owner).retrieveVaultFees(ercTokenHandler.address))
+	// 		.to.emit(ercTokenHandler, "FeesRetrieved")
+	// 		.withArgs(orchestratorInstance.address, ethBalance);
+	// 	let currentAccountBalance = await ethers.provider.getBalance(orchestratorInstance.address);
+	// 	expect(currentAccountBalance).to.eq(orchestratorBalance.add(ethBalance));
+	// 	await orchestratorInstance.connect(owner).retrieveFees();
+	// 	currentAccountBalance = await ethers.provider.getBalance(accounts[0]);
+	// 	expect(currentAccountBalance).to.gt(accountBalance);
+	// 	ethBalance = await ethers.provider.getBalance(ercTokenHandler.address);
+	// 	expect(ethBalance).to.eq(0);
+	// 	ethBalance = await ethers.provider.getBalance(orchestratorInstance.address);
+	// 	expect(ethBalance).to.eq(0);
+	// });
+
 	it("...should allow users to burn tokens", async () => {
+		const treasuryAddress = await treasury.getAddress();
+		const beforeTreasury = await ethers.provider.getBalance(treasuryAddress);
+
 		const amount = ethersProvider.utils.parseEther("10");
 		const amount2 = ethersProvider.utils.parseEther("11");
 		const bigAmount = ethersProvider.utils.parseEther("100");
@@ -338,20 +366,22 @@ describe("ERC20 Vault", async function () {
 		const ethAmount2 = await ercTokenHandler.getFee(bigAmount);
 
 		await expect(ercTokenHandler.connect(addr3).burn(amount)).to.be.revertedWith(
-			"No Vault created"
+			"VaultHandler::vaultExists: no vault created"
 		);
 		await expect(ercTokenHandler.connect(addr1).burn(amount)).to.be.revertedWith(
-			"Burn fee different than required"
+			"VaultHandler::burn: burn fee different than required"
 		);
 		await expect(
-			ercTokenHandler.connect(addr1).burn(bigAmount, {value: ethAmount2})
-		).to.be.revertedWith("Amount greater than debt");
+			ercTokenHandler.connect(addr1).burn(bigAmount, { value: ethAmount2 })
+		).to.be.revertedWith("VaultHandler::burn: amount greater than debt");
 		await expect(
-			ercTokenHandler.connect(addr1).burn(amount, {value: ethHighAmount})
-		).to.be.revertedWith("Burn fee different than required");
-		await expect(ercTokenHandler.connect(addr1).burn(0)).to.be.revertedWith("Value can't be 0");
-		await expect(ercTokenHandler.connect(addr1).burn(amount, {value: ethAmount}))
-			.to.emit(ercTokenHandler, "LogBurn")
+			ercTokenHandler.connect(addr1).burn(amount, { value: ethHighAmount })
+		).to.be.revertedWith("VaultHandler::burn: burn fee different than required");
+		await expect(ercTokenHandler.connect(addr1).burn(0)).to.be.revertedWith(
+			"VaultHandler::notZero: value can't be 0"
+		);
+		await expect(ercTokenHandler.connect(addr1).burn(amount, { value: ethAmount }))
+			.to.emit(ercTokenHandler, "TokensBurned")
 			.withArgs(accounts[1], 1, amount);
 		let tcapBalance = await tcapInstance.balanceOf(accounts[1]);
 		expect(tcapBalance).to.eq(0);
@@ -361,8 +391,8 @@ describe("ERC20 Vault", async function () {
 		expect(vault[2]).to.eq(accounts[1]);
 		expect(vault[3]).to.eq(0);
 
-		let ethBalance = await ethers.provider.getBalance(ercTokenHandler.address);
-		expect(ethBalance).to.eq(ethAmount);
+		const afterTreasury = await ethers.provider.getBalance(treasuryAddress);
+		expect(afterTreasury.gt(beforeTreasury)).eq(true);
 	});
 
 	it("...should update the collateral ratio", async () => {
@@ -373,34 +403,13 @@ describe("ERC20 Vault", async function () {
 	it("...should allow users to retrieve stake when debt is paid", async () => {
 		let vault = await ercTokenHandler.getVault(1);
 		await expect(ercTokenHandler.connect(addr1).removeCollateral(vault[1]))
-			.to.emit(ercTokenHandler, "LogRemoveCollateral")
+			.to.emit(ercTokenHandler, "CollateralRemoved")
 			.withArgs(accounts[1], 1, vault[1]);
 		vault = await ercTokenHandler.getVault(1);
 		expect(vault[0]).to.eq(1);
 		expect(vault[1]).to.eq(0);
 		expect(vault[2]).to.eq(accounts[1]);
 		expect(vault[3]).to.eq(0);
-	});
-
-	it("...should allow owner to retrieve fees in the contract", async () => {
-		let ethBalance = await ethers.provider.getBalance(ercTokenHandler.address);
-		let accountBalance = await ethers.provider.getBalance(accounts[0]);
-		let orchestratorBalance = await ethers.provider.getBalance(orchestratorInstance.address);
-		await expect(ercTokenHandler.connect(addr3).retrieveFees()).to.be.revertedWith(
-			"Ownable: caller is not the owner"
-		);
-		await expect(orchestratorInstance.connect(owner).retrieveVaultFees(ercTokenHandler.address))
-			.to.emit(ercTokenHandler, "LogRetrieveFees")
-			.withArgs(orchestratorInstance.address, ethBalance);
-		let currentAccountBalance = await ethers.provider.getBalance(orchestratorInstance.address);
-		expect(currentAccountBalance).to.eq(orchestratorBalance.add(ethBalance));
-		await orchestratorInstance.connect(owner).retrieveFees();
-		currentAccountBalance = await ethers.provider.getBalance(accounts[0]);
-		expect(currentAccountBalance).to.gt(accountBalance);
-		ethBalance = await ethers.provider.getBalance(ercTokenHandler.address);
-		expect(ethBalance).to.eq(0);
-		ethBalance = await ethers.provider.getBalance(orchestratorInstance.address);
-		expect(ethBalance).to.eq(0);
 	});
 
 	it("...should test liquidation requirements", async () => {
@@ -418,10 +427,10 @@ describe("ERC20 Vault", async function () {
 		await ercTokenHandler.connect(lq).addCollateral(reqAmount);
 		await ercTokenHandler.connect(lq).mint(amount);
 		await expect(ercTokenHandler.connect(addr3).liquidateVault(99, 0)).to.be.revertedWith(
-			"No Vault created"
+			"VaultHandler::liquidateVault: no vault created"
 		);
 		await expect(ercTokenHandler.connect(addr3).liquidateVault(2, 0)).to.be.revertedWith(
-			"Vault is not liquidable"
+			"VaultHandler::liquidateVault: vault is not liquidable"
 		);
 		const totalMarketCap = "43129732288636297500";
 		await aggregatorTCAPInstance.connect(owner).setLatestAnswer(totalMarketCap);
@@ -489,14 +498,16 @@ describe("ERC20 Vault", async function () {
 		const burnAmount = await ercTokenHandler.getFee(reqLiquidation);
 		await expect(
 			ercTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation)
-		).to.be.revertedWith("Burn fee different than required");
+		).to.be.revertedWith("VaultHandler::burn: burn fee different than required");
 		await expect(
-			ercTokenHandler.connect(addr3).liquidateVault(2, 1, {value: burnAmount})
-		).to.be.revertedWith("Liquidation amount different than required");
+			ercTokenHandler.connect(addr3).liquidateVault(2, 1, { value: burnAmount })
+		).to.be.revertedWith(
+			"VaultHandler::liquidateVault: liquidation amount different than required"
+		);
 		await expect(
-			ercTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation, {value: burnAmount})
+			ercTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation, { value: burnAmount })
 		)
-			.to.emit(ercTokenHandler, "LogLiquidateVault")
+			.to.emit(ercTokenHandler, "VaultLiquidated")
 			.withArgs(2, accounts[3], reqLiquidation, liquidationReward);
 
 		vaultRatio = await ercTokenHandler.getVaultRatio(2);
@@ -516,7 +527,7 @@ describe("ERC20 Vault", async function () {
 		await expect(ercTokenHandler.connect(addr1).pause()).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(orchestratorInstance.connect(owner).pauseVault(ercTokenHandler.address))
+		await expect(orchestratorInstance.connect(guardian).pauseVault(ercTokenHandler.address))
 			.to.emit(ercTokenHandler, "Paused")
 			.withArgs(orchestratorInstance.address);
 		let paused = await ercTokenHandler.paused();
@@ -540,7 +551,7 @@ describe("ERC20 Vault", async function () {
 		await expect(ercTokenHandler.connect(addr1).unpause()).to.be.revertedWith(
 			"Ownable: caller is not the owner"
 		);
-		await expect(orchestratorInstance.connect(owner).unpauseVault(ercTokenHandler.address))
+		await expect(orchestratorInstance.connect(guardian).unpauseVault(ercTokenHandler.address))
 			.to.emit(ercTokenHandler, "Unpaused")
 			.withArgs(orchestratorInstance.address);
 		let paused = await ercTokenHandler.paused();

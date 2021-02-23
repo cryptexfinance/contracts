@@ -4,17 +4,16 @@ var ethersProvider = require("ethers");
 describe("TCAP Token", async function () {
 	let tcapInstance;
 	let orchestratorInstance;
-	let ethVaultInstance;
-	let ethVaultInstance2;
-	let [owner, addr1, handler, handler2] = [];
+	let [owner, addr1, handler, handler2, guardian] = [];
 	let accounts = [];
 
 	before("Set Accounts", async () => {
-		let [acc0, acc1, acc3, acc4, acc5] = await ethers.getSigners();
+		let [acc0, acc1, acc3, acc4, acc5, acc6] = await ethers.getSigners();
 		owner = acc0;
 		addr1 = acc1;
 		handler = acc3;
 		handler2 = acc4;
+		guardian = acc6;
 		if (owner && addr1 && handler) {
 			accounts.push(await owner.getAddress());
 			accounts.push(await addr1.getAddress());
@@ -26,7 +25,7 @@ describe("TCAP Token", async function () {
 
 	it("...should deploy the contract", async () => {
 		const orchestrator = await ethers.getContractFactory("Orchestrator");
-		orchestratorInstance = await orchestrator.deploy();
+		orchestratorInstance = await orchestrator.deploy(await guardian.getAddress());
 		await orchestratorInstance.deployed();
 		expect(orchestratorInstance.address).properAddress;
 
@@ -40,14 +39,6 @@ describe("TCAP Token", async function () {
 		);
 		await tcapInstance.deployed();
 		expect(tcapInstance.address).properAddress;
-
-		//vault
-		const wethVault = await ethers.getContractFactory("ERC20VaultHandler");
-		ethVaultInstance = await wethVault.deploy(orchestratorInstance.address);
-		await ethVaultInstance.deployed();
-
-		ethVaultInstance2 = await wethVault.deploy(orchestratorInstance.address);
-		await ethVaultInstance2.deployed();
 	});
 
 	it("...should set the correct initial values", async () => {
@@ -80,38 +71,14 @@ describe("TCAP Token", async function () {
 	it("...shouldn't allow users to mint", async () => {
 		const amount = ethersProvider.utils.parseEther("1000000");
 		await expect(tcapInstance.mint(accounts[0], amount)).to.be.revertedWith(
-			"Caller is not a handler"
+			"TCAP::onlyVault: caller is not a vault"
 		);
 	});
 
 	it("...shouldn't allow users to burn", async () => {
 		const amount = ethersProvider.utils.parseEther("1000000");
 		await expect(tcapInstance.burn(accounts[1], amount)).to.be.revertedWith(
-			"Caller is not a handler"
+			"TCAP::onlyVault: caller is not a vault"
 		);
-	});
-
-	it("...should allow owner to add Handlers", async () => {
-		await expect(tcapInstance.connect(addr1).addTokenHandler(accounts[1])).to.be.revertedWith(
-			"Ownable: caller is not the owner"
-		);
-		await expect(
-			orchestratorInstance
-				.connect(owner)
-				.addTCAPVault(tcapInstance.address, ethVaultInstance.address)
-		)
-			.to.emit(tcapInstance, "LogAddTokenHandler")
-			.withArgs(orchestratorInstance.address, ethVaultInstance.address);
-		let currentHandler = await tcapInstance.tokenHandlers(ethVaultInstance.address);
-		expect(currentHandler).to.eq(true);
-		await expect(
-			orchestratorInstance
-				.connect(owner)
-				.addTCAPVault(tcapInstance.address, ethVaultInstance2.address)
-		)
-			.to.emit(tcapInstance, "LogAddTokenHandler")
-			.withArgs(orchestratorInstance.address, ethVaultInstance2.address);
-		currentHandler = await tcapInstance.tokenHandlers(ethVaultInstance2.address);
-		expect(currentHandler).to.eq(true);
 	});
 });

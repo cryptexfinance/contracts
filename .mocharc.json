@@ -1,5 +1,4 @@
 {
-	"require": ["@nomiclabs/buidler/register"],
-	"timeout": 20000,
-	"recursive": "test"
+	"require": "ts-node/register/files",
+	"timeout": 20000
 }
