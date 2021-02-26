@@ -2,11 +2,13 @@ import { ethers as ethershardhat, hardhatArguments } from "hardhat";
 require("dotenv").config();
 
 module.exports = async ({ deployments }: any) => {
+	let initial_run = process.env.INITIAL_RUN == "true" ? true : false;
 	if (
-		hardhatArguments.network === "rinkeby" ||
-		hardhatArguments.network === "ropsten" ||
-		hardhatArguments.network === "hardhat" ||
-		hardhatArguments.network === "ganache"
+		(hardhatArguments.network === "rinkeby" ||
+			hardhatArguments.network === "ropsten" ||
+			hardhatArguments.network === "hardhat" ||
+			hardhatArguments.network === "ganache") &&
+		initial_run
 	) {
 		let DAIHandler = await deployments.get("DAIVaultHandler");
 		let BTCHandler = await deployments.get("BTCVaultHandler");

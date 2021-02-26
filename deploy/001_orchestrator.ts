@@ -1,10 +1,12 @@
 import { hardhatArguments } from "hardhat";
 module.exports = async ({ getNamedAccounts, deployments }: any) => {
+	let initial_run = process.env.INITIAL_RUN == "true" ? true : false;
 	if (
-		hardhatArguments.network === "rinkeby" ||
-		hardhatArguments.network === "hardhat" ||
-		hardhatArguments.network === "ropsten" ||
-		hardhatArguments.network === "ganache"
+		(hardhatArguments.network === "rinkeby" ||
+			hardhatArguments.network === "ropsten" ||
+			hardhatArguments.network === "hardhat" ||
+			hardhatArguments.network === "ganache") &&
+		initial_run
 	) {
 		const { deployIfDifferent, log } = deployments;
 		const { deployer } = await getNamedAccounts();
