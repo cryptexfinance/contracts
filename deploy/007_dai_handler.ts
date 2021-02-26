@@ -3,11 +3,13 @@ import { deployments } from "hardhat";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
+	let initial_run = process.env.INITIAL_RUN == "true" ? true : false;
 	if (
-		hardhatArguments.network === "rinkeby" ||
-		hardhatArguments.network === "ropsten" ||
-		hardhatArguments.network === "hardhat" ||
-		hardhatArguments.network === "ganache"
+		(hardhatArguments.network === "rinkeby" ||
+			hardhatArguments.network === "ropsten" ||
+			hardhatArguments.network === "hardhat" ||
+			hardhatArguments.network === "ganache") &&
+		initial_run
 	) {
 		const { log } = deployments;
 		const namedAccounts = await hre.getNamedAccounts();

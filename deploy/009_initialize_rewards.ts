@@ -2,11 +2,13 @@ import { ethers as ethershardhat, hardhatArguments } from "hardhat";
 require("dotenv").config();
 
 module.exports = async ({ deployments }: any) => {
+	let initial_run = process.env.INITIAL_RUN == "true" ? true : false;
 	if (
-		hardhatArguments.network === "rinkeby" ||
-		hardhatArguments.network === "ropsten" ||
-		hardhatArguments.network === "hardhat" ||
-		hardhatArguments.network === "ganache"
+		(hardhatArguments.network === "rinkeby" ||
+			hardhatArguments.network === "ropsten" ||
+			hardhatArguments.network === "hardhat" ||
+			hardhatArguments.network === "ganache") &&
+		initial_run
 	) {
 		let rDAIHandler = await deployments.get("DAIRewardHandler");
 		let rBTCHandler = await deployments.get("BTCRewardHandler");
@@ -44,7 +46,8 @@ module.exports = async ({ deployments }: any) => {
 		await ctx.transfer(target, rewardAmount);
 		await orchestrator.executeTransaction(target, value, signature, data, { gasLimit: 4000000 });
 
-		await orchestrator.transferOwnership(timelock.address);
+		console.log("no transfer");
+		// await orchestrator.transferOwnership(timelock.address);
 	}
 };
 module.exports.tags = ["Initialize"];
