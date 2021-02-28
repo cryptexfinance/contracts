@@ -106,6 +106,7 @@ contract Orchestrator is Ownable {
       _guardian != address(0),
       "Orchestrator::setGuardian: guardian can't be zero"
     );
+    guardian = _guardian;
     emit LogSetGuardian(msg.sender, _guardian);
   }
 

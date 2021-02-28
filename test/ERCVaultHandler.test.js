@@ -496,11 +496,12 @@ describe("ERC20 Vault", async function () {
 		let collateralBalance = await ercTokenInstance.balanceOf(accounts[3]);
 		let vault = await ercTokenHandler.getVault(2);
 		const burnAmount = await ercTokenHandler.getFee(reqLiquidation);
+		const fakeBurn = await ercTokenHandler.getFee(1);
 		await expect(
 			ercTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation)
 		).to.be.revertedWith("VaultHandler::burn: burn fee different than required");
 		await expect(
-			ercTokenHandler.connect(addr3).liquidateVault(2, 1, { value: burnAmount })
+			ercTokenHandler.connect(addr3).liquidateVault(2, 1, { value: fakeBurn })
 		).to.be.revertedWith(
 			"VaultHandler::liquidateVault: liquidation amount different than required"
 		);

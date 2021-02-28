@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/introspection/IERC165.sol";
 
 /**
  * @title Chainlink Oracle
- * @author Cristian Espinoza
+ * @author Cryptex.finance
  * @notice Contract in charge or reading the information from a Chainlink Oracle. TCAP contracts read the price directly from this contract. More information can be found on Chainlink Documentation
  */
 contract ChainlinkOracle is Ownable, IERC165 {
@@ -31,7 +31,7 @@ contract ChainlinkOracle is Ownable, IERC165 {
    * @notice Called once the contract is deployed.
    * Set the Chainlink Oracle as an aggregator.
    */
-  constructor(address _aggregator)  {
+  constructor(address _aggregator) {
     aggregatorContract = AggregatorV3Interface(_aggregator);
   }
 
@@ -127,9 +127,8 @@ contract ChainlinkOracle is Ownable, IERC165 {
    * @return timeStamp
    */
   function getPreviousTimestamp(uint80 _id) public view returns (uint256) {
-    (uint80 roundID, , , uint256 timeStamp, ) = aggregatorContract.getRoundData(
-      _id
-    );
+    (uint80 roundID, , , uint256 timeStamp, ) =
+      aggregatorContract.getRoundData(_id);
     require(_id <= roundID, "Not enough history");
     return timeStamp;
   }
@@ -139,8 +138,8 @@ contract ChainlinkOracle is Ownable, IERC165 {
    */
   function supportsInterface(bytes4 interfaceId)
     external
-    override
     pure
+    override
     returns (bool)
   {
     return (interfaceId == _INTERFACE_ID_CHAINLINK_ORACLE ||

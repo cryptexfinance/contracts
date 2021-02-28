@@ -11,7 +11,7 @@ import "./Orchestrator.sol";
 
 /**
  * @title Total Market Cap Token
- * @author Cristian Espinoza
+ * @author Cryptex.finance
  * @notice ERC20 token on the Ethereum Blockchain that provides total exposure to the cryptocurrency sector.
  */
 contract TCAP is ERC20, Ownable, IERC165 {

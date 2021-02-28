@@ -532,11 +532,12 @@ describe("ETH Vault", async function () {
 		let collateralBalance = await wethTokenInstance.balanceOf(accounts[3]);
 		let vault = await ethTokenHandler.getVault(2);
 		const burnAmount = await ethTokenHandler.getFee(reqLiquidation);
+		const fakeBurn = await ethTokenHandler.getFee(1);
 		await expect(
 			ethTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation)
 		).to.be.revertedWith("VaultHandler::burn: burn fee different than required");
 		await expect(
-			ethTokenHandler.connect(addr3).liquidateVault(2, 1, { value: burnAmount })
+			ethTokenHandler.connect(addr3).liquidateVault(2, 1, { value: fakeBurn })
 		).to.be.revertedWith(
 			"VaultHandler::liquidateVault: liquidation amount different than required"
 		);

@@ -23,8 +23,8 @@ interface IRewardHandler {
 }
 
 /**
- * @title TCAP Vault Handler
- * @author Cristian Espinoza
+ * @title TCAP Vault Handler Abstract Contract
+ * @author Cryptex.Finance
  * @notice Contract in charge of handling the TCAP Token and stake
  */
 abstract contract IVaultHandler is
@@ -40,9 +40,6 @@ abstract contract IVaultHandler is
   using Counters for Counters.Counter;
   using SafeERC20 for IERC20;
 
-  /// @notice Vault Id counter
-  Counters.Counter public counter;
-
   /**
    * @notice Vault object created to manage the mint and burns of TCAP tokens
    * @param Id, unique identifier of the vault
@@ -57,28 +54,31 @@ abstract contract IVaultHandler is
     address Owner;
   }
 
+  /// @notice Vault Id counter
+  Counters.Counter public counter;
+
   /// @notice TCAP Token Address
   TCAP public TCAPToken;
 
   /// @notice Total Market Cap/USD Oracle Address
   ChainlinkOracle public tcapOracle;
 
-  /// @notice Collateral Token Address*/
+  /// @notice Collateral Token Address
   IERC20 public collateralContract;
 
-  /// @notice Collateral/USD Oracle Address*/
+  /// @notice Collateral/USD Oracle Address
   ChainlinkOracle public collateralPriceOracle;
 
-  /// @notice ETH/USD Oracle Address*/
+  /// @notice ETH/USD Oracle Address
   ChainlinkOracle public ETHPriceOracle;
 
-  /// @notice divisor value used with the total market cap, just like the S&P 500 or any major financial index would to define the final tcap token price
+  /// @notice Value used as divisor with the total market cap, just like the S&P 500 or any major financial index would to define the final tcap token price
   uint256 public divisor;
 
   /// @notice Minimun ratio required to prevent liquidation of vault
   uint256 public ratio;
 
-  /// @notice Fee charged when burning TCAP Tokens
+  /// @notice Fee percentage of the total amount to burn charged on ETH when burning TCAP Tokens
   uint256 public burnFee;
 
   /// @notice Penalty charged to vault owner when a vault is liquidated, this value goes to the liquidator
@@ -243,6 +243,19 @@ abstract contract IVaultHandler is
   }
 
   /**
+   * @notice reverts if burn is different than required
+   * @param _amount to burn
+   */
+  modifier withBurnFee(uint256 _amount) {
+    uint256 fee = getFee(_amount);
+    require(
+      fee == msg.value,
+      "VaultHandler::burn: burn fee different than required"
+    );
+    _;
+  }
+
+  /**
    * @notice Sets the collateral ratio needed to mint tokens
    * @param _ratio uint
    * @dev Only owner can call it
@@ -283,10 +296,10 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Sets the reward handler address
+   * @notice Sets the reward handler address used to give rewards to incentivize minting of TCAP.
    * @param _rewardHandler address
    * @dev Only owner can call it
-   * @dev if not set rewards are not given
+   * @dev if not set, rewards are not given
    */
   function setRewardHandler(address _rewardHandler) external virtual onlyOwner {
     rewardHandler = IRewardHandler(_rewardHandler);
@@ -294,7 +307,7 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Sets the treasury contract address
+   * @notice Sets the treasury contract address where fees are transfered to
    * @param _treasury address
    * @dev Only owner can call it
    */
@@ -434,10 +447,11 @@ abstract contract IVaultHandler is
     nonReentrant
     vaultExists
     whenNotPaused
+    withBurnFee(_amount)
     notZero(_amount)
   {
     Vault memory vault = vaults[userToVault[msg.sender]];
-    _checkBurnFee(_amount);
+
     _burn(vault.Id, _amount);
 
     if (address(rewardHandler) != address(0)) {
@@ -454,13 +468,14 @@ abstract contract IVaultHandler is
    * @param _requiredTCAP amount of TCAP to liquidate vault
    * @dev Resulting ratio must be above or equal minimun ratio
    * @dev A fee of exactly burnFee must be sent as value on ETH
-   * @dev The fee goes to the treasury contract //TODO
+   * @dev The fee goes to the treasury contract
    */
   function liquidateVault(uint256 _vaultId, uint256 _requiredTCAP)
     external
     payable
     nonReentrant
     whenNotPaused
+    withBurnFee(_requiredTCAP)
   {
     Vault storage vault = vaults[_vaultId];
     require(vault.Id != 0, "VaultHandler::liquidateVault: no vault created");
@@ -478,7 +493,6 @@ abstract contract IVaultHandler is
     );
 
     uint256 reward = liquidationReward(vault.Id);
-    _checkBurnFee(_requiredTCAP);
     _burn(vault.Id, _requiredTCAP);
 
     //Removes the collateral that is rewarded to liquidator
@@ -498,32 +512,17 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Allows owner to Pause the Contract
+   * @notice Allows the owner to Pause the Contract
    */
   function pause() external onlyOwner {
     _pause();
   }
 
   /**
-   * @notice Allows owner to Unpause the Contract
+   * @notice Allows the owner to Unpause the Contract
    */
   function unpause() external onlyOwner {
     _unpause();
-  }
-
-  /**
-   * @notice ERC165 Standard for support of interfaces
-   * @param _interfaceId bytes of interface
-   * @return bool
-   */
-  function supportsInterface(bytes4 _interfaceId)
-    external
-    pure
-    override
-    returns (bool)
-  {
-    return (_interfaceId == _INTERFACE_ID_IVAULT ||
-      _interfaceId == _INTERFACE_ID_ERC165);
   }
 
   /**
@@ -554,6 +553,21 @@ abstract contract IVaultHandler is
   function safeTransferETH(address _to, uint256 _value) internal {
     (bool success, ) = _to.call{value: _value}(new bytes(0));
     require(success, "ETHVaultHandler::safeTransferETH: ETH transfer failed");
+  }
+
+  /**
+   * @notice ERC165 Standard for support of interfaces
+   * @param _interfaceId bytes of interface
+   * @return bool
+   */
+  function supportsInterface(bytes4 _interfaceId)
+    external
+    pure
+    override
+    returns (bool)
+  {
+    return (_interfaceId == _INTERFACE_ID_IVAULT ||
+      _interfaceId == _INTERFACE_ID_ERC165);
   }
 
   /**
@@ -637,7 +651,7 @@ abstract contract IVaultHandler is
    * @return amount required of the TCAP Token
    * @dev LT = ((((D * r) / 100) - cTcap) * 100) / (r - (p + 100))
    * cTcap = ((C * cp) / P)
-   * LT = Required TCAP
+   * LT = Required TCAPif reward handler is set exit rewards
    * D = Vault Debt
    * C = Required Collateral
    * P = TCAP Token Price
@@ -716,31 +730,20 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Returns the required fee to burn the TCAP tokens
+   * @notice Returns the required fee of ETH to burn the TCAP tokens
    * @param _amount to burn
    * @return fee
    * @dev The returned value is returned in wei
-   * @dev f = ((P * A * b)/ 100)
+   * @dev f = (((P * A * b)/ 100))/ EP
    * f = Burn Fee Value
    * P = TCAP Token Price
    * A = Amount to Burn
    * b = Burn Fee %
+   * EP = ETH Price
    */
   function getFee(uint256 _amount) public view virtual returns (uint256 fee) {
     uint256 ethPrice = getOraclePrice(ETHPriceOracle);
     fee = (TCAPPrice().mul(_amount).mul(burnFee)).div(100).div(ethPrice);
-  }
-
-  /**
-   * @notice reverts if burn is different than required
-   * @param _amount to burn //TODO: this should be modifier
-   */
-  function _checkBurnFee(uint256 _amount) internal {
-    uint256 fee = getFee(_amount);
-    require(
-      fee == msg.value,
-      "VaultHandler::burn: burn fee different than required"
-    );
   }
 
   /**
