@@ -8,39 +8,46 @@ import "./TCAP.sol";
 import "./oracles/ChainlinkOracle.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "hardhat/console.sol";
-
 /**
  * @title TCAP Orchestrator
- * @author Cristian Espinoza
- * @notice Orchestrator contract in charge of managing the settings of the vaults and TCAP token
+ * @author Cryptex.finance
+ * @notice Orchestrator contract in charge of managing the settings of the vaults, rewards and TCAP token. It acts as the owner of these contracts.
  */
 contract Orchestrator is Ownable {
-  /** @dev Logs all the calls of the functions. */
-  event LogSetGuardian(address indexed _owner, address guardian);
-  event LogExecuteTransaction(
-    address indexed target,
-    uint256 value,
-    string signature,
-    bytes data
-  );
+  /// @dev Enum which saves the available functions to emergency call.
+  enum Functions {BURNFEE, LIQUIDATION, PAUSE}
+
+  /// @notice Address that can set to 0 the fees or pause the vaults in an emergency event
+  address public guardian;
 
   /** @dev Interface constants*/
   bytes4 private constant _INTERFACE_ID_IVAULT = 0x9e75ab0c;
   bytes4 private constant _INTERFACE_ID_TCAP = 0xbd115939;
   bytes4 private constant _INTERFACE_ID_CHAINLINK_ORACLE = 0x85be402b;
 
-  /**
-   * @notice guardian address that can set to 0 the fees in an emergency event to promote liquidations.
-   */
-  address public guardian;
-
-  /** @dev Enum which saves the available functions to emergency call. */
-  enum Functions {BURNFEE, LIQUIDATION, PAUSE}
-  /** @dev tracks which vault was emergency called */
+  /// @dev tracks which vault was emergency called
   mapping(IVaultHandler => mapping(Functions => bool)) private emergencyCalled;
 
-  /** @notice Throws if called by any account other than the guardian. */
+  /// @notice An event emitted when the guardian is updated
+  event GuardianSet(address indexed _owner, address guardian);
+
+  /// @notice An event emitted when a transaction is executed
+  event TransactionExecuted(
+    address indexed target,
+    uint256 value,
+    string signature,
+    bytes data
+  );
+
+  /**
+   * @notice Constructor
+   * @param _guardian The guardian address
+   */
+  constructor(address _guardian) {
+    guardian = _guardian;
+  }
+
+  /// @notice Throws if called by any account other than the guardian
   modifier onlyGuardian() {
     require(
       msg.sender == guardian,
@@ -62,7 +69,7 @@ contract Orchestrator is Ownable {
   }
 
   /**
-   * @notice Throws if TCAP Token is not valid.
+   * @notice Throws if TCAP Token is not valid
    * @param _tcap address
    */
   modifier validTCAP(TCAP _tcap) {
@@ -74,7 +81,7 @@ contract Orchestrator is Ownable {
   }
 
   /**
-   * @notice Throws if Chainlink Oracle is not valid.
+   * @notice Throws if Chainlink Oracle is not valid
    * @param _oracle address
    */
   modifier validChainlinkOracle(address _oracle) {
@@ -89,14 +96,6 @@ contract Orchestrator is Ownable {
   }
 
   /**
-   * @notice Construct a new Orchestrator
-   * @param _guardian The guardian address
-   */
-  constructor(address _guardian) {
-    guardian = _guardian;
-  }
-
-  /**
    * @notice Sets the guardian of the orchestrator
    * @param _guardian address of the guardian
    * @dev Only owner can call it
@@ -107,7 +106,7 @@ contract Orchestrator is Ownable {
       "Orchestrator::setGuardian: guardian can't be zero"
     );
     guardian = _guardian;
-    emit LogSetGuardian(msg.sender, _guardian);
+    emit GuardianSet(msg.sender, _guardian);
   }
 
   /**
@@ -141,7 +140,7 @@ contract Orchestrator is Ownable {
   /**
    * @notice Sets the burn fee to 0, only used on a black swan event
    * @param _vault address
-   * @dev Only owner can call it
+   * @dev Only guardian can call it
    * @dev Validates if _vault is valid
    */
   function setEmergencyBurnFee(IVaultHandler _vault)
@@ -173,7 +172,7 @@ contract Orchestrator is Ownable {
   /**
    * @notice Sets the liquidation penalty of a vault to 0, only used on a black swan event
    * @param _vault address
-   * @dev Only owner can call it
+   * @dev Only guardian can call it
    * @dev Validates if _vault is valid
    */
   function setEmergencyLiquidationPenalty(IVaultHandler _vault)
@@ -236,16 +235,6 @@ contract Orchestrator is Ownable {
     validVault(_vault)
   {
     _vault.unpause();
-  }
-
-  /**
-   * @notice Retrieves the eth stuck on the orchestrator
-   * @param _to address
-   * @dev Only owner can call it
-   */
-  function retrieveETH(address _to) external onlyOwner {
-    uint256 amount = address(this).balance;
-    payable(_to).transfer(amount);
   }
 
   /**
@@ -312,6 +301,14 @@ contract Orchestrator is Ownable {
     _tcap.removeVaultHandler(address(_vault));
   }
 
+  /**
+   * @notice Allows the owner to execute custom transactions
+   * @param target address
+   * @param value uint256
+   * @param signature string
+   * @param data bytes
+   * @dev Only owner can call it
+   */
   function executeTransaction(
     address target,
     uint256 value,
@@ -333,13 +330,22 @@ contract Orchestrator is Ownable {
       "Orchestrator::executeTransaction: Transaction execution reverted."
     );
 
-    emit LogExecuteTransaction(target, value, signature, data);
+    emit TransactionExecuted(target, value, signature, data);
+    (target, value, signature, data);
 
     return returnData;
   }
 
   /**
-   * @notice Allows the contract to receive ETH
+   * @notice Retrieves the eth stuck on the orchestrator
+   * @param _to address
+   * @dev Only owner can call it
    */
+  function retrieveETH(address _to) external onlyOwner {
+    uint256 amount = address(this).balance;
+    payable(_to).transfer(amount);
+  }
+
+  /// @notice Allows the contract to receive ETH
   receive() external payable {}
 }

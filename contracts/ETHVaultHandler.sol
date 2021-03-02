@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 
 /**
  * @title ETH TCAP Vault
- * @author Cristian Espinoza
+ * @author Cryptex.finance
  * @notice Contract in charge of handling the TCAP Vault and stake using a ETH and WETH
  */
 contract ETHVaultHandler is IVaultHandler {

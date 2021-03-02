@@ -32,7 +32,6 @@ describe("Orchestrator Contract", async function () {
 			accounts.push(await acc5.getAddress());
 		}
 	});
-	//TODO: print logs on sets
 
 	it("...should deploy the contract", async () => {
 		const orchestrator = await ethers.getContractFactory("Orchestrator");
@@ -129,7 +128,7 @@ describe("Orchestrator Contract", async function () {
 		).to.be.revertedWith("Orchestrator::setGuardian: guardian can't be zero");
 
 		await expect(orchestratorInstance.connect(owner).setGuardian(await addr1.getAddress()))
-			.to.emit(orchestratorInstance, "LogSetGuardian")
+			.to.emit(orchestratorInstance, "GuardianSet")
 			.withArgs(await owner.getAddress(), await addr1.getAddress());
 
 		await orchestratorInstance.setGuardian(await guardian.getAddress());
@@ -416,7 +415,7 @@ describe("Orchestrator Contract", async function () {
 		).to.be.revertedWith("Orchestrator::executeTransaction: Transaction execution reverted.");
 
 		await expect(orchestratorInstance.executeTransaction(target, value, signature, data))
-			.to.emit(orchestratorInstance, "LogExecuteTransaction")
+			.to.emit(orchestratorInstance, "TransactionExecuted")
 			.withArgs(target, value, signature, data);
 
 		currentOwner = await tcapInstance.owner();
