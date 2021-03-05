@@ -21,18 +21,20 @@ export async function governanceFixture(
 ): Promise<GovernanceFixture> {
 	// deploy CTX, sending the total supply to the deployer
 	const { timestamp: now } = await provider.getBlock("latest");
+	let nonce = await wallet.getTransactionCount();
+	nonce++;
 	const timelockAddress = Contract.getContractAddress({
 		from: wallet.address,
-		nonce: 1,
+		nonce: nonce++,
 	});
-
-	const ctx = await deployContract(wallet, Ctx, [wallet.address, timelockAddress, now + 60 * 60]);
 
 	// deploy timelock, controlled by what will be the governor
 	const governorAlphaAddress = Contract.getContractAddress({
 		from: wallet.address,
-		nonce: 2,
+		nonce: nonce++,
 	});
+
+	const ctx = await deployContract(wallet, Ctx, [wallet.address, timelockAddress, now + 60 * 60]);
 
 	const timelock = await deployContract(wallet, Timelock, [governorAlphaAddress, DELAY]);
 	expect(timelock.address).to.be.eq(timelockAddress);

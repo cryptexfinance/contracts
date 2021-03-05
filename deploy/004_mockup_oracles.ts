@@ -1,6 +1,5 @@
 import { hardhatArguments } from "hardhat";
 require("dotenv").config();
-//TODO: TCAP Oracle shouldn't change
 module.exports = async ({ getNamedAccounts, deployments }: any) => {
 	let initial_run = process.env.INITIAL_RUN == "true" ? true : false;
 	if (

@@ -1,9 +1,10 @@
 import { expect } from "chai";
 import { BigNumber, Contract, constants, utils } from "ethers";
-import { MockProvider, createFixtureLoader, deployContract } from "ethereum-waffle";
-import { ecsign } from "ethereumjs-util";
+// import { MockProvider, createFixtureLoader, deployContract } from "ethereum-waffle";
+import { ecsign, ecrecover } from "ethereumjs-util";
 import { governanceFixture } from "./fixtures";
 import { expandTo18Decimals, mineBlock } from "./utils";
+import { waffle } from "hardhat";
 
 import Ctx from "../../artifacts/contracts/governance/Ctx.sol/Ctx.json";
 
@@ -18,15 +19,16 @@ const PERMIT_TYPEHASH = utils.keccak256(
 );
 
 describe("Ctx", () => {
-	const provider = new MockProvider({
-		ganacheOptions: {
-			hardfork: "istanbul",
-			mnemonic: "horn horn horn horn horn horn horn horn horn horn horn horn",
-			gasLimit: 9999999,
-		},
-	});
-	const [wallet, other0, other1] = provider.getWallets();
-	const loadFixture = createFixtureLoader([wallet], provider);
+	// const provider = new MockProvider({
+	// 	ganacheOptions: {
+	// 		hardfork: "istanbul",
+	// 		mnemonic: "horn horn horn horn horn horn horn horn horn horn horn horn",
+	// 		gasLimit: 800000000,
+	// 	},
+	// });
+
+	const [wallet, other0, other1] = waffle.provider.getWallets();
+	const loadFixture = waffle.createFixtureLoader([wallet], waffle.provider);
 
 	let ctx: Contract;
 	beforeEach(async () => {
@@ -38,7 +40,7 @@ describe("Ctx", () => {
 		const domainSeparator = utils.keccak256(
 			utils.defaultAbiCoder.encode(
 				["bytes32", "bytes32", "uint256", "address"],
-				[DOMAIN_TYPEHASH, utils.keccak256(utils.toUtf8Bytes("Cryptex")), 1, ctx.address]
+				[DOMAIN_TYPEHASH, utils.keccak256(utils.toUtf8Bytes("Cryptex")), 31337, ctx.address]
 			)
 		);
 
@@ -99,8 +101,12 @@ describe("Ctx", () => {
 	});
 
 	it("mints", async () => {
-		const { timestamp: now } = await provider.getBlock("latest");
-		const ctx = await deployContract(wallet, Ctx, [wallet.address, wallet.address, now + 60 * 60]);
+		const { timestamp: now } = await waffle.provider.getBlock("latest");
+		const ctx = await waffle.deployContract(wallet, Ctx, [
+			wallet.address,
+			wallet.address,
+			now + 60 * 60,
+		]);
 		const supply = await ctx.totalSupply();
 
 		await expect(ctx.mint(wallet.address, 1)).to.be.revertedWith(
@@ -108,7 +114,7 @@ describe("Ctx", () => {
 		);
 
 		let timestamp = await ctx.mintingAllowedAfter();
-		await mineBlock(provider, timestamp.toString());
+		await mineBlock(waffle.provider, parseInt(timestamp.toString()));
 
 		await expect(ctx.connect(other1).mint(other1.address, 1)).to.be.revertedWith(
 			"Ctx::mint: only the minter can mint"
@@ -127,7 +133,7 @@ describe("Ctx", () => {
 		expect(await ctx.balanceOf(wallet.address)).to.be.eq(supply.add(amount));
 
 		timestamp = await ctx.mintingAllowedAfter();
-		await mineBlock(provider, timestamp.toString());
+		await mineBlock(waffle.provider, parseInt(timestamp.toString()));
 		// cannot mint 2.01%
 		await expect(ctx.mint(wallet.address, supply.mul(mintCap.add(1)))).to.be.revertedWith(
 			"Ctx::mint: exceeded mint cap"

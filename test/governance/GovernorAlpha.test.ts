@@ -1,20 +1,21 @@
 import { expect } from "chai";
 import { Contract, constants } from "ethers";
-import { MockProvider, createFixtureLoader } from "ethereum-waffle";
+import { waffle } from "hardhat";
 
 import { governanceFixture } from "./fixtures";
 import { DELAY } from "./utils";
 
 describe("GovernorAlpha", () => {
-	const provider = new MockProvider({
-		ganacheOptions: {
-			hardfork: "istanbul",
-			mnemonic: "horn horn horn horn horn horn horn horn horn horn horn horn",
-			gasLimit: 9999999,
-		},
-	});
-	const [wallet] = provider.getWallets();
-	const loadFixture = createFixtureLoader([wallet], provider);
+	// waffle;
+	// const provider = new MockProvider({
+	// 	ganacheOptions: {
+	// 		hardfork: "istanbul",
+	// 		mnemonic: "horn horn horn horn horn horn horn horn horn horn horn horn",
+	// 		gasLimit: 9999999,
+	// 	},
+	// });
+	const [wallet] = waffle.provider.getWallets();
+	const loadFixture = waffle.createFixtureLoader([wallet], waffle.provider);
 
 	let ctx: Contract;
 	let timelock: Contract;

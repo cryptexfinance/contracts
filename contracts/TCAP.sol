@@ -7,8 +7,6 @@ import "@openzeppelin/contracts/introspection/IERC165.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./Orchestrator.sol";
 
-// TODO: Add Permit for gasless transactions
-
 /**
  * @title Total Market Cap Token
  * @author Cryptex.finance
