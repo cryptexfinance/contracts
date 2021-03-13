@@ -7,7 +7,7 @@ describe("Liquidity Mining Reward", async () => {
 	let ownerAddr, userAddr;
 	let vestingBegin;
 	let vestingEnd;
-	let vestingRatio = 30;
+	let vestingRatio = 70;
 	const ONE_DAY = 86400;
 
 	before("Set Accounts", async () => {
@@ -29,7 +29,7 @@ describe("Liquidity Mining Reward", async () => {
 		// Vesting
 		const { timestamp: now } = await ethers.provider.getBlock("latest");
 		vestingBegin = now + 60;
-		vestingEnd = vestingBegin + 60 * 60 * 24 * 182;
+		vestingEnd = vestingBegin + 60 * 60 * 60 * 24 * 186;
 
 		// Initialize Vault
 
@@ -197,7 +197,7 @@ describe("Liquidity Mining Reward", async () => {
 		);
 
 		let _balanceBefore = await rewardTokenInstance.balanceOf(userAddr);
-		await ethers.provider.send("evm_increaseTime", [ONE_DAY * 31 * 6]);
+		await ethers.provider.send("evm_increaseTime", [ONE_DAY * 31 * 6 * 60]);
 		await ethers.provider.send("evm_mine", []);
 		await liquidityRewardInstance.connect(user).claimVest();
 		let _balanceAfter = await rewardTokenInstance.balanceOf(userAddr);

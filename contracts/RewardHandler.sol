@@ -131,6 +131,7 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
     return _balances[_account];
   }
 
+  /// @notice Returns the Reward rate multiplied by the rewards duration time.
   function getRewardForDuration() external view returns (uint256) {
     return rewardRate.mul(rewardsDuration);
   }
@@ -140,7 +141,7 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
    * @param _staker address
    * @param _amount uint
    * @dev Only vault can call it
-   * @dev updates rewards on call
+   * @dev Updates rewards on call
    */
   function stake(address _staker, uint256 _amount)
     external
@@ -200,7 +201,7 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
   }
 
   /**
-   * @notice  Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
+   * @notice Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
    * @param _tokenAddress address
    * @param _tokenAmount uint
    * @dev Only owner  can call it
@@ -280,7 +281,7 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
    * @param _staker address
    * @param _amount uint
    * @dev Only vault can call it
-   * @dev updates rewards on call
+   * @dev Updates rewards on call
    */
   function withdraw(address _staker, uint256 _amount)
     public
@@ -298,7 +299,7 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
    * @notice Called when TCAP is burned or liquidated, transfers to the staker the current amount of rewards tokens earned.
    * @param _staker address
    * @dev Only vault can call it
-   * @dev updates rewards on call
+   * @dev Updates rewards on call
    */
   function getRewardFromVault(address _staker)
     public
@@ -316,7 +317,7 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
 
   /**
    * @notice Transfers to the caller the current amount of rewards tokens earned.
-   * @dev updates rewards on call
+   * @dev Updates rewards on call
    */
   function getReward() public nonReentrant updateReward(msg.sender) {
     uint256 reward = rewards[msg.sender];

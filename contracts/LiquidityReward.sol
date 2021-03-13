@@ -40,11 +40,12 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
   uint256 public rewardRate = 0;
 
   /// @notice How long the rewards lasts, it updates when more rewards are added
-  uint256 public rewardsDuration = 7 days;
+  uint256 public rewardsDuration = 186 days;
 
   /// @notice Last time rewards were updated
   uint256 public lastUpdateTime;
 
+  /// @notice Amount of reward calculated per token stored
   uint256 public rewardPerTokenStored;
 
   /// @notice Track the rewards paid to users
@@ -52,9 +53,6 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
 
   /// @notice Tracks the user rewards
   mapping(address => uint256) public rewards;
-
-  /// @dev Tracks the total supply of the minted TCAPs
-  uint256 private _totalSupply;
 
   /// @notice Time were vesting begins
   uint256 public vestingBegin;
@@ -65,19 +63,22 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
   /// @notice Vesting ratio
   uint256 public vestingRatio;
 
-  /// @notice tracks vesting of users
+  /// @notice tracks vesting amount per user
   mapping(address => uint256) public vestingAmounts;
 
-  /// @dev Tracks the amount of TCAP minted per user
+  /// @dev Tracks the total supply of staked tokens
+  uint256 private _totalSupply;
+
+  /// @dev Tracks the amount of staked tokens per user
   mapping(address => uint256) private _balances;
 
   /// @notice An event emitted when a reward is added
   event RewardAdded(uint256 reward);
 
-  /// @notice An event emitted when TCAP is minted and staked to earn rewards
+  /// @notice An event emitted when tokens are staked to earn rewards
   event Staked(address indexed user, uint256 amount);
 
-  /// @notice An event emitted when TCAP is burned and removed of stake
+  /// @notice An event emitted when staked tokens are withdrawn
   event Withdrawn(address indexed user, uint256 amount);
 
   /// @notice An event emitted when reward is paid to a user
@@ -130,13 +131,13 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
     _;
   }
 
-  /// @notice Returns the total amount of TCAP tokens minted and getting reward on this vault.
+  /// @notice Returns the total amount of staked tokens.
   function totalSupply() external view returns (uint256) {
     return _totalSupply;
   }
 
   /**
-   * @notice Returns the amount of TCAP tokens minted and getting reward from specific user.
+   * @notice Returns the amount of staked tokens from specific user.
    * @param _account address
    */
   function balanceOf(address _account) external view returns (uint256) {
@@ -150,7 +151,6 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
   /**
    * @notice Transfer staking token to contract
    * @param _amount uint
-   * @dev Only vault can call it
    * @dev updates rewards on call
    */
   function stake(uint256 _amount)
@@ -172,15 +172,15 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
     getReward();
   }
 
-  /// @notice Removes claims all vesting amount.
-  function claimVest() public {
+  /// @notice Claims all vesting amount.
+  function claimVest() external nonReentrant {
     require(
       block.timestamp >= vestingEnd,
       "LiquidityReward::claimVest: not time yet"
     );
     uint256 amount = vestingAmounts[msg.sender];
     vestingAmounts[msg.sender] = 0;
-    stakingToken.transfer(msg.sender, amount);
+    rewardsToken.safeTransfer(msg.sender, amount);
   }
 
   /**
