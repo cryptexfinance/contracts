@@ -65,7 +65,7 @@ const BTCVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						priceFeedBTC.address,
 						priceFeedETH.address,
 						rewardAddress,
-						deployer,
+						deployer, // TODO: this should be a treasury contract
 					],
 				});
 				handlerContract = await deployments.get("BTCVaultHandler");

@@ -17,7 +17,7 @@ module.exports = async ({ deployments }: any) => {
 		let ctxDeployment = await deployments.get("Ctx");
 		let timelock = await deployments.get("Timelock");
 
-		let rewardAmount = ethershardhat.utils.parseEther("400000");
+		let rewardAmount = ethershardhat.utils.parseEther("500000");
 		const abi = new ethershardhat.utils.AbiCoder();
 
 		const value = 0;
@@ -47,7 +47,6 @@ module.exports = async ({ deployments }: any) => {
 		await orchestrator.executeTransaction(target, value, signature, data, { gasLimit: 4000000 });
 
 		console.log("no transfer");
-		// await orchestrator.transferOwnership(timelock.address);
 	}
 };
 module.exports.tags = ["Initialize"];

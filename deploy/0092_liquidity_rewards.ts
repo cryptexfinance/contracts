@@ -26,7 +26,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 		const vestingBegin = now + 60;
 		const vestingEnd = vestingBegin + 60 * 60 * 24 * 182;
 		let rewardsToken = ctxDeployment.address;
-		let stakingToken = process.env.UNI_TCAP_ETH;
+		let stakingToken = process.env.LP_TCAP_ETH;
 
 		let rewardAmount = ethershardhat.utils.parseEther("400000");
 		const abi = new ethershardhat.utils.AbiCoder();
@@ -67,7 +67,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 		await orchestrator.executeTransaction(target, value, signature, data, { gasLimit: 4000000 });
 
 		/// WBTC
-		stakingToken = process.env.UNI_TCAP_WBTC;
+		stakingToken = process.env.LP_TCAP_WBTC;
 		rewardDeployment = await deployments.deploy("WBTCLiquidityReward", {
 			contract: "LiquidityReward",
 			from: deployer,
@@ -92,7 +92,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 		await orchestrator.executeTransaction(target, value, signature, data, { gasLimit: 4000000 });
 
 		// DAI
-		stakingToken = process.env.UNI_TCAP_DAI;
+		stakingToken = process.env.LP_TCAP_DAI;
 		rewardDeployment = await deployments.deploy("DAILiquidityReward", {
 			contract: "LiquidityReward",
 			from: deployer,
@@ -117,7 +117,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 		await orchestrator.executeTransaction(target, value, signature, data, { gasLimit: 4000000 });
 
 		//CTX
-		stakingToken = process.env.UNI_CTX_ETH;
+		stakingToken = process.env.LP_CTX_ETH;
 		rewardDeployment = await deployments.deploy("CTXLiquidityReward", {
 			contract: "LiquidityReward",
 			from: deployer,

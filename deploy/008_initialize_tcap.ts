@@ -15,7 +15,6 @@ module.exports = async ({ deployments }: any) => {
 		let WETHHandler = await deployments.get("WETHVaultHandler");
 		let OrchestratorDeployment = await deployments.get("Orchestrator");
 		let tcap = await deployments.get("TCAP");
-		let timelock = await deployments.get("Timelock");
 
 		let orchestrator = await ethershardhat.getContractAt(
 			"Orchestrator",
@@ -26,7 +25,6 @@ module.exports = async ({ deployments }: any) => {
 		await orchestrator.addTCAPVault(tcap.address, DAIHandler.address);
 		await orchestrator.addTCAPVault(tcap.address, BTCHandler.address);
 		await orchestrator.addTCAPVault(tcap.address, WETHHandler.address);
-		// await orchestrator.transferOwnership(timelock.address);
 	}
 };
 module.exports.tags = ["Initialize"];
