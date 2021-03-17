@@ -15,7 +15,6 @@ module.exports = async ({ deployments }: any) => {
 		let rWETHHandler = await deployments.get("WETHRewardHandler");
 		let OrchestratorDeployment = await deployments.get("Orchestrator");
 		let ctxDeployment = await deployments.get("Ctx");
-		let timelock = await deployments.get("Timelock");
 
 		let rewardAmount = ethershardhat.utils.parseEther("500000");
 		const abi = new ethershardhat.utils.AbiCoder();
