@@ -538,7 +538,7 @@ abstract contract IVaultHandler is
   {
     // Cannot recover the staking token or the tcap token
     require(
-      _tokenAddress != address(TCAPToken) ||
+      _tokenAddress != address(TCAPToken) &&
         _tokenAddress != address(collateralContract),
       "Cannot withdraw the staking, collateral or rewards tokens"
     );
