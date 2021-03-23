@@ -229,9 +229,11 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
   {
     // Cannot recover the staking token or the rewards token
     require(
-      _tokenAddress != address(rewardsToken),
+      _tokenAddress != address(rewardsToken) &&
+        _tokenAddress != address(stakingToken),
       "LiquidityReward::recoverERC20: Cannot withdraw the staking or rewards tokens"
     );
+
     IERC20(_tokenAddress).safeTransfer(owner(), _tokenAmount);
     emit Recovered(_tokenAddress, _tokenAmount);
   }
