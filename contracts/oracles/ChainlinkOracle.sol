@@ -51,7 +51,7 @@ contract ChainlinkOracle is Ownable, IERC165 {
     (
       uint80 roundID,
       int256 price,
-      uint256 startedAt,
+      ,
       uint256 timeStamp,
       uint80 answeredInRound
     ) = aggregatorContract.latestRoundData();
