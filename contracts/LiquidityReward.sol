@@ -322,7 +322,7 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
     if (reward > 0) {
       uint256 hundred = 100;
       uint256 vestingReward = (reward.mul(vestingRatio)).div(100);
-      uint256 transferReward = (reward.mul(hundred.sub(vestingRatio))).div(100);
+      uint256 transferReward = reward.sub(vestingReward);
       rewards[msg.sender] = 0;
       vestingAmounts[msg.sender] = vestingAmounts[msg.sender].add(
         vestingReward
