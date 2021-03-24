@@ -531,7 +531,7 @@ abstract contract IVaultHandler is
       collateralContract.transfer(msg.sender, reward),
       "VaultHandler::liquidateVault: ERC20 transfer did not succeed"
     );
-
+    safeTransferETH(treasury, msg.value);
     emit VaultLiquidated(vault.Id, msg.sender, req, reward);
   }
 
