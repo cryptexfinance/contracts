@@ -20,7 +20,13 @@ contract AggregatorInterfaceTCAP {
       uint80
     )
   {
-    return (0, value, 0, 0, 0);
+    return (
+      55340232221128679816,
+      value,
+      1616543796,
+      1616543819,
+      55340232221128679816
+    );
   }
 
   function setLatestAnswer(int256 _tcap) public {
