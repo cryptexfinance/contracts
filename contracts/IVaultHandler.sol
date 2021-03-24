@@ -99,6 +99,9 @@ abstract contract IVaultHandler is
   /// @notice value used to multiply chainlink oracle for handling decimals
   uint256 public constant oracleDigits = 10000000000;
 
+  /// @notice Minimum value that the ratio can be set to
+  uint256 public constant MIN_RATIO = 150;
+
   /**
    * @dev the computed interface ID according to ERC-165. The interface ID is a XOR of interface method selectors.
    * initialize.selector ^
@@ -206,6 +209,10 @@ abstract contract IVaultHandler is
       _liquidationPenalty.add(100) < _ratio,
       "VaultHandler::initialize: liquidation penalty too high"
     );
+    require(
+      _ratio >= MIN_RATIO,
+      "VaultHandler::initialize: ratio lower than MIN_RATIO"
+    );
 
     divisor = _divisor;
     ratio = _ratio;
@@ -261,6 +268,10 @@ abstract contract IVaultHandler is
    * @dev Only owner can call it
    */
   function setRatio(uint256 _ratio) external virtual onlyOwner {
+    require(
+      _ratio >= MIN_RATIO,
+      "VaultHandler::setRatio: ratio lower than MIN_RATIO"
+    );
     ratio = _ratio;
     emit NewRatio(msg.sender, _ratio);
   }

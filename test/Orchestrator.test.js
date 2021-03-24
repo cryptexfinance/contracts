@@ -147,6 +147,10 @@ describe("Orchestrator Contract", async function () {
 
 		await orchestratorInstance.setRatio(ethVaultInstance.address, ratio);
 		expect(ratio).to.eq(await ethVaultInstance.ratio());
+
+		await expect(orchestratorInstance.setRatio(ethVaultInstance.address, 10)).to.be.revertedWith(
+			"VaultHandler::setRatio: ratio lower than MIN_RATIO"
+		);
 	});
 
 	it("...should set vault burn fee", async () => {
