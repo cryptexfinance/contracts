@@ -102,6 +102,9 @@ abstract contract IVaultHandler is
   /// @notice Minimum value that the ratio can be set to
   uint256 public constant MIN_RATIO = 150;
 
+  /// @notice Maximum value that the burn fee can be set to
+  uint256 public constant MAX_FEE = 10;
+
   /**
    * @dev the computed interface ID according to ERC-165. The interface ID is a XOR of interface method selectors.
    * initialize.selector ^
@@ -214,6 +217,11 @@ abstract contract IVaultHandler is
       "VaultHandler::initialize: ratio lower than MIN_RATIO"
     );
 
+    require(
+      _burnFee <= MAX_FEE,
+      "VaultHandler::initialize: burn fee higher than MAX_FEE"
+    );
+
     divisor = _divisor;
     ratio = _ratio;
     burnFee = _burnFee;
@@ -282,6 +290,10 @@ abstract contract IVaultHandler is
    * @dev Only owner can call it
    */
   function setBurnFee(uint256 _burnFee) external virtual onlyOwner {
+    require(
+      _burnFee <= MAX_FEE,
+      "VaultHandler::setBurnFee: burn fee higher than MAX_FEE"
+    );
     burnFee = _burnFee;
     emit NewBurnFee(msg.sender, _burnFee);
   }
