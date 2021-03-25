@@ -10,7 +10,7 @@ describe("ETH Vault", async function () {
 		orchestratorInstance,
 		rewardHandlerInstance,
 		rewardTokenInstance;
-	let [owner, addr1, addr2, addr3, lq, guardian] = [];
+	let [owner, addr1, addr2, addr3, lq, guardian, treasury] = [];
 	let accounts = [];
 	let divisor = "10000000000";
 	let ratio = "150";
@@ -19,11 +19,12 @@ describe("ETH Vault", async function () {
 	const ONE_DAY = 86400;
 
 	before("Set Accounts", async () => {
-		let [acc0, acc1, acc3, acc4, acc5, acc6] = await ethers.getSigners();
+		let [acc0, acc1, acc3, acc4, acc5, acc6, acc7] = await ethers.getSigners();
 		owner = acc0;
 		addr1 = acc1;
 		addr2 = acc3;
 		addr3 = acc4;
+		treasury = acc7;
 		lq = acc5;
 		guardian = acc6;
 		if (owner && addr1) {
@@ -84,6 +85,22 @@ describe("ETH Vault", async function () {
 		expect(ethTokenHandler.address).properAddress;
 
 		await orchestratorInstance.addTCAPVault(tcapInstance.address, ethTokenHandler.address);
+	});
+
+	it("...should allow the owner to set the treasury address", async () => {
+		const abi = new ethers.utils.AbiCoder();
+		const target = ethTokenHandler.address;
+		const value = 0;
+		const signature = "setTreasury(address)";
+		const treasuryAddress = await treasury.getAddress();
+		const data = abi.encode(["address"], [treasuryAddress]);
+		await expect(
+			orchestratorInstance.connect(owner).executeTransaction(target, value, signature, data)
+		)
+			.to.emit(ethTokenHandler, "NewTreasury")
+			.withArgs(orchestratorInstance.address, treasuryAddress);
+
+		expect(await ethTokenHandler.treasury()).to.eq(treasuryAddress);
 	});
 
 	it("...should return the token price", async () => {
@@ -512,8 +529,9 @@ describe("ETH Vault", async function () {
 		);
 	});
 	it("...should allow users to liquidate users on vault ratio less than ratio", async () => {
+		const treasuryAddress = await treasury.getAddress();
+		const beforeTreasury = await ethers.provider.getBalance(treasuryAddress);
 		let vaultRatio = await ethTokenHandler.getVaultRatio(2);
-		let ethBalance = await ethers.provider.getBalance(ethTokenHandler.address);
 
 		//liquidator setup
 		let liquidatorAmount = ethers.utils.parseEther("20");
@@ -535,7 +553,7 @@ describe("ETH Vault", async function () {
 		const fakeBurn = await ethTokenHandler.getFee(1);
 		await expect(
 			ethTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation)
-		).to.be.revertedWith("VaultHandler::burn: burn fee different than required");
+		).to.be.revertedWith("VaultHandler::liquidateVault: burn fee less than required");
 		await expect(
 			ethTokenHandler.connect(addr3).liquidateVault(2, 1, { value: fakeBurn })
 		).to.be.revertedWith(
@@ -552,12 +570,14 @@ describe("ETH Vault", async function () {
 		let newCollateralBalance = await wethTokenInstance.balanceOf(accounts[3]);
 		let updatedVault = await ethTokenHandler.getVault(2);
 		let currentEthBalance = await ethers.provider.getBalance(ethTokenHandler.address);
-		expect(ethBalance.add(burnAmount)).to.eq(currentEthBalance);
+		expect(currentEthBalance).to.eq(0);
 		expect(updatedVault[1]).to.eq(vault[1].sub(liquidationReward));
 		expect(updatedVault[3]).to.eq(vault[3].sub(reqLiquidation));
 		expect(newCollateralBalance).to.eq(collateralBalance.add(liquidationReward));
 		expect(tcapBalance).to.eq(newTcapBalance.add(reqLiquidation)); //increase earnings
 		expect(vaultRatio).to.be.gte(parseInt(ratio)); // set vault back to ratio
+		const afterTreasury = await ethers.provider.getBalance(treasuryAddress);
+		expect(afterTreasury.gt(beforeTreasury)).eq(true);
 	});
 
 	it("...should allow owner to pause contract", async () => {
