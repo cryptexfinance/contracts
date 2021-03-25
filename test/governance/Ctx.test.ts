@@ -4,7 +4,7 @@ import { BigNumber, Contract, constants, utils } from "ethers";
 import { ecsign, ecrecover } from "ethereumjs-util";
 import { governanceFixture } from "./fixtures";
 import { expandTo18Decimals, mineBlock } from "./utils";
-import { waffle } from "hardhat";
+import { ethers, waffle } from "hardhat";
 
 import Ctx from "../../artifacts/contracts/governance/Ctx.sol/Ctx.json";
 
@@ -36,7 +36,7 @@ describe("Ctx", () => {
 		ctx = fixture.ctx;
 	});
 
-	it("permit", async () => {
+	it("...should permit", async () => {
 		const domainSeparator = utils.keccak256(
 			utils.defaultAbiCoder.encode(
 				["bytes32", "bytes32", "uint256", "address"],
@@ -78,7 +78,19 @@ describe("Ctx", () => {
 		await ctx.connect(other0).transferFrom(owner, spender, value);
 	});
 
-	it("nested delegation", async () => {
+	it("...should changes allowance", async () => {
+		const amount = ethers.utils.parseEther("10");
+		await ctx.connect(other0).approve(other1.address, amount);
+		expect(await ctx.allowance(other0.address, other1.address)).to.eq(amount);
+
+		await ctx.connect(other0).increaseAllowance(other1.address, amount);
+		expect(await ctx.allowance(other0.address, other1.address)).to.eq(amount.add(amount));
+
+		await ctx.connect(other0).decreaseAllowance(other1.address, amount);
+		expect(await ctx.allowance(other0.address, other1.address)).to.eq(amount);
+	});
+
+	it("...should allow nested delegation", async () => {
 		await ctx.transfer(other0.address, expandTo18Decimals(1));
 		await ctx.transfer(other1.address, expandTo18Decimals(2));
 
@@ -100,7 +112,7 @@ describe("Ctx", () => {
 		expect(currectVotes1).to.be.eq(expandTo18Decimals(1));
 	});
 
-	it("mints", async () => {
+	it("...should mint", async () => {
 		const { timestamp: now } = await waffle.provider.getBlock("latest");
 		const ctx = await waffle.deployContract(wallet, Ctx, [
 			wallet.address,
