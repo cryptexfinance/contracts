@@ -197,11 +197,40 @@ contract Ctx {
   }
 
   /**
+   * @notice Sets `amount` as the allowance of `spender` over the `owner` s tokens.
+   * @param owner The address of the caller.
+   * @param spender The address of the account which may transfer tokens
+   * @param amount The number of tokens that are approved
+   * @dev This internal function is equivalent to `approve`, and can be used to
+   * e.g. set automatic allowances for certain subsystems, etc.
+   * @dev Emits an Approval event.
+   * @dev owner cannot be the zero address.
+   * @dev spender cannot be the zero address.
+   */
+  function _approve(
+    address owner,
+    address spender,
+    uint96 amount
+  ) internal virtual {
+    require(
+      owner != address(0),
+      "Ctx::_approve: approve from the zero address"
+    );
+    require(
+      spender != address(0),
+      "Ctx::_approve: approve to the zero address"
+    );
+
+    allowances[owner][spender] = amount;
+    emit Approval(owner, spender, amount);
+  }
+
+  /**
    * @notice Approve `spender` to transfer up to `amount` from `src`
-   * @dev This will overwrite the approval amount for `spender`
-   *  and is subject to issues noted [here](https://eips.ethereum.org/EIPS/eip-20#approve)
    * @param spender The address of the account which may transfer tokens
    * @param rawAmount The number of tokens that are approved (2^256-1 means infinite)
+   * @dev This will overwrite the approval amount for `spender`
+   *  and is subject to issues noted [here](https://eips.ethereum.org/EIPS/eip-20#approve)
    * @return Whether or not the approval succeeded
    */
   function approve(address spender, uint256 rawAmount) external returns (bool) {
@@ -211,10 +240,79 @@ contract Ctx {
     } else {
       amount = safe96(rawAmount, "Ctx::approve: amount exceeds 96 bits");
     }
+    _approve(msg.sender, spender, amount);
+    return true;
+  }
 
-    allowances[msg.sender][spender] = amount;
+  /**
+   * @notice Atomically increases the allowance granted to `spender` by the caller.
+   * @param spender address
+   * @param addedValue uint256 raw
+   * @dev This is an alternative to {approve} that can be used as a mitigation for
+   * problems of Allowance Double-Spend Exploit.
+   * @dev Emits Approval event indicating the updated allowance.
+   * @dev spender cannot be the zero address.
+   */
+  function increaseAllowance(address spender, uint256 addedValue)
+    public
+    virtual
+    returns (bool)
+  {
+    uint96 amount;
+    if (addedValue == uint256(-1)) {
+      amount = uint96(-1);
+    } else {
+      amount = safe96(
+        addedValue,
+        "Ctx::increaseAllowance: amount exceeds 96 bits"
+      );
+    }
+    _approve(
+      msg.sender,
+      spender,
+      add96(
+        allowances[msg.sender][spender],
+        amount,
+        "Ctx::increaseAllowance: transfer amount overflows"
+      )
+    );
+    return true;
+  }
 
-    emit Approval(msg.sender, spender, amount);
+  /**
+   * @notice Atomically decreases the allowance granted to `spender` by the caller.
+   * @param spender address
+   * @param subtractedValue uint256 raw
+   * @dev This is an alternative to {approve} that can be used as a mitigation for
+   * problems of Allowance Double-Spend Exploit.
+   * @dev Emits an Approval event indicating the updated allowance.
+   * @dev spender cannot be the sero address
+   * @dev spender must have allowance for the caller of at least subtractedValue
+   */
+  function decreaseAllowance(address spender, uint256 subtractedValue)
+    public
+    virtual
+    returns (bool)
+  {
+    uint96 amount;
+    if (subtractedValue == uint256(-1)) {
+      amount = uint96(-1);
+    } else {
+      amount = safe96(
+        subtractedValue,
+        "Ctx::decreaseAllowance: amount exceeds 96 bits"
+      );
+    }
+
+    _approve(
+      msg.sender,
+      spender,
+      sub96(
+        allowances[msg.sender][spender],
+        amount,
+        "Ctx::decreaseAllowance: decreased allowance below zero"
+      )
+    );
     return true;
   }
 
