@@ -489,17 +489,16 @@ abstract contract IVaultHandler is
   /**
    * @notice Allow users to burn TCAP tokens to liquidate vaults with vault collateral ratio under the minium ratio, the liquidator receives the staked collateral of the liquidated vault at a premium
    * @param _vaultId to liquidate
-   * @param _requiredTCAP amount of TCAP to liquidate vault
+   * @param _maxTCAP max amount of TCAP the liquidator is willing to pay to liquidate vault
    * @dev Resulting ratio must be above or equal minimun ratio
    * @dev A fee of exactly burnFee must be sent as value on ETH
    * @dev The fee goes to the treasury contract
    */
-  function liquidateVault(uint256 _vaultId, uint256 _requiredTCAP)
+  function liquidateVault(uint256 _vaultId, uint256 _maxTCAP)
     external
     payable
     nonReentrant
     whenNotPaused
-    withBurnFee(_requiredTCAP)
   {
     Vault storage vault = vaults[_vaultId];
     require(vault.Id != 0, "VaultHandler::liquidateVault: no vault created");
@@ -510,29 +509,38 @@ abstract contract IVaultHandler is
       "VaultHandler::liquidateVault: vault is not liquidable"
     );
 
-    uint256 req = requiredLiquidationTCAP(vault.Id);
+    uint256 requiredTCAP = requiredLiquidationTCAP(vault.Id);
     require(
-      _requiredTCAP == req,
+      _maxTCAP >= requiredTCAP,
       "VaultHandler::liquidateVault: liquidation amount different than required"
     );
 
+    uint256 fee = getFee(requiredTCAP);
+    require(
+      msg.value >= fee,
+      "VaultHandler::liquidateVault: burn fee less than required"
+    );
+
     uint256 reward = liquidationReward(vault.Id);
-    _burn(vault.Id, _requiredTCAP);
+    _burn(vault.Id, requiredTCAP);
 
     //Removes the collateral that is rewarded to liquidator
     vault.Collateral = vault.Collateral.sub(reward);
 
     // Triggers update of CTX Rewards
     if (address(rewardHandler) != address(0)) {
-      rewardHandler.withdraw(vault.Owner, _requiredTCAP);
+      rewardHandler.withdraw(vault.Owner, requiredTCAP);
     }
 
     require(
       collateralContract.transfer(msg.sender, reward),
       "VaultHandler::liquidateVault: ERC20 transfer did not succeed"
     );
-    safeTransferETH(treasury, msg.value);
-    emit VaultLiquidated(vault.Id, msg.sender, req, reward);
+    safeTransferETH(treasury, fee);
+
+    //send back ETH above fee
+    safeTransferETH(msg.sender, msg.value.sub(fee));
+    emit VaultLiquidated(vault.Id, msg.sender, requiredTCAP, reward);
   }
 
   /**
