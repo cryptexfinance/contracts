@@ -567,11 +567,10 @@ abstract contract IVaultHandler is
     external
     onlyOwner
   {
-    // Cannot recover the staking token or the tcap token
+    // Cannot recover the collatera token
     require(
-      _tokenAddress != address(TCAPToken) &&
-        _tokenAddress != address(collateralContract),
-      "Cannot withdraw the staking, collateral or rewards tokens"
+      _tokenAddress != address(collateralContract),
+      "Cannot withdraw the collateral tokens"
     );
     IERC20(_tokenAddress).safeTransfer(owner(), _tokenAmount);
     emit Recovered(_tokenAddress, _tokenAmount);
