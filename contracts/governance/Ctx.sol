@@ -3,7 +3,7 @@
 pragma solidity 0.7.5;
 pragma experimental ABIEncoderV2;
 
-import "./SafeMath.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 
 contract Ctx {
   /// @notice EIP-20 token name for this token
