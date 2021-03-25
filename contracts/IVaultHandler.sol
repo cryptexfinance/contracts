@@ -726,8 +726,8 @@ abstract contract IVaultHandler is
     uint256 req = requiredLiquidationTCAP(_vaultId);
     uint256 tcapPrice = TCAPPrice();
     uint256 collateralPrice = getOraclePrice(collateralPriceOracle);
-    uint256 reward = (req.mul(liquidationPenalty.add(100))).div(100);
-    rewardCollateral = (reward.mul(tcapPrice)).div(collateralPrice);
+    uint256 reward = (req.mul(liquidationPenalty.add(100)));
+    rewardCollateral = (reward.mul(tcapPrice)).div(collateralPrice.mul(100));
   }
 
   /**
