@@ -44,6 +44,10 @@ contract Orchestrator is Ownable {
    * @param _guardian The guardian address
    */
   constructor(address _guardian) {
+    require(
+      _guardian != address(0),
+      "Orchestrator::constructor: guardian can't be zero"
+    );
     guardian = _guardian;
   }
 
@@ -322,6 +326,11 @@ contract Orchestrator is Ownable {
       callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
     }
 
+    require(
+      target != address(0),
+      "Orchestrator::executeTransaction: target can't be zero"
+    );
+
     // solium-disable-next-line security/no-call-value
     (bool success, bytes memory returnData) =
       target.call{value: value}(callData);
@@ -342,6 +351,10 @@ contract Orchestrator is Ownable {
    * @dev Only owner can call it
    */
   function retrieveETH(address _to) external onlyOwner {
+    require(
+      _to != address(0),
+      "Orchestrator::retrieveETH: address can't be zero"
+    );
     uint256 amount = address(this).balance;
     payable(_to).transfer(amount);
   }

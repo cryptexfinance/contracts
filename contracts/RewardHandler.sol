@@ -88,6 +88,13 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
     address _rewardsToken,
     address _vault
   ) {
+    require(
+      _owner != address(0) &&
+        _rewardsToken != address(0) &&
+        _vault != address(0),
+      "RewardHandler::constructor: address can't be zero"
+    );
+
     rewardsToken = IERC20(_rewardsToken);
     vault = _vault;
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
