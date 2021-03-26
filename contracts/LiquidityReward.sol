@@ -54,9 +54,6 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
   /// @notice Tracks the user rewards
   mapping(address => uint256) public rewards;
 
-  /// @notice Time were vesting begins
-  uint256 public vestingBegin;
-
   /// @notice Time were vesting ends
   uint256 public vestingEnd;
 
@@ -95,7 +92,6 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
    * @param _owner address
    * @param _rewardsToken address
    * @param _stakingToken uint256
-   * @param _vestingBegin uint256
    * @param _vestingEnd uint256
    * @param _vestingRatio uint256
    */
@@ -103,13 +99,11 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
     address _owner,
     address _rewardsToken,
     address _stakingToken,
-    uint256 _vestingBegin,
     uint256 _vestingEnd,
     uint256 _vestingRatio
   ) {
     rewardsToken = IERC20(_rewardsToken);
     stakingToken = IERC20(_stakingToken);
-    vestingBegin = _vestingBegin;
     vestingEnd = _vestingEnd;
     vestingRatio = _vestingRatio;
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
