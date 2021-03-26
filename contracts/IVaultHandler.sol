@@ -682,7 +682,7 @@ abstract contract IVaultHandler is
    * @return amount required of the TCAP Token
    * @dev LT = ((((D * r) / 100) - cTcap) * 100) / (r - (p + 100))
    * cTcap = ((C * cp) / P)
-   * LT = Required TCAPif reward handler is set exit rewards
+   * LT = Required TCAP
    * D = Vault Debt
    * C = Required Collateral
    * P = TCAP Token Price
