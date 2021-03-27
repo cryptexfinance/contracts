@@ -107,7 +107,6 @@ abstract contract IVaultHandler is
 
   /**
    * @dev the computed interface ID according to ERC-165. The interface ID is a XOR of interface method selectors.
-   * initialize.selector ^
    * setRatio.selector ^
    * setBurnFee.selector ^
    * setLiquidationPenalty.selector ^
@@ -115,6 +114,14 @@ abstract contract IVaultHandler is
    * unpause.selector =>  0x9e75ab0c
    */
   bytes4 private constant _INTERFACE_ID_IVAULT = 0x9e75ab0c;
+
+  /**
+   * @dev the computed interface ID according to ERC-165. The interface ID is a XOR of interface method selectors.
+   * queueTransaction.selector ^
+   * cancelTransaction.selector ^
+   * executeTransaction.selector  =>  0x6b5cc770
+   */
+  bytes4 private constant _INTERFACE_ID_TIMELOCK = 0x6b5cc770;
 
   /// @dev bytes4(keccak256('supportsInterface(bytes4)')) == 0x01ffc9a7
   bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
@@ -210,16 +217,21 @@ abstract contract IVaultHandler is
   ) {
     require(
       _liquidationPenalty.add(100) < _ratio,
-      "VaultHandler::initialize: liquidation penalty too high"
+      "VaultHandler::constructor: liquidation penalty too high"
     );
     require(
       _ratio >= MIN_RATIO,
-      "VaultHandler::initialize: ratio lower than MIN_RATIO"
+      "VaultHandler::constructor: ratio lower than MIN_RATIO"
     );
 
     require(
       _burnFee <= MAX_FEE,
-      "VaultHandler::initialize: burn fee higher than MAX_FEE"
+      "VaultHandler::constructor: burn fee higher than MAX_FEE"
+    );
+
+    require(
+      ERC165Checker.supportsInterface(_treasury, _INTERFACE_ID_TIMELOCK),
+      "VaultHandler::constructor: not a valid treasury"
     );
 
     divisor = _divisor;
@@ -325,7 +337,6 @@ abstract contract IVaultHandler is
    * @dev if not set, rewards are not given
    */
   function setRewardHandler(address _rewardHandler) external virtual onlyOwner {
-    //TODO: this should only happen once as if it's removed rewards will be lost
     rewardHandler = IRewardHandler(_rewardHandler);
     emit NewRewardHandler(msg.sender, _rewardHandler);
   }
@@ -336,6 +347,10 @@ abstract contract IVaultHandler is
    * @dev Only owner can call it
    */
   function setTreasury(address _treasury) external virtual onlyOwner {
+    require(
+      ERC165Checker.supportsInterface(_treasury, _INTERFACE_ID_TIMELOCK),
+      "VaultHandler::setTreasury: not a valid treasury"
+    );
     treasury = (_treasury);
     emit NewTreasury(msg.sender, _treasury);
   }

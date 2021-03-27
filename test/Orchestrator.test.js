@@ -73,6 +73,11 @@ describe("Orchestrator Contract", async function () {
 		wethTokenInstance = await weth.deploy();
 		collateralAddress = wethTokenInstance.address;
 
+		//Timelock
+		const threeDays = 359200;
+		const timelock = await ethers.getContractFactory("Timelock");
+		const timelockInstance = await timelock.deploy(orchestratorInstance.address, threeDays);
+
 		//Vaults
 		const wethVault = await ethers.getContractFactory("ERC20VaultHandler");
 		ethVaultInstance = await wethVault.deploy(
@@ -87,7 +92,7 @@ describe("Orchestrator Contract", async function () {
 			collateralOracle,
 			ethOracle,
 			ethers.constants.AddressZero,
-			ethers.constants.AddressZero
+			timelockInstance.address
 		);
 		await ethVaultInstance.deployed();
 		expect(ethVaultInstance.address).properAddress;
@@ -104,7 +109,7 @@ describe("Orchestrator Contract", async function () {
 			collateralOracle,
 			ethOracle,
 			ethers.constants.AddressZero,
-			ethers.constants.AddressZero
+			timelockInstance.address
 		);
 		await btcVaultInstance.deployed();
 		expect(btcVaultInstance.address).properAddress;

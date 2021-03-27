@@ -24,7 +24,7 @@ describe("ETH Vault", async function () {
 		addr1 = acc1;
 		addr2 = acc3;
 		addr3 = acc4;
-		treasury = acc7;
+
 		lq = acc5;
 		guardian = acc6;
 		if (owner && addr1) {
@@ -41,6 +41,10 @@ describe("ETH Vault", async function () {
 		orchestratorInstance = await orchestrator.deploy(await guardian.getAddress());
 		await orchestratorInstance.deployed();
 		expect(orchestratorInstance.address).properAddress;
+
+		const threeDays = 259200;
+		const timelock = await ethers.getContractFactory("Timelock");
+		const timelockInstance = await timelock.deploy(orchestratorInstance.address, threeDays);
 
 		const TCAP = await ethers.getContractFactory("TCAP");
 		tcapInstance = await TCAP.deploy(
@@ -79,7 +83,7 @@ describe("ETH Vault", async function () {
 			priceOracleInstance.address,
 			priceOracleInstance.address,
 			ethers.constants.AddressZero,
-			ethers.constants.AddressZero
+			timelockInstance.address
 		);
 		await ethTokenHandler.deployed();
 		expect(ethTokenHandler.address).properAddress;
@@ -92,15 +96,20 @@ describe("ETH Vault", async function () {
 		const target = ethTokenHandler.address;
 		const value = 0;
 		const signature = "setTreasury(address)";
-		const treasuryAddress = await treasury.getAddress();
-		const data = abi.encode(["address"], [treasuryAddress]);
+
+		const threeDays = 259200;
+		const timelock = await ethers.getContractFactory("Timelock");
+		const timelockInstance = await timelock.deploy(orchestratorInstance.address, threeDays);
+
+		treasury = timelockInstance.address;
+		const data = abi.encode(["address"], [treasury]);
 		await expect(
 			orchestratorInstance.connect(owner).executeTransaction(target, value, signature, data)
 		)
 			.to.emit(ethTokenHandler, "NewTreasury")
-			.withArgs(orchestratorInstance.address, treasuryAddress);
+			.withArgs(orchestratorInstance.address, treasury);
 
-		expect(await ethTokenHandler.treasury()).to.eq(treasuryAddress);
+		expect(await ethTokenHandler.treasury()).to.eq(treasury);
 	});
 
 	it("...should return the token price", async () => {
@@ -529,7 +538,7 @@ describe("ETH Vault", async function () {
 		);
 	});
 	it("...should allow users to liquidate users on vault ratio less than ratio", async () => {
-		const treasuryAddress = await treasury.getAddress();
+		const treasuryAddress = treasury;
 		const beforeTreasury = await ethers.provider.getBalance(treasuryAddress);
 		let vaultRatio = await ethTokenHandler.getVaultRatio(2);
 
