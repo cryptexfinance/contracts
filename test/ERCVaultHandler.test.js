@@ -22,7 +22,6 @@ describe("ERC20 Vault", async function () {
 		addr1 = acc1;
 		addr2 = acc3;
 		addr3 = acc4;
-		treasury = acc7;
 		lq = acc5;
 		guardian = acc6;
 		if (owner && addr1) {
@@ -39,6 +38,10 @@ describe("ERC20 Vault", async function () {
 		orchestratorInstance = await orchestrator.deploy(await guardian.getAddress());
 		await orchestratorInstance.deployed();
 		expect(orchestratorInstance.address).properAddress;
+
+		const threeDays = 259200;
+		const timelock = await ethers.getContractFactory("Timelock");
+		const timelockInstance = await timelock.deploy(orchestratorInstance.address, threeDays);
 
 		const TCAP = await ethers.getContractFactory("TCAP");
 		tcapInstance = await TCAP.deploy(
@@ -76,7 +79,7 @@ describe("ERC20 Vault", async function () {
 			priceOracleInstance.address,
 			priceOracleInstance.address,
 			ethers.constants.AddressZero,
-			ethers.constants.AddressZero
+			timelockInstance.address
 		);
 		await ercTokenHandler.deployed();
 		expect(ercTokenHandler.address).properAddress;
@@ -89,15 +92,20 @@ describe("ERC20 Vault", async function () {
 		const target = ercTokenHandler.address;
 		const value = 0;
 		const signature = "setTreasury(address)";
-		const treasuryAddress = await treasury.getAddress();
-		const data = abi.encode(["address"], [treasuryAddress]);
+
+		const threeDays = 259200;
+		const timelock = await ethers.getContractFactory("Timelock");
+		const timelockInstance = await timelock.deploy(orchestratorInstance.address, threeDays);
+
+		treasury = timelockInstance.address;
+		let data = abi.encode(["address"], [treasury]);
 		await expect(
 			orchestratorInstance.connect(owner).executeTransaction(target, value, signature, data)
 		)
 			.to.emit(ercTokenHandler, "NewTreasury")
-			.withArgs(orchestratorInstance.address, treasuryAddress);
+			.withArgs(orchestratorInstance.address, treasury);
 
-		expect(await ercTokenHandler.treasury()).to.eq(treasuryAddress);
+		expect(await ercTokenHandler.treasury()).to.eq(treasury);
 	});
 
 	it("...should return the token price", async () => {
@@ -354,7 +362,7 @@ describe("ERC20 Vault", async function () {
 	// });
 
 	it("...should allow users to burn tokens", async () => {
-		const treasuryAddress = await treasury.getAddress();
+		const treasuryAddress = treasury;
 		const beforeTreasury = await ethers.provider.getBalance(treasuryAddress);
 
 		const amount = ethersProvider.utils.parseEther("10");
@@ -476,7 +484,7 @@ describe("ERC20 Vault", async function () {
 		);
 	});
 	it("...should allow users to liquidate users on vault ratio less than ratio", async () => {
-		const treasuryAddress = await treasury.getAddress();
+		const treasuryAddress = treasury;
 		const beforeTreasury = await ethers.provider.getBalance(treasuryAddress);
 		let vaultRatio = await ercTokenHandler.getVaultRatio(2);
 
