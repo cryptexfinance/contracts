@@ -73,6 +73,11 @@ describe("Orchestrator Contract", async function () {
 		wethTokenInstance = await weth.deploy();
 		collateralAddress = wethTokenInstance.address;
 
+		//Timelock
+		const threeDays = 359200;
+		const timelock = await ethers.getContractFactory("Timelock");
+		const timelockInstance = await timelock.deploy(orchestratorInstance.address, threeDays);
+
 		//Vaults
 		const wethVault = await ethers.getContractFactory("ERC20VaultHandler");
 		ethVaultInstance = await wethVault.deploy(
@@ -87,7 +92,7 @@ describe("Orchestrator Contract", async function () {
 			collateralOracle,
 			ethOracle,
 			ethers.constants.AddressZero,
-			ethers.constants.AddressZero
+			timelockInstance.address
 		);
 		await ethVaultInstance.deployed();
 		expect(ethVaultInstance.address).properAddress;
@@ -104,7 +109,7 @@ describe("Orchestrator Contract", async function () {
 			collateralOracle,
 			ethOracle,
 			ethers.constants.AddressZero,
-			ethers.constants.AddressZero
+			timelockInstance.address
 		);
 		await btcVaultInstance.deployed();
 		expect(btcVaultInstance.address).properAddress;
@@ -147,6 +152,10 @@ describe("Orchestrator Contract", async function () {
 
 		await orchestratorInstance.setRatio(ethVaultInstance.address, ratio);
 		expect(ratio).to.eq(await ethVaultInstance.ratio());
+
+		await expect(orchestratorInstance.setRatio(ethVaultInstance.address, 10)).to.be.revertedWith(
+			"VaultHandler::setRatio: ratio lower than MIN_RATIO"
+		);
 	});
 
 	it("...should set vault burn fee", async () => {
@@ -162,6 +171,10 @@ describe("Orchestrator Contract", async function () {
 
 		await orchestratorInstance.setBurnFee(ethVaultInstance.address, burnFee);
 		expect(burnFee).to.eq(await ethVaultInstance.burnFee());
+
+		await expect(orchestratorInstance.setBurnFee(ethVaultInstance.address, 100)).to.be.revertedWith(
+			"VaultHandler::setBurnFee: burn fee higher than MAX_FEE"
+		);
 	});
 
 	it("...should set vault liquidation penalty", async () => {
@@ -185,36 +198,6 @@ describe("Orchestrator Contract", async function () {
 		await expect(
 			orchestratorInstance.setLiquidationPenalty(ethVaultInstance.address, liquidationPenalty)
 		).to.be.revertedWith("VaultHandler::setLiquidationPenalty: liquidation penalty too high");
-	});
-
-	it("...should set the reward handler", async () => {
-		const rewardToken = await ethers.getContractFactory("WETH");
-		rewardTokenInstance = await rewardToken.deploy();
-		const reward = await ethers.getContractFactory("RewardHandler");
-		let rewardHandlerInstance = await reward.deploy(
-			orchestratorInstance.address,
-			rewardTokenInstance.address,
-			ethVaultInstance.address
-		);
-		await rewardHandlerInstance.deployed();
-		await expect(
-			orchestratorInstance
-				.connect(addr1)
-				.setRewardHandler(ethVaultInstance.address, ethersProvider.constants.AddressZero)
-		).to.be.revertedWith("Ownable: caller is not the owner");
-
-		await expect(
-			orchestratorInstance.setRewardHandler(
-				ethersProvider.constants.AddressZero,
-				ethersProvider.constants.AddressZero
-			)
-		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
-
-		await orchestratorInstance.setRewardHandler(
-			ethVaultInstance.address,
-			rewardTokenInstance.address
-		);
-		expect(rewardTokenInstance.address).to.eq(await ethVaultInstance.rewardHandler());
 	});
 
 	it("...should pause the Vault", async () => {

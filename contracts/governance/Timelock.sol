@@ -2,9 +2,10 @@
 
 pragma solidity 0.7.5;
 
-import "./SafeMath.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/introspection/IERC165.sol";
 
-contract Timelock {
+contract Timelock is IERC165 {
   using SafeMath for uint256;
 
   event NewAdmin(address indexed newAdmin);
@@ -43,6 +44,17 @@ contract Timelock {
   address public pendingAdmin;
   uint256 public delay;
 
+  /**
+   * @dev the computed interface ID according to ERC-165. The interface ID is a XOR of interface method selectors.
+   * queueTransaction.selector ^
+   * cancelTransaction.selector ^
+   * executeTransaction.selector  =>  0x6b5cc770
+   */
+  bytes4 private constant _INTERFACE_ID_TIMELOCK = 0x6b5cc770;
+
+  /// @dev bytes4(keccak256('supportsInterface(bytes4)')) == 0x01ffc9a7
+  bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
+
   mapping(bytes32 => bool) public queuedTransactions;
 
   constructor(address admin_, uint256 delay_) {
@@ -77,6 +89,21 @@ contract Timelock {
     delay = delay_;
 
     emit NewDelay(delay);
+  }
+
+  /**
+   * @notice ERC165 Standard for support of interfaces
+   * @param _interfaceId bytes of interface
+   * @return bool
+   */
+  function supportsInterface(bytes4 _interfaceId)
+    external
+    pure
+    override
+    returns (bool)
+  {
+    return (_interfaceId == _INTERFACE_ID_TIMELOCK ||
+      _interfaceId == _INTERFACE_ID_ERC165);
   }
 
   function acceptAdmin() public {

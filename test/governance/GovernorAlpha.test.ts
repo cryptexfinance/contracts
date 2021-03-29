@@ -27,13 +27,13 @@ describe("GovernorAlpha", () => {
 		governorAlpha = fixture.governorAlpha;
 	});
 
-	it("ctx", async () => {
+	it("...should test ctx", async () => {
 		const balance = await ctx.balanceOf(wallet.address);
 		const totalSupply = await ctx.totalSupply();
 		expect(balance).to.be.eq(totalSupply);
 	});
 
-	it("timelock", async () => {
+	it("...should set timelock", async () => {
 		const admin = await timelock.admin();
 		expect(admin).to.be.eq(governorAlpha.address);
 		const pendingAdmin = await timelock.pendingAdmin();
@@ -42,12 +42,12 @@ describe("GovernorAlpha", () => {
 		expect(delay).to.be.eq(DELAY);
 	});
 
-	it("governor", async () => {
+	it("...should set governor", async () => {
 		const votingPeriod = await governorAlpha.votingPeriod();
 		expect(votingPeriod).to.be.eq(17280);
 		const timelockAddress = await governorAlpha.timelock();
 		expect(timelockAddress).to.be.eq(timelock.address);
-		const uniFromGovernor = await governorAlpha.ctx();
-		expect(uniFromGovernor).to.be.eq(ctx.address);
+		const ctxFromGovernor = await governorAlpha.ctx();
+		expect(ctxFromGovernor).to.be.eq(ctx.address);
 	});
 });

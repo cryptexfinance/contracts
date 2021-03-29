@@ -5,7 +5,6 @@ describe("Liquidity Mining Reward", async () => {
 	let liquidityRewardInstance, stakingTokenInstance, rewardTokenInstance;
 	let [owner, user, vault] = [];
 	let ownerAddr, userAddr;
-	let vestingBegin;
 	let vestingEnd;
 	let vestingRatio = 70;
 	const ONE_DAY = 86400;
@@ -28,7 +27,7 @@ describe("Liquidity Mining Reward", async () => {
 
 		// Vesting
 		const { timestamp: now } = await ethers.provider.getBlock("latest");
-		vestingBegin = now + 60;
+		const vestingBegin = now + 60;
 		vestingEnd = vestingBegin + 60 * 60 * 60 * 24 * 186;
 
 		// Initialize Vault
@@ -38,7 +37,6 @@ describe("Liquidity Mining Reward", async () => {
 			ownerAddr,
 			rewardTokenInstance.address,
 			stakingTokenInstance.address,
-			vestingBegin,
 			vestingEnd,
 			vestingRatio
 		);
@@ -50,7 +48,6 @@ describe("Liquidity Mining Reward", async () => {
 		expect(ownerAddr).to.eq(await liquidityRewardInstance.owner());
 		expect(rewardTokenInstance.address).to.eq(await liquidityRewardInstance.rewardsToken());
 		expect(stakingTokenInstance.address).to.eq(await liquidityRewardInstance.stakingToken());
-		expect(vestingBegin).to.eq(await liquidityRewardInstance.vestingBegin());
 		expect(vestingEnd).to.eq(await liquidityRewardInstance.vestingEnd());
 		expect(vestingRatio).to.eq(await liquidityRewardInstance.vestingRatio());
 	});

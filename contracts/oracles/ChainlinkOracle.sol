@@ -47,8 +47,23 @@ contract ChainlinkOracle is Ownable, IERC165 {
    * @notice Returns the latest answer from the reference contract.
    * @return price
    */
-  function getLatestAnswer() public view returns (int256 price) {
-    (, price, , , ) = aggregatorContract.latestRoundData();
+  function getLatestAnswer() public view returns (int256) {
+    (
+      uint80 roundID,
+      int256 price,
+      ,
+      uint256 timeStamp,
+      uint80 answeredInRound
+    ) = aggregatorContract.latestRoundData();
+    require(
+      timeStamp != 0,
+      "ChainlinkOracle::getLatestAnswer: round is not complete"
+    );
+    require(
+      answeredInRound >= roundID,
+      "ChainlinkOracle::getLatestAnswer: stale data"
+    );
+    return price;
   }
 
   /**
@@ -117,7 +132,10 @@ contract ChainlinkOracle is Ownable, IERC165 {
    */
   function getPreviousAnswer(uint80 _id) public view returns (int256) {
     (uint80 roundID, int256 price, , , ) = aggregatorContract.getRoundData(_id);
-    require(_id <= roundID, "Not enough history");
+    require(
+      _id <= roundID,
+      "ChainlinkOracle::getPreviousAnswer: not enough history"
+    );
     return price;
   }
 
@@ -129,7 +147,10 @@ contract ChainlinkOracle is Ownable, IERC165 {
   function getPreviousTimestamp(uint80 _id) public view returns (uint256) {
     (uint80 roundID, , , uint256 timeStamp, ) =
       aggregatorContract.getRoundData(_id);
-    require(_id <= roundID, "Not enough history");
+    require(
+      _id <= roundID,
+      "ChainlinkOracle::getPreviousTimestamp: not enough history"
+    );
     return timeStamp;
   }
 

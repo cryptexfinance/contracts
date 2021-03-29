@@ -327,6 +327,10 @@ contract GovernorAlpha {
     view
     returns (Receipt memory)
   {
+    require(
+      proposalCount >= proposalId && proposalId > 0,
+      "GovernorAlpha::getReceipt: invalid proposal id"
+    );
     return receipts[proposalId][voter];
   }
 

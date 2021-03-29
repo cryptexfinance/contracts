@@ -45,14 +45,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 		let rewardDeployment = await deployments.deploy("ETHLiquidityReward", {
 			contract: "LiquidityReward",
 			from: deployer,
-			args: [
-				OrchestratorDeployment.address,
-				rewardsToken,
-				stakingToken,
-				vestingBegin,
-				vestingEnd,
-				vestingRatio,
-			],
+			args: [OrchestratorDeployment.address, rewardsToken, stakingToken, vestingEnd, vestingRatio],
 		});
 		log(
 			`Liquidity Reward deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
@@ -71,14 +64,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 		rewardDeployment = await deployments.deploy("WBTCLiquidityReward", {
 			contract: "LiquidityReward",
 			from: deployer,
-			args: [
-				OrchestratorDeployment.address,
-				rewardsToken,
-				stakingToken,
-				vestingBegin,
-				vestingEnd,
-				vestingRatio,
-			],
+			args: [OrchestratorDeployment.address, rewardsToken, stakingToken, vestingEnd, vestingRatio],
 		});
 		log(
 			`Liquidity Reward deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
@@ -96,14 +82,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 		rewardDeployment = await deployments.deploy("DAILiquidityReward", {
 			contract: "LiquidityReward",
 			from: deployer,
-			args: [
-				OrchestratorDeployment.address,
-				rewardsToken,
-				stakingToken,
-				vestingBegin,
-				vestingEnd,
-				vestingRatio,
-			],
+			args: [OrchestratorDeployment.address, rewardsToken, stakingToken, vestingEnd, vestingRatio],
 		});
 		log(
 			`Liquidity Reward deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
@@ -121,14 +100,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 		rewardDeployment = await deployments.deploy("CTXLiquidityReward", {
 			contract: "LiquidityReward",
 			from: deployer,
-			args: [
-				OrchestratorDeployment.address,
-				rewardsToken,
-				stakingToken,
-				vestingBegin,
-				vestingEnd,
-				vestingRatio,
-			],
+			args: [OrchestratorDeployment.address, rewardsToken, stakingToken, vestingEnd, vestingRatio],
 		});
 		log(
 			`Liquidity Reward deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`

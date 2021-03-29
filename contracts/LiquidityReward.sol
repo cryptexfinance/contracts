@@ -29,10 +29,10 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
   using SafeERC20 for IERC20;
 
   /// @notice Address of the reward
-  IERC20 public rewardsToken;
+  IERC20 public immutable rewardsToken;
 
   /// @notice Address of the staking token
-  IERC20 public stakingToken;
+  IERC20 public immutable stakingToken;
 
   /// @notice Tracks the period where users stop earning rewards
   uint256 public periodFinish = 0;
@@ -54,14 +54,11 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
   /// @notice Tracks the user rewards
   mapping(address => uint256) public rewards;
 
-  /// @notice Time were vesting begins
-  uint256 public vestingBegin;
-
   /// @notice Time were vesting ends
-  uint256 public vestingEnd;
+  uint256 public immutable vestingEnd;
 
   /// @notice Vesting ratio
-  uint256 public vestingRatio;
+  uint256 public immutable vestingRatio;
 
   /// @notice tracks vesting amount per user
   mapping(address => uint256) public vestingAmounts;
@@ -95,7 +92,6 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
    * @param _owner address
    * @param _rewardsToken address
    * @param _stakingToken uint256
-   * @param _vestingBegin uint256
    * @param _vestingEnd uint256
    * @param _vestingRatio uint256
    */
@@ -103,13 +99,11 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
     address _owner,
     address _rewardsToken,
     address _stakingToken,
-    uint256 _vestingBegin,
     uint256 _vestingEnd,
     uint256 _vestingRatio
   ) {
     rewardsToken = IERC20(_rewardsToken);
     stakingToken = IERC20(_stakingToken);
-    vestingBegin = _vestingBegin;
     vestingEnd = _vestingEnd;
     vestingRatio = _vestingRatio;
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -229,7 +223,8 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
   {
     // Cannot recover the staking token or the rewards token
     require(
-      _tokenAddress != address(rewardsToken),
+      _tokenAddress != address(rewardsToken) &&
+        _tokenAddress != address(stakingToken),
       "LiquidityReward::recoverERC20: Cannot withdraw the staking or rewards tokens"
     );
     IERC20(_tokenAddress).safeTransfer(owner(), _tokenAmount);
@@ -313,20 +308,25 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
   /**
    * @notice Transfers to the caller the current amount of rewards tokens earned.
    * @dev updates rewards on call
-   * @dev only 70% of reward is inmediate transfered the rest is locked into vesting
+   * @dev from the total reward a vestingRatio amount is locked into vesting and the rest is transfered
+   * @dev if vesting period has passed transfer all rewards
    */
   function getReward() public nonReentrant updateReward(msg.sender) {
     uint256 reward = rewards[msg.sender];
     if (reward > 0) {
-      uint256 hundred = 100;
-      uint256 vestingReward = (reward.mul(vestingRatio)).div(100);
-      uint256 transferReward = (reward.mul(hundred.sub(vestingRatio))).div(100);
       rewards[msg.sender] = 0;
-      vestingAmounts[msg.sender] = vestingAmounts[msg.sender].add(
-        vestingReward
-      );
-      rewardsToken.safeTransfer(msg.sender, transferReward);
-      emit RewardPaid(msg.sender, transferReward);
+      if (block.timestamp >= vestingEnd) {
+        rewardsToken.safeTransfer(msg.sender, reward);
+        emit RewardPaid(msg.sender, reward);
+      } else {
+        uint256 vestingReward = (reward.mul(vestingRatio)).div(100);
+        uint256 transferReward = reward.sub(vestingReward);
+        vestingAmounts[msg.sender] = vestingAmounts[msg.sender].add(
+          vestingReward
+        );
+        rewardsToken.safeTransfer(msg.sender, transferReward);
+        emit RewardPaid(msg.sender, transferReward);
+      }
     }
   }
 }
