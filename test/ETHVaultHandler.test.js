@@ -70,6 +70,13 @@ describe("ETH Vault", async function () {
 		const rewardToken = await ethers.getContractFactory("DAI");
 		rewardTokenInstance = await rewardToken.deploy();
 
+		let nonce = await owner.getTransactionCount();
+
+		const rewardHandlerAddress = ethers.utils.getContractAddress({
+			from: accounts[0],
+			nonce: nonce + 1,
+		});
+
 		const ethVault = await ethers.getContractFactory("ETHVaultHandler");
 		ethTokenHandler = await ethVault.deploy(
 			orchestratorInstance.address,
@@ -82,12 +89,20 @@ describe("ETH Vault", async function () {
 			wethTokenInstance.address,
 			priceOracleInstance.address,
 			priceOracleInstance.address,
-			ethers.constants.AddressZero,
+			rewardHandlerAddress,
 			timelockInstance.address
 		);
 		await ethTokenHandler.deployed();
 		expect(ethTokenHandler.address).properAddress;
 
+		// set reward handler
+		const reward = await ethers.getContractFactory("RewardHandler");
+		rewardHandlerInstance = await reward.deploy(
+			orchestratorInstance.address,
+			rewardTokenInstance.address,
+			ethTokenHandler.address
+		);
+		await rewardHandlerInstance.deployed();
 		await orchestratorInstance.addTCAPVault(tcapInstance.address, ethTokenHandler.address);
 	});
 
@@ -321,19 +336,6 @@ describe("ETH Vault", async function () {
 	});
 
 	it("...should allow to earn fees if reward address is set", async () => {
-		// set reward handler
-		const reward = await ethers.getContractFactory("RewardHandler");
-		rewardHandlerInstance = await reward.deploy(
-			orchestratorInstance.address,
-			rewardTokenInstance.address,
-			ethTokenHandler.address
-		);
-		await rewardHandlerInstance.deployed();
-		await orchestratorInstance.setRewardHandler(
-			ethTokenHandler.address,
-			rewardHandlerInstance.address
-		);
-
 		let rewardAmount = ethers.utils.parseEther("100");
 		await rewardTokenInstance.mint(accounts[0], rewardAmount);
 		await rewardTokenInstance.connect(owner).transfer(rewardHandlerInstance.address, rewardAmount);

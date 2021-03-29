@@ -200,36 +200,6 @@ describe("Orchestrator Contract", async function () {
 		).to.be.revertedWith("VaultHandler::setLiquidationPenalty: liquidation penalty too high");
 	});
 
-	it("...should set the reward handler", async () => {
-		const rewardToken = await ethers.getContractFactory("WETH");
-		rewardTokenInstance = await rewardToken.deploy();
-		const reward = await ethers.getContractFactory("RewardHandler");
-		let rewardHandlerInstance = await reward.deploy(
-			orchestratorInstance.address,
-			rewardTokenInstance.address,
-			ethVaultInstance.address
-		);
-		await rewardHandlerInstance.deployed();
-		await expect(
-			orchestratorInstance
-				.connect(addr1)
-				.setRewardHandler(ethVaultInstance.address, ethersProvider.constants.AddressZero)
-		).to.be.revertedWith("Ownable: caller is not the owner");
-
-		await expect(
-			orchestratorInstance.setRewardHandler(
-				ethersProvider.constants.AddressZero,
-				ethersProvider.constants.AddressZero
-			)
-		).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
-
-		await orchestratorInstance.setRewardHandler(
-			ethVaultInstance.address,
-			rewardTokenInstance.address
-		);
-		expect(rewardTokenInstance.address).to.eq(await ethVaultInstance.rewardHandler());
-	});
-
 	it("...should pause the Vault", async () => {
 		await expect(
 			orchestratorInstance.connect(owner).pauseVault(ethVaultInstance.address)

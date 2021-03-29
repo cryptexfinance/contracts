@@ -29,7 +29,7 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
   using SafeERC20 for IERC20;
 
   /// @notice Address of the reward
-  IERC20 public rewardsToken;
+  IERC20 public immutable rewardsToken;
 
   /// @notice Address of the vault
   address public vault;

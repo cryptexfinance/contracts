@@ -29,10 +29,10 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
   using SafeERC20 for IERC20;
 
   /// @notice Address of the reward
-  IERC20 public rewardsToken;
+  IERC20 public immutable rewardsToken;
 
   /// @notice Address of the staking token
-  IERC20 public stakingToken;
+  IERC20 public immutable stakingToken;
 
   /// @notice Tracks the period where users stop earning rewards
   uint256 public periodFinish = 0;
@@ -55,10 +55,10 @@ contract LiquidityReward is Ownable, AccessControl, ReentrancyGuard, Pausable {
   mapping(address => uint256) public rewards;
 
   /// @notice Time were vesting ends
-  uint256 public vestingEnd;
+  uint256 public immutable vestingEnd;
 
   /// @notice Vesting ratio
-  uint256 public vestingRatio;
+  uint256 public immutable vestingRatio;
 
   /// @notice tracks vesting amount per user
   mapping(address => uint256) public vestingAmounts;
