@@ -438,14 +438,12 @@ describe("ETH Vault", async function () {
 			"VaultHandler::vaultExists: no vault created"
 		);
 		await expect(ethTokenHandler.connect(addr1).burn(amount)).to.be.revertedWith(
-			"VaultHandler::burn: burn fee different than required"
+			"VaultHandler::burn: burn fee less than required"
 		);
 		await expect(
 			ethTokenHandler.connect(addr1).burn(bigAmount, { value: ethAmount2 })
 		).to.be.revertedWith("VaultHandler::burn: amount greater than debt");
-		await expect(
-			ethTokenHandler.connect(addr1).burn(amount, { value: ethHighAmount })
-		).to.be.revertedWith("VaultHandler::burn: burn fee different than required");
+
 		await expect(ethTokenHandler.connect(addr1).burn(amount, { value: ethAmount }))
 			.to.emit(ethTokenHandler, "TokensBurned")
 			.withArgs(accounts[1], 1, amount);

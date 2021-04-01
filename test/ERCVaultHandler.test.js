@@ -340,27 +340,6 @@ describe("ERC20 Vault", async function () {
 		expect(fee).to.eq(result);
 	});
 
-	// it("...should allow owner to retrieve fees in the contract", async () => {
-	// 	let ethBalance = await ethers.provider.getBalance(ercTokenHandler.address);
-	// 	let accountBalance = await ethers.provider.getBalance(accounts[0]);
-	// 	let orchestratorBalance = await ethers.provider.getBalance(orchestratorInstance.address);
-	// 	await expect(ercTokenHandler.connect(addr3).retrieveFees()).to.be.revertedWith(
-	// 		"Ownable: caller is not the owner"
-	// 	);
-	// 	await expect(orchestratorInstance.connect(owner).retrieveVaultFees(ercTokenHandler.address))
-	// 		.to.emit(ercTokenHandler, "FeesRetrieved")
-	// 		.withArgs(orchestratorInstance.address, ethBalance);
-	// 	let currentAccountBalance = await ethers.provider.getBalance(orchestratorInstance.address);
-	// 	expect(currentAccountBalance).to.eq(orchestratorBalance.add(ethBalance));
-	// 	await orchestratorInstance.connect(owner).retrieveFees();
-	// 	currentAccountBalance = await ethers.provider.getBalance(accounts[0]);
-	// 	expect(currentAccountBalance).to.gt(accountBalance);
-	// 	ethBalance = await ethers.provider.getBalance(ercTokenHandler.address);
-	// 	expect(ethBalance).to.eq(0);
-	// 	ethBalance = await ethers.provider.getBalance(orchestratorInstance.address);
-	// 	expect(ethBalance).to.eq(0);
-	// });
-
 	it("...should allow users to burn tokens", async () => {
 		const treasuryAddress = treasury;
 		const beforeTreasury = await ethers.provider.getBalance(treasuryAddress);
@@ -377,18 +356,16 @@ describe("ERC20 Vault", async function () {
 			"VaultHandler::vaultExists: no vault created"
 		);
 		await expect(ercTokenHandler.connect(addr1).burn(amount)).to.be.revertedWith(
-			"VaultHandler::burn: burn fee different than required"
+			"VaultHandler::burn: burn fee less than required"
 		);
 		await expect(
 			ercTokenHandler.connect(addr1).burn(bigAmount, { value: ethAmount2 })
 		).to.be.revertedWith("VaultHandler::burn: amount greater than debt");
-		await expect(
-			ercTokenHandler.connect(addr1).burn(amount, { value: ethHighAmount })
-		).to.be.revertedWith("VaultHandler::burn: burn fee different than required");
+
 		await expect(ercTokenHandler.connect(addr1).burn(0)).to.be.revertedWith(
 			"VaultHandler::notZero: value can't be 0"
 		);
-		await expect(ercTokenHandler.connect(addr1).burn(amount, { value: ethAmount }))
+		await expect(ercTokenHandler.connect(addr1).burn(amount, { value: ethHighAmount }))
 			.to.emit(ercTokenHandler, "TokensBurned")
 			.withArgs(accounts[1], 1, amount);
 		let tcapBalance = await tcapInstance.balanceOf(accounts[1]);
