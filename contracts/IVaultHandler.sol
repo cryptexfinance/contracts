@@ -138,9 +138,6 @@ abstract contract IVaultHandler is
     uint256 _liquidationPenalty
   );
 
-  /// @notice An event emitted when the reward handler contract is updated
-  event NewRewardHandler(address indexed _owner, address _rewardHandler);
-
   /// @notice An event emitted when the treasury contract is updated
   event NewTreasury(address indexed _owner, address _tresury);
 
@@ -266,19 +263,6 @@ abstract contract IVaultHandler is
   /// @notice Reverts if value is 0.
   modifier notZero(uint256 _value) {
     require(_value != 0, "VaultHandler::notZero: value can't be 0");
-    _;
-  }
-
-  /**
-   * @notice reverts if burn is different than required
-   * @param _amount to burn
-   */
-  modifier withBurnFee(uint256 _amount) {
-    uint256 fee = getFee(_amount);
-    require(
-      fee == msg.value,
-      "VaultHandler::burn: burn fee different than required"
-    );
     _;
   }
 
@@ -475,9 +459,14 @@ abstract contract IVaultHandler is
     nonReentrant
     vaultExists
     whenNotPaused
-    withBurnFee(_amount)
     notZero(_amount)
   {
+    uint256 fee = getFee(_amount);
+    require(
+      msg.value >= fee,
+      "VaultHandler::burn: burn fee less than required"
+    );
+
     Vault memory vault = vaults[userToVault[msg.sender]];
 
     _burn(vault.Id, _amount);
@@ -486,7 +475,10 @@ abstract contract IVaultHandler is
       rewardHandler.withdraw(msg.sender, _amount);
       rewardHandler.getRewardFromVault(msg.sender);
     }
-    safeTransferETH(treasury, msg.value);
+    safeTransferETH(treasury, fee);
+
+    //send back ETH above fee
+    safeTransferETH(msg.sender, msg.value.sub(fee));
     emit TokensBurned(msg.sender, vault.Id, _amount);
   }
 
