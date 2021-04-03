@@ -38,7 +38,7 @@ contract TCAP is ERC20, Ownable, IERC165 {
    * transferFrom.selector ^
    * addVaultHandler.selector ^
    * removeVaultHandler.selector ^
-   * approve.selector => 0xa9ccee51
+   * approve.selector => 0xbd115939
    */
   bytes4 private constant _INTERFACE_ID_TCAP = 0xbd115939;
 

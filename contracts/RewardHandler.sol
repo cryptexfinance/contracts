@@ -32,7 +32,7 @@ contract RewardHandler is Ownable, AccessControl, ReentrancyGuard, Pausable {
   IERC20 public immutable rewardsToken;
 
   /// @notice Address of the vault
-  address public vault;
+  address public immutable vault;
 
   /// @notice Tracks the period where users stop earning rewards
   uint256 public periodFinish = 0;
