@@ -84,10 +84,7 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
                         args: [guardian, ctx.address, vaultAddress],
                     }
                 );
-                console.log(
-                    "🚀 ~ file: 006_dai_vault.ts ~ line 88 ~ DAIVaultHandler ~ rewardDeployment",
-                    rewardDeployment
-                );
+
                 log(
                     `Reward Handler deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
                 );

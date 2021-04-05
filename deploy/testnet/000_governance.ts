@@ -8,7 +8,6 @@ const governance: DeployFunction = async function (
     if (
         hardhatArguments.network === "rinkeby" ||
         hardhatArguments.network === "ropsten" ||
-        hardhatArguments.network === "hardhat" ||
         hardhatArguments.network === "ganache"
     ) {
         const Ctx = await deployments.getOrNull("Ctx");
