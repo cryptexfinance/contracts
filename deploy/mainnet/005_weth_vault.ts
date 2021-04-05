@@ -2,7 +2,7 @@ import { hardhatArguments } from "hardhat";
 import { deployments } from "hardhat";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-const WBTCVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
+const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
     let initial_run = process.env.INITIAL_RUN == "true" ? true : false;
     if (hardhatArguments.network === "hardhat" && initial_run) {
         const { log } = deployments;
@@ -16,26 +16,24 @@ const WBTCVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
         let orchestrator = await deployments.get("Orchestrator");
         let ctx = await deployments.get("Ctx");
         try {
-            handlerContract = await deployments.get("WBTCVaultHandler");
+            handlerContract = await deployments.get("WETHVaultHandler");
         } catch (error) {
             log(error.message);
             try {
                 let tcap = await deployments.get("TCAP");
 
-                const WBTCAddress = process.env.WBTC_TOKEN as string;
+                let WETHContract = process.env.WETH_TOKEN as string;
 
-                const divisor = process.env.DIVISOR as string;
-                const ratio = process.env.RATIO as string;
-                const burnFee = process.env.BURN_FEE as string;
-                const liquidationPenalty = process.env
+                let divisor = process.env.DIVISOR as string;
+                let ratio = process.env.RATIO as string;
+                let burnFee = process.env.BURN_FEE as string;
+                let liquidationPenalty = process.env
                     .LIQUIDATION_PENALTY as string;
                 const guardian = process.env.GUARDIAN;
 
                 let tcapOracle = await deployments.get("TCAPOracle");
                 let priceFeedETH = await deployments.get("WETHOracle");
-                let priceFeedBTC = await deployments.get("BTCOracle");
                 const timelock = await deployments.get("Timelock");
-
                 let nonce = await owner.getTransactionCount();
 
                 const vaultAddress = ethers.utils.getContractAddress({
@@ -49,11 +47,11 @@ const WBTCVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
                 });
 
                 const deployResult = await deployments.deploy(
-                    "BTCVaultHandler",
+                    "WETHVaultHandler",
                     {
                         from: deployer,
                         gasLimit: 8000000,
-                        contract: "ERC20VaultHandler",
+                        contract: "ETHVaultHandler",
                         args: [
                             orchestrator.address,
                             divisor,
@@ -62,22 +60,22 @@ const WBTCVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
                             liquidationPenalty,
                             tcapOracle.address,
                             tcap.address,
-                            WBTCAddress,
-                            priceFeedBTC.address,
+                            WETHContract,
+                            priceFeedETH.address,
                             priceFeedETH.address,
                             rewardAddress,
                             timelock.address,
                         ],
                     }
                 );
-                handlerContract = await deployments.get("WBTCVaultHandler");
+                handlerContract = await deployments.get("WETHVaultHandler");
                 if (deployResult.newlyDeployed) {
                     log(
-                        `WBTCVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt?.gasUsed}`
+                        `WETHVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt?.gasUsed}`
                     );
                 }
                 const rewardDeployment = await deployments.deploy(
-                    "WBTCRewardHandler",
+                    "WETHRewardHandler",
                     {
                         contract: "RewardHandler",
                         from: deployer,
@@ -93,5 +91,4 @@ const WBTCVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
         }
     }
 };
-
-export default WBTCVaultHandler;
+export default WETHVaultHandler;
