@@ -5,7 +5,7 @@ import { deployments, hardhatArguments } from "hardhat";
 const governance: DeployFunction = async function (
     hre: HardhatRuntimeEnvironment
 ) {
-    if (hardhatArguments.network === "hardhat") {
+    if (hardhatArguments.network === "mainnet") {
         const Ctx = await deployments.getOrNull("Ctx");
         const { log } = deployments;
         if (!Ctx) {

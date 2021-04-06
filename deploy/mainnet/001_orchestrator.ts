@@ -1,7 +1,7 @@
 import { hardhatArguments } from "hardhat";
 module.exports = async ({ getNamedAccounts, deployments }: any) => {
     let initial_run = process.env.INITIAL_RUN == "true" ? true : false;
-    if (hardhatArguments.network === "hardhat" && initial_run) {
+    if (hardhatArguments.network === "mainnet" && initial_run) {
         const { deployIfDifferent, log } = deployments;
         const { deployer } = await getNamedAccounts();
 

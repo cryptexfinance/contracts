@@ -6,7 +6,7 @@ require("dotenv").config();
 module.exports = async (hre: HardhatRuntimeEnvironment) => {
     let initial_run = process.env.INITIAL_RUN == "false" ? true : false;
 
-    if (hardhatArguments.network === "hardhat" && initial_run) {
+    if (hardhatArguments.network === "mainnet" && initial_run) {
         const ethers = hre.ethers;
         const namedAccounts = await hre.getNamedAccounts();
         const deployer = namedAccounts.deployer;

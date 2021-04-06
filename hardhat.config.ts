@@ -32,14 +32,10 @@ const config: HardhatUserConfig = {
 		},
 	},
 	networks: {
-		hardhat: {
-			forking: {
-				url: process.env.MAINNET_API_URL as string,
-			},
-		},
+		hardhat: {},
 		mainnet: {
-			url: "http://127.0.0.1:8545",
-			accounts: { mnemonic: ganacheMnemonic },
+			url: process.env.MAINNET_API_URL,
+			accounts: { mnemonic: mnemonic },
 
 			// url: process.env.MAINNET_API_URL,
 			// accounts: { mnemonic: mnemonic },

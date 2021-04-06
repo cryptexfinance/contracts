@@ -4,7 +4,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 const WBTCVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
     let initial_run = process.env.INITIAL_RUN == "true" ? true : false;
-    if (hardhatArguments.network === "hardhat" && initial_run) {
+    if (hardhatArguments.network === "mainnet" && initial_run) {
         const { log } = deployments;
         const namedAccounts = await hre.getNamedAccounts();
         const deployer = namedAccounts.deployer;
@@ -52,7 +52,6 @@ const WBTCVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
                     "WBTCVaultHandler",
                     {
                         from: deployer,
-                        gasLimit: 8000000,
                         contract: "ERC20VaultHandler",
                         args: [
                             orchestrator.address,
