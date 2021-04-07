@@ -19,7 +19,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
             const deployResult = await deployIfDifferent(
                 ["data"],
                 "TCAP",
-                { from: deployer, gas: 4000000 },
+                { from: deployer },
                 "TCAP",
                 name,
                 symbol,

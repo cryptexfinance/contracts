@@ -15,7 +15,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
                 const deployResult = await deployIfDifferent(
                     ["data"],
                     "Orchestrator",
-                    { from: deployer, gas: 8000000 },
+                    { from: deployer },
                     "Orchestrator",
                     guardian
                 );
