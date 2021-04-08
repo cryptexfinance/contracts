@@ -9,7 +9,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
     if (
         (hardhatArguments.network === "rinkeby" ||
             hardhatArguments.network === "ropsten" ||
-            hardhatArguments.network === "ganache") &&
+            hardhatArguments.network === "hardhat") &&
         initial_run
     ) {
         const ethers = hre.ethers;
@@ -65,9 +65,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
         let target = rewardDeployment.address;
 
         await ctx.transfer(target, rewardAmount);
-        await orchestrator.executeTransaction(target, value, signature, data, {
-            gasLimit: 4000000,
-        });
+        await orchestrator.executeTransaction(target, value, signature, data);
 
         /// WBTC
         stakingToken = process.env.LP_TCAP_WBTC;
@@ -91,9 +89,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
         target = rewardDeployment.address;
 
         await ctx.transfer(target, rewardAmount);
-        await orchestrator.executeTransaction(target, value, signature, data, {
-            gasLimit: 4000000,
-        });
+        await orchestrator.executeTransaction(target, value, signature, data);
 
         // DAI
         stakingToken = process.env.LP_TCAP_DAI;
@@ -117,9 +113,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
         target = rewardDeployment.address;
 
         await ctx.transfer(target, rewardAmount);
-        await orchestrator.executeTransaction(target, value, signature, data, {
-            gasLimit: 4000000,
-        });
+        await orchestrator.executeTransaction(target, value, signature, data);
 
         //CTX
         stakingToken = process.env.LP_CTX_ETH;
@@ -143,9 +137,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
         target = rewardDeployment.address;
 
         await ctx.transfer(target, rewardAmount);
-        await orchestrator.executeTransaction(target, value, signature, data, {
-            gasLimit: 4000000,
-        });
+        await orchestrator.executeTransaction(target, value, signature, data);
 
         //Transfer ownership
         await orchestrator.transferOwnership(timelock.address);

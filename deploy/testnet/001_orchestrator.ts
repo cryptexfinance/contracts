@@ -4,7 +4,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
     if (
         (hardhatArguments.network === "rinkeby" ||
             hardhatArguments.network === "ropsten" ||
-            hardhatArguments.network === "ganache") &&
+            hardhatArguments.network === "hardhat") &&
         initial_run
     ) {
         const { deployIfDifferent, log } = deployments;

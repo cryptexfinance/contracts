@@ -7,7 +7,7 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
     if (
         (hardhatArguments.network === "rinkeby" ||
             hardhatArguments.network === "ropsten" ||
-            hardhatArguments.network === "ganache") &&
+            hardhatArguments.network === "hardhat") &&
         initial_run
     ) {
         const { log } = deployments;
@@ -48,12 +48,11 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
                     from: deployer,
                     nonce: nonce++,
                 });
-
+                const timelock = await deployments.get("Timelock");
                 const deployResult = await deployments.deploy(
                     "WETHVaultHandler",
                     {
                         from: deployer,
-                        gasLimit: 8000000,
                         contract: "ETHVaultHandler",
                         args: [
                             orchestrator.address,
@@ -67,7 +66,7 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
                             priceFeedETH.address,
                             priceFeedETH.address,
                             rewardAddress,
-                            deployer,
+                            timelock.address,
                         ],
                     }
                 );

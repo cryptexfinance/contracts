@@ -5,10 +5,12 @@ import { deployments, hardhatArguments } from "hardhat";
 const governance: DeployFunction = async function (
     hre: HardhatRuntimeEnvironment
 ) {
+    console.log("RINKEBY DEPLOY");
+
     if (
         hardhatArguments.network === "rinkeby" ||
         hardhatArguments.network === "ropsten" ||
-        hardhatArguments.network === "ganache"
+        hardhatArguments.network === "hardhat"
     ) {
         const Ctx = await deployments.getOrNull("Ctx");
         const { log } = deployments;

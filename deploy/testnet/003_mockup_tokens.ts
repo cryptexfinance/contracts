@@ -5,7 +5,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
     if (
         (hardhatArguments.network === "rinkeby" ||
             hardhatArguments.network === "ropsten" ||
-            hardhatArguments.network === "ganache") &&
+            hardhatArguments.network === "hardhat") &&
         initial_run
     ) {
         const { deployIfDifferent, log } = deployments;
@@ -25,7 +25,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
             const deployResult = await deployIfDifferent(
                 ["data"],
                 "DAI",
-                { from: deployer, gas: 4000000 },
+                { from: deployer },
                 "DAI"
             );
             DAI = await deployments.get("DAI");
@@ -43,7 +43,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
                 const deployResult = await deployIfDifferent(
                     ["data"],
                     "WBTC",
-                    { from: deployer, gas: 4000000 },
+                    { from: deployer },
                     "WBTC"
                 );
                 WBTC = await deployments.get("WBTC");
@@ -60,7 +60,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
                     const deployResult = await deployIfDifferent(
                         ["data"],
                         "WETH",
-                        { from: deployer, gas: 4000000 },
+                        { from: deployer },
                         "WETH"
                     );
                     WETH = await deployments.get("WETH");

@@ -6,7 +6,7 @@ module.exports = async ({ deployments }: any) => {
     if (
         (hardhatArguments.network === "rinkeby" ||
             hardhatArguments.network === "ropsten" ||
-            hardhatArguments.network === "ganache") &&
+            hardhatArguments.network === "hardhat") &&
         initial_run
     ) {
         let rDAIHandler = await deployments.get("DAIRewardHandler");
@@ -35,23 +35,17 @@ module.exports = async ({ deployments }: any) => {
         let target = rDAIHandler.address;
 
         await ctx.transfer(target, rewardAmount);
-        await orchestrator.executeTransaction(target, value, signature, data, {
-            gasLimit: 4000000,
-        });
+        await orchestrator.executeTransaction(target, value, signature, data);
 
         target = rBTCHandler.address;
 
         await ctx.transfer(target, rewardAmount);
-        await orchestrator.executeTransaction(target, value, signature, data, {
-            gasLimit: 4000000,
-        });
+        await orchestrator.executeTransaction(target, value, signature, data);
 
         target = rWETHHandler.address;
 
         await ctx.transfer(target, rewardAmount);
-        await orchestrator.executeTransaction(target, value, signature, data, {
-            gasLimit: 4000000,
-        });
+        await orchestrator.executeTransaction(target, value, signature, data);
 
         console.log("no transfer");
     }

@@ -7,7 +7,7 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
     if (
         (hardhatArguments.network === "rinkeby" ||
             hardhatArguments.network === "ropsten" ||
-            hardhatArguments.network === "ganache") &&
+            hardhatArguments.network === "hardhat") &&
         initial_run
     ) {
         const { log } = deployments;
@@ -47,12 +47,11 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
                     from: deployer,
                     nonce: nonce++,
                 });
-
+                const timelock = await deployments.get("Timelock");
                 const deployResult = await deployments.deploy(
                     "DAIVaultHandler",
                     {
                         from: deployer,
-                        gasLimit: 8000000,
                         contract: "ERC20VaultHandler",
                         args: [
                             orchestrator.address,
@@ -66,7 +65,7 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
                             priceFeedDAI.address,
                             priceFeedETH.address,
                             rewardAddress,
-                            deployer,
+                            timelock.address,
                         ],
                     }
                 );

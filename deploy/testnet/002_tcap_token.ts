@@ -5,7 +5,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
     if (
         (hardhatArguments.network === "rinkeby" ||
             hardhatArguments.network === "ropsten" ||
-            hardhatArguments.network === "ganache") &&
+            hardhatArguments.network === "hardhat") &&
         initial_run
     ) {
         const { deployIfDifferent, log } = deployments;
@@ -24,7 +24,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
             const deployResult = await deployIfDifferent(
                 ["data"],
                 "TCAP",
-                { from: deployer, gas: 4000000 },
+                { from: deployer },
                 "TCAP",
                 name,
                 symbol,

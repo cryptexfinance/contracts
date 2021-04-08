@@ -5,7 +5,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
     if (
         (hardhatArguments.network === "rinkeby" ||
             hardhatArguments.network === "ropsten" ||
-            hardhatArguments.network === "ganache") &&
+            hardhatArguments.network === "hardhat") &&
         initial_run
     ) {
         const { deployIfDifferent, log } = deployments;
@@ -20,7 +20,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
             const deployResult = await deployIfDifferent(
                 ["data"],
                 "TCAPOracle",
-                { from: deployer, gas: 4000000 },
+                { from: deployer },
                 "ChainlinkOracle",
                 oracleAddress
             );
@@ -38,7 +38,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
                 const deployResult = await deployIfDifferent(
                     ["data"],
                     "BTCOracle",
-                    { from: deployer, gas: 4000000 },
+                    { from: deployer },
                     "ChainlinkOracle",
                     oracleAddress
                 );
@@ -56,7 +56,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
                     const deployResult = await deployIfDifferent(
                         ["data"],
                         "WETHOracle",
-                        { from: deployer, gas: 4000000 },
+                        { from: deployer },
                         "ChainlinkOracle",
                         oracleAddress
                     );
@@ -74,7 +74,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
                         const deployResult = await deployIfDifferent(
                             ["data"],
                             "DAIOracle",
-                            { from: deployer, gas: 4000000 },
+                            { from: deployer },
                             "ChainlinkOracle",
                             oracleAddress
                         );

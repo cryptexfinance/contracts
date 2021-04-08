@@ -6,7 +6,7 @@ module.exports = async ({ deployments }: any) => {
     if (
         (hardhatArguments.network === "rinkeby" ||
             hardhatArguments.network === "ropsten" ||
-            hardhatArguments.network === "ganache") &&
+            hardhatArguments.network === "hardhat") &&
         initial_run
     ) {
         let DAIHandler = await deployments.get("DAIVaultHandler");
