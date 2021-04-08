@@ -4,7 +4,8 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 const WBTCVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
     let initial_run = process.env.INITIAL_RUN == "true" ? true : false;
-    if (hardhatArguments.network === "mainnet" && initial_run) {
+    let run = process.env.INITIAL_RUN == "true" ? true : false;
+    if (hardhatArguments.network === "mainnet" && initial_run && run) {
         const { log } = deployments;
         const namedAccounts = await hre.getNamedAccounts();
         const deployer = namedAccounts.deployer;

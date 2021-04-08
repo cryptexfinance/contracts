@@ -6,7 +6,8 @@ require("dotenv").config();
 module.exports = async (hre: HardhatRuntimeEnvironment) => {
     let initial_run = process.env.INITIAL_RUN == "false" ? true : false;
 
-    if (hardhatArguments.network === "mainnet" && initial_run) {
+    let run = process.env.INITIAL_RUN == "true" ? true : false;
+    if (hardhatArguments.network === "mainnet" && initial_run && run) {
         const namedAccounts = await hre.getNamedAccounts();
         const deployer = namedAccounts.deployer;
 
@@ -25,7 +26,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
         // let reward = process.env.LP_REWARD as string;
         // let rewardWei = ethershardhat.utils.parseEther(reward);
 
-        console.log("deploying liquidity rewards");
+        console.log("deploying liquidity rewards for ETH LP");
 
         //ETH
         let rewardDeployment = await deployments.deploy("ETHLiquidityReward", {

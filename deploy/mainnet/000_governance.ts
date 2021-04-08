@@ -5,7 +5,9 @@ import { deployments, hardhatArguments } from "hardhat";
 const governance: DeployFunction = async function (
     hre: HardhatRuntimeEnvironment
 ) {
-    if (hardhatArguments.network === "mainnet") {
+    let initial_run = process.env.INITIAL_RUN == "true" ? true : false;
+    let run = process.env.INITIAL_RUN == "true" ? true : false;
+    if (hardhatArguments.network === "mainnet" && initial_run && run) {
         const Gov = await deployments.getOrNull("GovernorAlpha");
         const { log } = deployments;
         if (!Gov) {

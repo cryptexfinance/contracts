@@ -3,7 +3,8 @@ require("dotenv").config();
 
 module.exports = async ({ deployments }: any) => {
     let initial_run = process.env.INITIAL_RUN == "true" ? true : false;
-    if (hardhatArguments.network === "mainnet" && initial_run) {
+    let run = process.env.INITIAL_RUN == "true" ? true : false;
+    if (hardhatArguments.network === "mainnet" && initial_run && run) {
         let DAIHandler = await deployments.get("DAIVaultHandler");
         let BTCHandler = await deployments.get("WBTCVaultHandler");
         let WETHHandler = await deployments.get("WETHVaultHandler");
