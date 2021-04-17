@@ -8,41 +8,48 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 
     let run = process.env.INITIAL_RUN == "true" ? true : false;
     if (hardhatArguments.network === "mainnet" && initial_run && run) {
-        const namedAccounts = await hre.getNamedAccounts();
-        const deployer = namedAccounts.deployer;
+        const LP = await deployments.getOrNull("ETHLiquidityReward");
 
-        const { log } = deployments;
+        if (!LP) {
+            const namedAccounts = await hre.getNamedAccounts();
+            const deployer = namedAccounts.deployer;
 
-        let ctxDeployment = await deployments.get("Ctx");
-        // let timelock = await deployments.get("Timelock");
+            const { log } = deployments;
 
-        let vestingRatio = process.env.VESTING_RATIO;
+            let ctxDeployment = await deployments.get("Ctx");
+            // let timelock = await deployments.get("Timelock");
 
-        const vestingEnd = 1633658400; //  Fri Oct 08 2021 02:00:00 GMT+0000
-        let rewardsToken = ctxDeployment.address;
-        let stakingToken = process.env.LP_TCAP_ETH;
-        const guardian = process.env.GUARDIAN;
+            let vestingRatio = process.env.VESTING_RATIO;
 
-        // let reward = process.env.LP_REWARD as string;
-        // let rewardWei = ethershardhat.utils.parseEther(reward);
+            const vestingEnd = 1633658400; //  Fri Oct 08 2021 02:00:00 GMT+0000
+            let rewardsToken = ctxDeployment.address;
+            let stakingToken = process.env.LP_TCAP_ETH;
+            const guardian = process.env.GUARDIAN;
 
-        console.log("deploying liquidity rewards for ETH LP");
+            // let reward = process.env.LP_REWARD as string;
+            // let rewardWei = ethershardhat.utils.parseEther(reward);
 
-        //ETH
-        let rewardDeployment = await deployments.deploy("ETHLiquidityReward", {
-            contract: "LiquidityReward",
-            from: deployer,
-            args: [
-                guardian,
-                rewardsToken,
-                stakingToken,
-                vestingEnd,
-                vestingRatio,
-            ],
-        });
-        log(
-            `Liquidity Reward deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
-        );
+            console.log("deploying liquidity rewards for ETH LP");
+
+            //ETH
+            let rewardDeployment = await deployments.deploy(
+                "ETHLiquidityReward",
+                {
+                    contract: "LiquidityReward",
+                    from: deployer,
+                    args: [
+                        guardian,
+                        rewardsToken,
+                        stakingToken,
+                        vestingEnd,
+                        vestingRatio,
+                    ],
+                }
+            );
+            log(
+                `Liquidity Reward deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
+            );
+        }
 
         // console.log("Adding rewards");
 
