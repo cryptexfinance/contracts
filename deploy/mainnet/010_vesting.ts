@@ -2,22 +2,16 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { deployments, hardhatArguments } from "hardhat";
 
-const treasury: DeployFunction = async function (
+const vesting: DeployFunction = async function (
     hre: HardhatRuntimeEnvironment
 ) {
     let run = process.env.INITIAL_RUN == "true" ? true : false;
     if (hardhatArguments.network === "mainnet" && run) {
-        const teamTreasury = await deployments.getOrNull("TeamTreasuryVester");
-        const advisorTreasury1 = await deployments.getOrNull(
-            "AdvisorTreasuryVester1"
-        );
-        const advisorTreasury2 = await deployments.getOrNull(
-            "AdvisorTreasuryVester12"
-        );
+        const teamVesting = await deployments.getOrNull("TeamVester");
+        const advisorVesting1 = await deployments.getOrNull("AdvisorVester1");
+        const advisorVesting2 = await deployments.getOrNull("AdvisorVester2");
         const { log } = deployments;
-        if (!teamTreasury && !advisorTreasury1 && !advisorTreasury2) {
-            const ethers = hre.ethers;
-
+        if (!teamVesting && !advisorVesting1 && !advisorVesting2) {
             const namedAccounts = await hre.getNamedAccounts();
             let ctxDeployment = await deployments.get("Ctx");
 
@@ -33,8 +27,9 @@ const treasury: DeployFunction = async function (
             const advisorAddress1 = "";
             const advisorAddress2 = "";
 
-            const teamDeployment = await deployments.deploy("TreasuryVester", {
+            const teamDeployment = await deployments.deploy("TeamVester", {
                 from: namedAccounts.deployer,
+                contract: "TreasuryVester",
                 args: [
                     ctx,
                     teamAddress,
@@ -50,9 +45,10 @@ const treasury: DeployFunction = async function (
             );
 
             const advisor1Deployment = await deployments.deploy(
-                "TreasuryVester",
+                "AdvisorVester1",
                 {
                     from: namedAccounts.deployer,
+                    contract: "TreasuryVester",
                     args: [
                         ctx,
                         advisorAddress1,
@@ -69,9 +65,10 @@ const treasury: DeployFunction = async function (
             );
 
             const advisor2Deployment = await deployments.deploy(
-                "TreasuryVester",
+                "AdvisorVester2",
                 {
                     from: namedAccounts.deployer,
+                    contract: "TreasuryVester",
                     args: [
                         ctx,
                         advisorAddress2,
@@ -91,4 +88,4 @@ const treasury: DeployFunction = async function (
         }
     }
 };
-export default treasury;
+export default vesting;

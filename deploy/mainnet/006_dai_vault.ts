@@ -53,7 +53,6 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
                     "DAIVaultHandler",
                     {
                         from: deployer,
-
                         contract: "ERC20VaultHandler",
                         args: [
                             orchestrator.address,
