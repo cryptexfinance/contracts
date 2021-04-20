@@ -8,7 +8,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 
     let run = process.env.INITIAL_RUN == "true" ? true : false;
     if (hardhatArguments.network === "mainnet" && initial_run && run) {
-        const LP = await deployments.getOrNull("ETHLiquidityReward");
+        const LP = await deployments.getOrNull("CTXLiquidityReward");
 
         if (!LP) {
             const namedAccounts = await hre.getNamedAccounts();
@@ -19,21 +19,21 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
             let ctxDeployment = await deployments.get("Ctx");
             // let timelock = await deployments.get("Timelock");
 
+            // TODO: Check This values
             let vestingRatio = process.env.VESTING_RATIO;
-
             const vestingEnd = 1633658400; //  Fri Oct 08 2021 02:00:00 GMT+0000
             let rewardsToken = ctxDeployment.address;
-            let stakingToken = process.env.LP_TCAP_ETH;
+            let stakingToken = process.env.LP_CTX_ETH;
             const guardian = process.env.GUARDIAN;
 
             // let reward = process.env.LP_REWARD as string;
             // let rewardWei = ethershardhat.utils.parseEther(reward);
 
-            console.log("deploying liquidity rewards for ETH LP");
+            console.log("deploying liquidity rewards for CTX/ETH LP");
 
             //ETH
             let rewardDeployment = await deployments.deploy(
-                "ETHLiquidityReward",
+                "CTXLiquidityReward",
                 {
                     contract: "LiquidityReward",
                     from: deployer,
