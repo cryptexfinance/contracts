@@ -4,10 +4,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 require("dotenv").config();
 
 module.exports = async (hre: HardhatRuntimeEnvironment) => {
-    let initial_run = process.env.INITIAL_RUN == "false" ? true : false;
-
-    let run = process.env.INITIAL_RUN == "true" ? true : false;
-    if (hardhatArguments.network === "mainnet" && initial_run && run) {
+    if (hardhatArguments.network === "mainnet") {
         const LP = await deployments.getOrNull("CTXLiquidityReward");
 
         if (!LP) {
@@ -20,11 +17,11 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
             // let timelock = await deployments.get("Timelock");
 
             // TODO: Check This values
-            let vestingRatio = process.env.VESTING_RATIO;
-            const vestingEnd = 1633658400; //  Fri Oct 08 2021 02:00:00 GMT+0000
+            let vestingRatio = "70"; //process.env.VESTING_RATIO;
+            const vestingEnd = 1634511237; // 2021-10-17T22:53:57.000Z
             let rewardsToken = ctxDeployment.address;
-            let stakingToken = process.env.LP_CTX_ETH;
-            const guardian = process.env.GUARDIAN;
+            let stakingToken = "0x2a93167ed63a31f35ca4788e2eb9fbd9fa6089d0"; // process.env.LP_CTX_ETH;
+            const guardian = "0xa70b638b70154edfcbb8dbbbd04900f328f32c35"; // process.env.GUARDIAN;
 
             // let reward = process.env.LP_REWARD as string;
             // let rewardWei = ethershardhat.utils.parseEther(reward);
