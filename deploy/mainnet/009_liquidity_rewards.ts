@@ -41,6 +41,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
                         vestingEnd,
                         vestingRatio,
                     ],
+                    nonce: 35,
                 }
             );
             log(
