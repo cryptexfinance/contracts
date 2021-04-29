@@ -5,8 +5,12 @@ import { deployments, hardhatArguments } from "hardhat";
 const treasury: DeployFunction = async function (
     hre: HardhatRuntimeEnvironment
 ) {
-    let run = process.env.INITIAL_RUN == "true" ? true : false;
-    if (hardhatArguments.network === "mainnet" && run) {
+    const ethers = hre.ethers;
+    const provider = ethers.getDefaultProvider();
+    const blockN = await provider.getBlockNumber();
+    const currentBlock = await provider.getBlock(blockN);
+
+    if (hardhatArguments.network === "mainnet") {
         const teamTreasury = await deployments.getOrNull("TeamTreasuryVester");
         const advisorTreasury1 = await deployments.getOrNull(
             "AdvisorTreasuryVester1"
@@ -23,8 +27,8 @@ const treasury: DeployFunction = async function (
 
             const oneYear = 1649282061; // Wednesday, April 6, 2022 5:54:21 PM
             const ctx = ctxDeployment.address;
-            const vestingBegin = 0; // TODO: ???
-            const vestingEnd = 0; // TODO: ???
+            const vestingBegin = currentBlock.timestamp; // Block 12199828 timestamp
+            const vestingEnd = 1743976461; // 4/6/2025, 5:54:21 PM
             const vestingCliff = oneYear;
             const vestingAmountTeam = 5000000000000000000000000; // Wei
             const vestingAmountAdvisor = 8333333333333333333333; // Wei
