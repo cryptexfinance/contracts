@@ -58,89 +58,89 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 
         console.log("Adding rewards");
 
-        let ctx = await ethershardhat.getContractAt(
-            "Ctx",
-            ctxDeployment.address
-        );
-        let target = rewardDeployment.address;
+        // let ctx = await ethershardhat.getContractAt(
+        //     "Ctx",
+        //     ctxDeployment.address
+        // );
+        // let target = rewardDeployment.address;
 
-        await ctx.transfer(target, rewardAmount);
-        await orchestrator.executeTransaction(target, value, signature, data);
+        // await ctx.transfer(target, rewardAmount);
+        // await orchestrator.executeTransaction(target, value, signature, data);
 
-        /// WBTC
-        stakingToken = process.env.LP_TCAP_WBTC;
-        rewardDeployment = await deployments.deploy("WBTCLiquidityReward", {
-            contract: "LiquidityReward",
-            from: deployer,
-            args: [
-                OrchestratorDeployment.address,
-                rewardsToken,
-                stakingToken,
-                vestingEnd,
-                vestingRatio,
-            ],
-        });
-        log(
-            `Liquidity Reward deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
-        );
+        // /// WBTC
+        // stakingToken = process.env.LP_TCAP_WBTC;
+        // rewardDeployment = await deployments.deploy("WBTCLiquidityReward", {
+        //     contract: "LiquidityReward",
+        //     from: deployer,
+        //     args: [
+        //         OrchestratorDeployment.address,
+        //         rewardsToken,
+        //         stakingToken,
+        //         vestingEnd,
+        //         vestingRatio,
+        //     ],
+        // });
+        // log(
+        //     `Liquidity Reward deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
+        // );
 
-        console.log("Adding rewards");
+        // console.log("Adding rewards");
 
-        target = rewardDeployment.address;
+        // target = rewardDeployment.address;
 
-        await ctx.transfer(target, rewardAmount);
-        await orchestrator.executeTransaction(target, value, signature, data);
+        // await ctx.transfer(target, rewardAmount);
+        // await orchestrator.executeTransaction(target, value, signature, data);
 
-        // DAI
-        stakingToken = process.env.LP_TCAP_DAI;
-        rewardDeployment = await deployments.deploy("DAILiquidityReward", {
-            contract: "LiquidityReward",
-            from: deployer,
-            args: [
-                OrchestratorDeployment.address,
-                rewardsToken,
-                stakingToken,
-                vestingEnd,
-                vestingRatio,
-            ],
-        });
-        log(
-            `Liquidity Reward deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
-        );
+        // // DAI
+        // stakingToken = process.env.LP_TCAP_DAI;
+        // rewardDeployment = await deployments.deploy("DAILiquidityReward", {
+        //     contract: "LiquidityReward",
+        //     from: deployer,
+        //     args: [
+        //         OrchestratorDeployment.address,
+        //         rewardsToken,
+        //         stakingToken,
+        //         vestingEnd,
+        //         vestingRatio,
+        //     ],
+        // });
+        // log(
+        //     `Liquidity Reward deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
+        // );
 
-        console.log("Adding rewards");
+        // console.log("Adding rewards");
 
-        target = rewardDeployment.address;
+        // target = rewardDeployment.address;
 
-        await ctx.transfer(target, rewardAmount);
-        await orchestrator.executeTransaction(target, value, signature, data);
+        // await ctx.transfer(target, rewardAmount);
+        // await orchestrator.executeTransaction(target, value, signature, data);
 
-        //CTX
-        stakingToken = process.env.LP_CTX_ETH;
-        rewardDeployment = await deployments.deploy("CTXLiquidityReward", {
-            contract: "LiquidityReward",
-            from: deployer,
-            args: [
-                OrchestratorDeployment.address,
-                rewardsToken,
-                stakingToken,
-                vestingEnd,
-                vestingRatio,
-            ],
-        });
-        log(
-            `Liquidity Reward deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
-        );
+        // //CTX
+        // stakingToken = process.env.LP_CTX_ETH;
+        // rewardDeployment = await deployments.deploy("CTXLiquidityReward", {
+        //     contract: "LiquidityReward",
+        //     from: deployer,
+        //     args: [
+        //         OrchestratorDeployment.address,
+        //         rewardsToken,
+        //         stakingToken,
+        //         vestingEnd,
+        //         vestingRatio,
+        //     ],
+        // });
+        // log(
+        //     `Liquidity Reward deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
+        // );
 
-        console.log("Adding rewards");
+        // console.log("Adding rewards");
 
-        target = rewardDeployment.address;
+        // target = rewardDeployment.address;
 
-        await ctx.transfer(target, rewardAmount);
-        await orchestrator.executeTransaction(target, value, signature, data);
+        // await ctx.transfer(target, rewardAmount);
+        // await orchestrator.executeTransaction(target, value, signature, data);
 
-        //Transfer ownership
-        await orchestrator.transferOwnership(timelock.address);
+        // //Transfer ownership
+        // await orchestrator.transferOwnership(timelock.address);
     }
 };
 module.exports.tags = ["Initialize"];
