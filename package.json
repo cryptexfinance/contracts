@@ -4,7 +4,7 @@
 	"description": "TCAP Vault",
 	"main": "index.js",
 	"repository": "git@github.com:cryptexglobal/contracts.git",
-	"author": "Cristian Espinoza @crisgarner",
+	"author": "Cryptex Finance",
 	"license": "MIT",
 	"scripts": {
 		"build": "npm run typechain",
