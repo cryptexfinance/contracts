@@ -30,8 +30,8 @@ const treasury: DeployFunction = async function (
             const vestingBegin = 1619983991; // 2021-05-02T19:33:11.000Z
             const vestingEnd = 1712440461; // 4/6/2024, 5:54:21 PM
             const vestingCliff = oneYear;
-            const vestingAmountTeam = "5000000000000000000000000"; // Wei
-            const vestingAmountAdvisor = "8333333333333333333333"; // Wei
+            const vestingAmountTeam = "1500000000000000000000000"; // 1.5M CTX Wei
+            const vestingAmountAdvisor = "25000000000000000000000"; // 25k CTX Wei
             const teamAddress = "0xa70b638b70154edfcbb8dbbbd04900f328f32c35";
             const advisorAddress1 =
                 "0xf4b0498e71485717f6f9b6117672c19a0dba5100"; // zak.eth
