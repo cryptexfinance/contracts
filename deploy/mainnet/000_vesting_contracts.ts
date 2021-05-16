@@ -27,7 +27,7 @@ const treasury: DeployFunction = async function (
 
             const oneYear = 1649282061; // Wednesday, April 6, 2022 5:54:21 PM
             const ctx = ctxDeployment.address;
-            const vestingBegin = 1619983991; // 2021-05-02T19:33:11.000Z
+            const vestingBegin = 1621294508; // 5/17/2021, 5:35:08 PM
             const vestingEnd = 1712440461; // 4/6/2024, 5:54:21 PM
             const vestingCliff = oneYear;
             const vestingAmountTeam = "1500000000000000000000000"; // 1.5M CTX Wei
