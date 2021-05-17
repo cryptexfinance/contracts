@@ -52,7 +52,7 @@ const treasury: DeployFunction = async function (
                     ],
                     skipIfAlreadyDeployed: true,
                     log: true,
-                    nonce: 40,
+                    nonce: 43,
                 }
             );
 
@@ -75,7 +75,7 @@ const treasury: DeployFunction = async function (
                     ],
                     skipIfAlreadyDeployed: true,
                     log: true,
-                    nonce: 41,
+                    nonce: 44,
                 }
             );
 
@@ -98,7 +98,7 @@ const treasury: DeployFunction = async function (
                     ],
                     skipIfAlreadyDeployed: true,
                     log: true,
-                    nonce: 42,
+                    nonce: 45,
                 }
             );
 
