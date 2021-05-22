@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/SafeCast.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "./libraries/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
@@ -13,6 +13,7 @@ import "@openzeppelin/contracts/introspection/IERC165.sol";
 import "./TCAP.sol";
 import "./Orchestrator.sol";
 import "./oracles/ChainlinkOracle.sol";
+import "hardhat/console.sol";
 
 interface IRewardHandler {
   function stake(address _staker, uint256 amount) external;
@@ -666,9 +667,11 @@ abstract contract IVaultHandler is
     returns (uint256 collateral)
   {
     uint256 tcapPrice = TCAPPrice();
+    uint256 ethDecimals = 18;
+    uint256 decimals = 10**(ethDecimals.sub(collateralContract.decimals()));
     uint256 collateralPrice = getOraclePrice(collateralPriceOracle);
     collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100)).div(
-      collateralPrice
+      collateralPrice.mul(decimals)
     );
   }
 

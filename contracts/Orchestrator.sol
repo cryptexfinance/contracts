@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/introspection/ERC165Checker.sol";
 import "./IVaultHandler.sol";
 import "./TCAP.sol";
 import "./oracles/ChainlinkOracle.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./libraries/IERC20.sol";
 
 /**
  * @title TCAP Orchestrator

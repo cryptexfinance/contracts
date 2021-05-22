@@ -239,13 +239,20 @@ describe("ERC20 Vault", async function () {
 	});
 
 	it("...should return the correct minimal collateral required", async () => {
+		decimals = ethersProvider.BigNumber.from(10)
+			.pow(18)
+			.div(ethersProvider.BigNumber.from(10).pow(tokenDecimals));
 		let amount = ethersProvider.utils.parseEther("1");
 		const reqAmount = await ercTokenHandler.requiredCollateral(amount);
 		const collateralPrice = await collateralOracleInstance.getLatestAnswer();
 		const tcapPrice = await ercTokenHandler.TCAPPrice();
 		const ratio = await ercTokenHandler.ratio();
 		const oracleDigits = await ercTokenHandler.oracleDigits();
-		let result = tcapPrice.mul(amount).mul(ratio).div(100).div(collateralPrice.mul(oracleDigits));
+		let result = tcapPrice
+			.mul(amount)
+			.mul(ratio)
+			.div(100)
+			.div(collateralPrice.mul(oracleDigits).mul(decimals));
 		expect(reqAmount).to.eq(result);
 	});
 

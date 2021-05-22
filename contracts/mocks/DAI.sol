@@ -3,10 +3,12 @@
 
 pragma solidity 0.7.5;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "../libraries/ERC20.sol";
 
 contract DAI is ERC20 {
-  constructor() ERC20("Mockup DAI", "mDAI") {}
+  constructor() ERC20("Mockup DAI", "mDAI") {
+    _setupDecimals(18);
+  }
 
   function mint(address _account, uint256 _amount) public {
     _mint(_account, _amount);
