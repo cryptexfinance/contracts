@@ -65,6 +65,7 @@ abstract contract IVaultHandler is
   ChainlinkOracle public immutable tcapOracle;
 
   /// @notice Collateral Token Address
+  /// @dev Collateral Token cannot have decimals > 18
   IERC20 public immutable collateralContract;
 
   /// @notice Collateral/USD Oracle Address
@@ -230,6 +231,10 @@ abstract contract IVaultHandler is
     require(
       ERC165Checker.supportsInterface(_treasury, _INTERFACE_ID_TIMELOCK),
       "VaultHandler::constructor: not a valid treasury"
+    );
+    require(
+      IERC20(_collateralAddress).decimals() <= 18,
+      "VaultHandler::constructor:Token decimals cannot be higher than 18"
     );
 
     divisor = _divisor;
