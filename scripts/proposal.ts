@@ -10,7 +10,7 @@ async function main() {
 	console.log("Print proposal DATA for Multisign");
 	const abi = new ethers.utils.AbiCoder();
 	const targets = [multisign];
-	const values = [multisign];
+	const values = [amount];
 	// @ts-ignore
 	const signatures = [""]; // @ts-ignore
 	const calldatas = [0x0];
