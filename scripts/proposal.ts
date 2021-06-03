@@ -8,10 +8,9 @@ async function main() {
 	const amount = ethers.utils.parseEther("25.40428051");
 	const multisign = "0xa70b638B70154EdfCbb8DbbBd04900F328F32c35";
 	console.log("Print proposal DATA for Multisign");
-	let orchestrator = await deployments.get("Orchestrator");
 	const abi = new ethers.utils.AbiCoder();
 	const targets = [multisign];
-	const values = [0];
+	const values = [multisign];
 	// @ts-ignore
 	const signatures = [""]; // @ts-ignore
 	const calldatas = [0x0];
