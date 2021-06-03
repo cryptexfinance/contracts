@@ -11,8 +11,7 @@ async function main() {
 	const abi = new ethers.utils.AbiCoder();
 	const targets = [multisign];
 	const values = [amount];
-	// @ts-ignore
-	const signatures = [""]; // @ts-ignore
+	const signatures = [""];
 	const calldatas = [0x0];
 	const description = "June Payroll and Grants ";
 	console.log(targets);
