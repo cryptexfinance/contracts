@@ -11,6 +11,7 @@ import "hardhat-deploy";
 import "@nomiclabs/hardhat-etherscan";
 import "solidity-coverage";
 import "hardhat-gas-reporter";
+import "hardhat-tracer";
 
 const mnemonic = process.env.MNENOMIC as string;
 const ganacheMnemonic = process.env.GANACHEMNENOMIC as string;
