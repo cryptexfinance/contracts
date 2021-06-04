@@ -33,9 +33,9 @@ const config: HardhatUserConfig = {
 	},
 	networks: {
 		hardhat: {
-			forking: {
-				url: process.env.MAINNET_API_URL as string,
-			},
+			// forking: {
+			// 	url: process.env.MAINNET_API_URL as string,
+			// },
 		},
 		mainnet: {
 			url: process.env.MAINNET_API_URL,

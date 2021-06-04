@@ -5,23 +5,28 @@ import hre, { deployments, network, hardhatArguments } from "hardhat";
 async function main() {
 	const ethers = hre.ethers;
 	const ONE_DAY = 86500;
-	const amount = ethers.utils.parseEther("25.40428051");
-	const multisign = "0xa70b638B70154EdfCbb8DbbBd04900F328F32c35";
+	const amount = ethers.utils.parseEther("70.02717516");
+	const receiver = "0xa70b638B70154EdfCbb8DbbBd04900F328F32c35";
+	const disperser = "0xD152f549545093347A162Dce210e7293f1452150";
 	console.log("Print proposal DATA for Multisign");
 	const abi = new ethers.utils.AbiCoder();
-	const targets = [multisign];
+	const targets = [receiver];
 	const values = [amount];
 	const signatures = [""];
-	const calldatas = [0x0];
-	const description = "June Payroll and Grants ";
+	const calldatas = [0x000000000000000000000000000000000000000000000000000000000000000000000000];
+	const description = "CIP-2 June Payroll and Grants ";
 	console.log(targets);
 	console.log(values);
 	console.log(signatures);
 	console.log(calldatas);
 	console.log(description);
 
-	let balance = await ethers.provider.getBalance(multisign);
+	let balance = await ethers.provider.getBalance(receiver);
 	console.log("Old Balance is: ", ethers.utils.formatEther(balance));
+
+	let timelock = await deployments.get("Timelock");
+	balance = await ethers.provider.getBalance(timelock.address);
+	console.log("Contract Balance is: ", ethers.utils.formatEther(balance));
 
 	if (hardhatArguments.network === "hardhat") {
 		// VB sends us ETH
@@ -34,7 +39,7 @@ async function main() {
 
 		await signer.sendTransaction({
 			to: "0xa70b638B70154EdfCbb8DbbBd04900F328F32c35",
-			value: ethers.BigNumber.from("100000000000000000"),
+			value: ethers.BigNumber.from("10000000000000000000"),
 		});
 
 		await hre.network.provider.request({
@@ -72,8 +77,6 @@ async function main() {
 		for (let i = ethers.provider.blockNumber; i < proposal.endBlock; i++) {
 			await ethers.provider.send("evm_mine", []);
 		}
-		// await ethers.provider.send("evm_increaseTime", [ONE_DAY * 4]);
-		// await ethers.provider.send("evm_mine", []);
 
 		console.log((await governorContract.state(2)).toString());
 		tx = await governorContract.queue(2);
@@ -82,19 +85,14 @@ async function main() {
 		// Execute transaction
 		console.log("==================Execute Transaction==================");
 		proposal = await governorContract.proposals(2);
-
-		// console.log(".-.-.-.-.-.-Waiting for blocks to mine.-.-.-.-.-.-");
-		// for (let i = ethers.provider.blockNumber; i < proposal.eta; i++) {
-		// 	await ethers.provider.send("evm_mine", []);
-		// }
 		await ethers.provider.send("evm_increaseTime", [ONE_DAY * 4]);
 		await ethers.provider.send("evm_mine", []);
-		tx = await governorContract.execute(2);
+		tx = await governorContract.execute(2, { gasLimit: 2100000 });
 		console.log(tx);
 		await ethers.provider.send("evm_mine", []);
-		// Check Ratio
+		// Check Balance
 		console.log("==================Check Balance==================");
-		balance = await ethers.provider.getBalance(multisign);
+		balance = await ethers.provider.getBalance(receiver);
 		console.log("New Balance is: ", ethers.utils.formatEther(balance));
 	}
 }
