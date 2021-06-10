@@ -269,27 +269,8 @@ contract GovernorAlpha {
     timelock.queueTransaction(target, value, signature, data, eta);
   }
 
-  function execute(uint256 proposalId) public payable {
-    require(
-      state(proposalId) == ProposalState.Queued,
-      "GovernorAlpha::execute: proposal can only be executed if it is queued"
-    );
-    Proposal storage proposal = proposals[proposalId];
-    proposal.executed = true;
-    for (uint256 i = 0; i < proposal.targets.length; i++) {
-      timelock.executeTransaction{value: proposal.values[i]}(
-        proposal.targets[i],
-        proposal.values[i],
-        proposal.signatures[i],
-        proposal.calldatas[i],
-        proposal.eta
-      );
-    }
-    emit ProposalExecuted(proposalId);
-  }
-
   /// @notice executes the transaction, but uses the msg.value from the eth stored in the timelock
-  function executeFromTimelock(uint256 proposalId) public {
+  function execute(uint256 proposalId) public {
     require(
       state(proposalId) == ProposalState.Queued,
       "GovernorAlpha::execute: proposal can only be executed if it is queued"
