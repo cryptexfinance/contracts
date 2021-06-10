@@ -42,6 +42,9 @@ contract GovernorAlpha {
   /// @notice The total number of proposals
   uint256 public proposalCount;
 
+  /// @notice Guardian of the governor
+  address public guardian;
+
   /// @param id Unique id for looking up a proposal
   /// @param proposer Creator of the proposal
   /// @param eta The timestamp that the proposal will be available for execution, set once the vote succeeds
@@ -142,9 +145,14 @@ contract GovernorAlpha {
   /// @notice An event emitted when a proposal has been executed in the Timelock
   event ProposalExecuted(uint256 id);
 
-  constructor(address timelock_, address ctx_) {
+  constructor(
+    address timelock_,
+    address ctx_,
+    address guardian_
+  ) {
     timelock = TimelockInterface(timelock_);
     ctx = CtxInterface(ctx_);
+    guardian = guardian_;
   }
 
   function propose(
@@ -270,6 +278,26 @@ contract GovernorAlpha {
     proposal.executed = true;
     for (uint256 i = 0; i < proposal.targets.length; i++) {
       timelock.executeTransaction{value: proposal.values[i]}(
+        proposal.targets[i],
+        proposal.values[i],
+        proposal.signatures[i],
+        proposal.calldatas[i],
+        proposal.eta
+      );
+    }
+    emit ProposalExecuted(proposalId);
+  }
+
+  /// @notice executes the transaction, but uses the msg.value from the eth stored in the timelock
+  function executeFromTimelock(uint256 proposalId) public {
+    require(
+      state(proposalId) == ProposalState.Queued,
+      "GovernorAlpha::execute: proposal can only be executed if it is queued"
+    );
+    Proposal storage proposal = proposals[proposalId];
+    proposal.executed = true;
+    for (uint256 i = 0; i < proposal.targets.length; i++) {
+      timelock.executeTransaction{value: 0}(
         proposal.targets[i],
         proposal.values[i],
         proposal.signatures[i],
@@ -424,6 +452,14 @@ contract GovernorAlpha {
     receipt.votes = votes;
 
     emit VoteCast(voter, proposalId, support, votes);
+  }
+
+  function acceptTimelockAdmin() external {
+    require(
+      msg.sender == guardian,
+      "GovernorAlpha::acceptTimelockAdmin: only guardian can call this function"
+    );
+    timelock.acceptAdmin();
   }
 
   function add256(uint256 a, uint256 b) internal pure returns (uint256) {
