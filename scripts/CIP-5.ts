@@ -6,8 +6,8 @@ async function main() {
 	const ethers = hre.ethers;
 	const ONE_DAY = 86500;
 	const amount = ethers.utils.parseEther("500000");
-	const wintermute = "0x4f3a120E72C76c22ae802D129F599BFDbc31cb81";
-	const gsr = "0x9163a64D829e726916012c86ce3f5192C28b31c1"; //TODO: gsr real address
+	const wintermute = "0x4f3a120e72c76c22ae802d129f599bfdbc31cb81";
+	const gsr = "0xADeE949D4Bc54baDF9bc7F2F8cD236383D82B413";
 	let ctx = await deployments.get("Ctx");
 	let ctxContract = await ethers.getContractAt("Ctx", ctx.address);
 	const abi = new ethers.utils.AbiCoder();
