@@ -8,7 +8,7 @@ let governor: Deployment;
 let governorContract: Contract;
 
 const initialize = async () => {
-	signer = ethers.provider.getSigner("0xab5801a7d398351b8be11c439e05c5b3259aec9b");
+	signer = ethers.provider.getSigner("0xa70b638B70154EdfCbb8DbbBd04900F328F32c35");
 	governor = await deployments.get("GovernorAlpha");
 	governorContract = await ethers.getContractAt("GovernorAlpha", governor.address, signer);
 };

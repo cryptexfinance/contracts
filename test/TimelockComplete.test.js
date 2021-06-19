@@ -10,6 +10,7 @@ describe("Timelock Complete process ETH", async function () {
 	let accounts = [];
 	const threeDays = 259200;
 	const ONE_DAY = 86500;
+	let governor;
 
 	before("Set Accounts", async () => {
 		let [acc0, acc1, acc3, acc4, acc5] = await ethers.getSigners();
@@ -48,10 +49,14 @@ describe("Timelock Complete process ETH", async function () {
 		timelockInstance = await timelock.deploy(governorAddress, threeDays);
 		await timelockInstance.deployed();
 
-		const governor = await ethers.getContractFactory("GovernorAlpha");
-		governorAlphaInstance = await governor.deploy(timelockAddress, ctxAddress);
+		const governorA = await ethers.getContractFactory("GovernorAlpha");
+		governorAlphaInstance = await governorA.deploy(timelockAddress, ctxAddress);
 		await governorAlphaInstance.deployed();
 		expect(governorAlphaInstance.address).to.eq(governorAddress);
+
+		const governorB = await ethers.getContractFactory("GovernorBeta");
+		governorBetaInstance = await governorB.deploy(timelockAddress, ctxAddress, accounts[0]);
+		await governorBetaInstance.deployed();
 
 		expect(governorAlphaInstance.address).properAddress;
 		expect(timelockInstance.address).properAddress;
@@ -60,7 +65,39 @@ describe("Timelock Complete process ETH", async function () {
 		await ctxInstance.delegate(accounts[0]);
 	});
 
-	it("...should create proposal", async () => {
+	it("...should migrate governor", async () => {
+		const abi = new ethers.utils.AbiCoder();
+		const targets = [timelockInstance.address];
+		const values = [0];
+		const signatures = ["setPendingAdmin(address)"];
+		const calldatas = [abi.encode(["address"], [governorBetaInstance.address])];
+		const description = "CIP-2: Upgrade Governor";
+		expect(await timelockInstance.admin()).to.eq(governorAlphaInstance.address);
+		// Create Proposal
+		await createProposal(targets, values, signatures, calldatas, description);
+
+		// Vote
+		await castVote(1, true);
+
+		// Wait to queue
+		await queueProposal(1);
+
+		// Execute transaction
+		await executeProposal(1);
+
+		//Accept admin
+		await governorBetaInstance.acceptTimelockAdmin();
+
+		expect(await timelockInstance.admin()).to.eq(governorBetaInstance.address);
+	});
+
+	it("...should transfer eth", async () => {
+		const timelockBalance = ethers.utils.parseEther("100");
+		await owner.sendTransaction({
+			to: timelockInstance.address,
+			value: timelockBalance,
+		});
+		expect(await ethers.provider.getBalance(timelockInstance.address)).to.eq(timelockBalance);
 		// receive eth
 		let receiver = accounts[2];
 		const amount = ethers.utils.parseEther("70.02717516");
@@ -68,89 +105,82 @@ describe("Timelock Complete process ETH", async function () {
 		const values = [amount];
 		const signatures = [""];
 		const calldatas = [0x000000000000000000000000000000000000000000000000000000000000000000000000];
-		const description = "CIP-2: Upgrade Governor";
-		console.log(
-			"balance of owner",
-			ethers.utils.formatEther(await ethers.provider.getBalance(accounts[0]))
-		);
-		let balance = await ethers.provider.getBalance(receiver);
-		console.log("Old Balance is: ", ethers.utils.formatEther(balance));
-		await owner.sendTransaction({
-			to: timelockInstance.address,
-			value: ethers.utils.parseEther("9999"),
-		});
-		balance = await ethers.provider.getBalance(timelockInstance.address);
-		expect(balance).to.eq(ethers.utils.parseEther("9999"));
-		console.log(
-			"=====================balance of timelock=============",
-			ethers.utils.formatEther(await ethers.provider.getBalance(timelockInstance.address))
-		);
-		console.log("==================Create Proposal==================");
-		// @ts-ignore
-		let tx = await governorAlphaInstance.propose(
-			targets,
-			values,
-			signatures,
-			calldatas,
-			description
-		);
-		// await ethers.provider.send("evm_increaseTime", [1]);
-		await ethers.provider.send("evm_mine", []);
+		const description = "CIP-3: Transfer ETH";
+
+		// changes the contract to call
+		changeGovernor(governorBetaInstance);
+		const oldBalance = await ethers.provider.getBalance(receiver);
+
+		await createProposal(targets, values, signatures, calldatas, description);
+
 		// Vote
-		console.log("==================Vote==================");
-		tx = await governorAlphaInstance.castVote(1, true);
-		console.log(tx);
-		await ethers.provider.send("evm_mine", []);
+		await castVote(1, true);
+
 		// Wait to queue
-		console.log("==================Queue==================");
-		//block.number <= proposal.endBlock
-		let proposal = await governorAlphaInstance.proposals(1);
-		console.log(".-.-.-.-.-.-Waiting for blocks to mine.-.-.-.-.-.-");
-		for (let i = ethers.provider.blockNumber; i < proposal.endBlock; i++) {
-			await ethers.provider.send("evm_mine", []);
-		}
-		tx = await governorAlphaInstance.queue(1);
-		console.log(tx);
-		await ethers.provider.send("evm_mine", []);
+		await queueProposal(1);
+
 		// Execute transaction
-		console.log("==================Execute Transaction==================");
-		proposal = await governorAlphaInstance.proposals(1);
+		await executeProposal(1);
+
+		const newBalance = await ethers.provider.getBalance(receiver);
+		expect(newBalance).to.eq(oldBalance.add(amount));
+
+		expect(await ethers.provider.getBalance(timelockInstance.address)).to.eq(
+			timelockBalance.sub(amount)
+		);
+	});
+
+	function initialize() {
+		governor = governorAlphaInstance;
+	}
+
+	function changeGovernor(newGovernor) {
+		governor = newGovernor;
+	}
+
+	async function createProposal(targets, values, signatures, calldatas, description) {
+		if (!governor) {
+			initialize();
+		}
+		const tx = await governor.propose(targets, values, signatures, calldatas, description);
+		await ethers.provider.send("evm_mine", []);
+	}
+
+	async function castVote(proposalId, support) {
+		if (!governor) {
+			initialize();
+		}
+		await governor.castVote(proposalId, support);
+		await ethers.provider.send("evm_mine", []);
+	}
+
+	async function queueProposal(proposalId) {
+		if (!governor) {
+			initialize();
+		}
+
+		const proposal = await governor.proposals(proposalId);
+		await waitBlocks(ethers.provider.blockNumber, proposal.endBlock);
+		await governor.queue(proposalId);
+		await ethers.provider.send("evm_mine", []);
+	}
+
+	async function executeProposal(proposalId) {
+		if (!governor) {
+			initialize();
+		}
+
+		const ONE_DAY = 86500;
 		await ethers.provider.send("evm_increaseTime", [ONE_DAY * 4]);
 		await ethers.provider.send("evm_mine", []);
-		tx = await governorAlphaInstance.connect(addr1).execute(1);
-		console.log(tx);
+		await governor.execute(proposalId);
 		await ethers.provider.send("evm_mine", []);
-		// Check Balance
-		console.log("==================Check Balance==================");
-		balance = await ethers.provider.getBalance(receiver);
-		console.log("New Balance is: ", ethers.utils.formatEther(balance));
-		console.log(
-			"=====================balance of timelock=============",
-			ethers.utils.formatEther(await ethers.provider.getBalance(timelockInstance.address))
-		);
-		// const blockN = await ethers.provider.getBlockNumber();
-		// const currentBlock = await ethers.provider.getBlock(blockN);
-		// const eta = currentBlock.timestamp + threeDays + 1;
-		// await timelockInstance.queueTransaction(
-		// 	receiver,
-		// 	amount,
-		// 	"()",
-		// 	0x000000000000000000000000000000000000000000000000000000000000000000000000,
-		// 	eta
-		// );
-		// console.log("==================Execute Transaction==================");
-		// await ethers.provider.send("evm_increaseTime", [threeDays + 3]);
-		// await ethers.provider.send("evm_mine", []);
-		// tx = await timelockInstance.executeTransaction(
-		// 	receiver,
-		// 	amount,
-		// 	"()",
-		// 	0x000000000000000000000000000000000000000000000000000000000000000000000000,
-		// 	eta
-		// );
-		// // console.log(tx);
-		// await ethers.provider.send("evm_mine", []);
-		// balance = await ethers.provider.getBalance(receiver);
-		// console.log("New Balance is: ", ethers.utils.formatEther(balance));
-	});
+	}
+
+	async function waitBlocks(start, end) {
+		console.log(".-.-.-.-.-.-Waiting for blocks to mine.-.-.-.-.-.-");
+		for (let i = start; i < end; i++) {
+			await ethers.provider.send("evm_mine", []);
+		}
+	}
 });

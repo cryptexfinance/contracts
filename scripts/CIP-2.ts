@@ -1,5 +1,5 @@
 // run with
-// npx hardhat run ./scripts/CIP-5.ts --network hardhat
+// npx hardhat run ./scripts/CIP-2.ts --network hardhat
 import hre, { deployments, network, hardhatArguments } from "hardhat";
 import { castVote, createProposal, executeProposal, fundMultisign, queueProposal } from "./utils";
 
@@ -9,7 +9,7 @@ async function main() {
 	const timelock = await deployments.get("Timelock");
 	const abi = new ethers.utils.AbiCoder();
 	const targets = [timelock.address];
-	const values = [0, 0];
+	const values = [0];
 	const signatures = ["setPendingAdmin(address)"];
 	const calldatas = [abi.encode(["address"], [governor.address])];
 	const description = "CIP-2: Upgrade Governor";
