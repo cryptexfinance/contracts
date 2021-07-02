@@ -11,12 +11,10 @@ const daiRewards: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
     if (hardhatArguments.network === "mainnet") {
         const DAIReward = await deployments.getOrNull("DAILiquidityReward");
-
+        const { log } = deployments;
         if (!DAIReward) {
             const namedAccounts = await hre.getNamedAccounts();
             const deployer = namedAccounts.deployer;
-
-            const { log } = deployments;
 
             let ctxDeployment = await deployments.get("Ctx");
             // let timelock = await deployments.get("Timelock");
@@ -51,6 +49,8 @@ const daiRewards: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
             log(
                 `Liquidity Reward deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
             );
+        } else {
+            log("Contract already deployed");
         }
     }
 };
