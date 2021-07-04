@@ -13,8 +13,8 @@ import "solidity-coverage";
 import "hardhat-gas-reporter";
 import "hardhat-tracer";
 
-const mnemonic = process.env.MNENOMIC as string;
-const ganacheMnemonic = process.env.GANACHEMNENOMIC as string;
+const mnemonic = process.env.DEPLOYER_MNEMONIC as string;
+const ganacheMnemonic = process.env.GANACHE_MNEMONIC as string;
 
 const config: HardhatUserConfig = {
 	//@ts-ignore
