@@ -27,7 +27,7 @@ yarn
 
 ## Running tests
 
-The `.env.sample` file is enough to run the tests. Run the test command:
+The `.env.sample` file is enough to run the tests as long as you have set up your `MAINNET_API_URL` key. Run the test command:
 
 ```
 yarn test
