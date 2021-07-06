@@ -253,6 +253,7 @@ describe("WBTC Vault", async function () {
 			.mul(ratio)
 			.div(100)
 			.div(collateralPrice.mul(oracleDigits).mul(decimals));
+		console.log("🚀 ~ file: WBTCVaultHandler.test.js ~ line 256 ~ it ~ result", result.toString());
 		expect(reqAmount).to.eq(result);
 	});
 

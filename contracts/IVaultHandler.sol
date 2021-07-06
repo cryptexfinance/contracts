@@ -77,7 +77,7 @@ abstract contract IVaultHandler is
   /// @notice Value used as divisor with the total market cap, just like the S&P 500 or any major financial index would to define the final tcap token price
   uint256 public divisor;
 
-  /// @notice Minimun ratio required to prevent liquidation of vault
+  /// @notice Minimum ratio required to prevent liquidation of vault
   uint256 public ratio;
 
   /// @notice Fee percentage of the total amount to burn charged on ETH when burning TCAP Tokens
@@ -321,7 +321,7 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Sets the treasury contract address where fees are transfered to
+   * @notice Sets the treasury contract address where fees are transferred to
    * @param _treasury address
    * @dev Only owner can call it
    */
@@ -379,7 +379,7 @@ abstract contract IVaultHandler is
   /**
    * @notice Allows users to remove collateral currently not being used to generate TCAP tokens from their vaults
    * @param _amount of collateral to remove
-   * @dev reverts if the resulting ratio is less than the minimun ratio
+   * @dev reverts if the resulting ratio is less than the minimum ratio
    * @dev _amount should be higher than 0
    * @dev transfers the collateral back to the user
    */
@@ -414,7 +414,7 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Uses collateral to generate debt on TCAP Tokens which are minted and assigend to caller
+   * @notice Uses collateral to generate debt on TCAP Tokens which are minted and assigned to caller
    * @param _amount of tokens to mint
    * @dev _amount should be higher than 0
    * @dev requires to have a vault ratio above the minimum ratio
@@ -451,7 +451,7 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Pays the debt of TCAP tokens resulting them on burn, this releases collateral up to minimun vault ratio
+   * @notice Pays the debt of TCAP tokens resulting them on burn, this releases collateral up to minimum vault ratio
    * @param _amount of tokens to burn
    * @dev _amount should be higher than 0
    * @dev A fee of exactly burnFee must be sent as value on ETH
@@ -489,10 +489,10 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Allow users to burn TCAP tokens to liquidate vaults with vault collateral ratio under the minium ratio, the liquidator receives the staked collateral of the liquidated vault at a premium
+   * @notice Allow users to burn TCAP tokens to liquidate vaults with vault collateral ratio under the minimum ratio, the liquidator receives the staked collateral of the liquidated vault at a premium
    * @param _vaultId to liquidate
    * @param _maxTCAP max amount of TCAP the liquidator is willing to pay to liquidate vault
-   * @dev Resulting ratio must be above or equal minimun ratio
+   * @dev Resulting ratio must be above or equal minimum ratio
    * @dev A fee of exactly burnFee must be sent as value on ETH
    * @dev The fee goes to the treasury contract
    */
@@ -662,7 +662,7 @@ abstract contract IVaultHandler is
    * P = TCAP Token Price
    * A = Amount to Mint
    * cp = Collateral Price
-   * r = Minimun Ratio for Liquidation
+   * r = Minimum Ratio for Liquidation
    * Is only divided by 100 as eth price comes in wei to cancel the additional 0s
    */
   function requiredCollateral(uint256 _amount)
