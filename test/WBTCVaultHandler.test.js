@@ -73,7 +73,7 @@ describe("WBTC Vault", async function () {
 
 		// Initialize Vault
 
-		const ercVault = await ethers.getContractFactory("ERC20VaultHandler");
+		const ercVault = await ethers.getContractFactory("WBTCVaultHandler");
 		ercTokenHandler = await ercVault.deploy(
 			orchestratorInstance.address,
 			divisor,
@@ -258,8 +258,9 @@ describe("WBTC Vault", async function () {
 	});
 
 	it("...shouldn't allow minting above cap", async () => {
-		const amount = ethersProvider.utils.parseUnits("11");
-		const reqAmount = await ercTokenHandler.requiredCollateral(amount);
+		const amount = ethersProvider.utils.parseUnits("10");
+		const amount2 = ethersProvider.utils.parseUnits("11");
+		const reqAmount = await ercTokenHandler.requiredCollateral(amount2);
 
 		await ercTokenInstance.mint(accounts[1], reqAmount);
 		await ercTokenInstance.connect(addr1).approve(ercTokenHandler.address, reqAmount);
@@ -297,16 +298,16 @@ describe("WBTC Vault", async function () {
 		await expect(ercTokenHandler.connect(addr1).mint(0)).to.be.revertedWith(
 			"VaultHandler::notZero: value can't be 0"
 		);
-		await expect(ercTokenHandler.connect(addr1).mint(amount2))
+		await expect(ercTokenHandler.connect(addr1).mint(amount))
 			.to.emit(ercTokenHandler, "TokensMinted")
-			.withArgs(accounts[1], 1, amount2);
+			.withArgs(accounts[1], 1, amount);
 		tcapBalance = await tcapInstance.balanceOf(accounts[1]);
-		expect(tcapBalance).to.eq(amount2);
+		expect(tcapBalance).to.eq(amount);
 		vault = await ercTokenHandler.getVault(1);
 		expect(vault[0]).to.eq(1);
 		expect(vault[1]).to.eq(reqAmount2);
 		expect(vault[2]).to.eq(accounts[1]);
-		expect(vault[3]).to.eq(amount2);
+		expect(vault[3]).to.eq(amount);
 		await expect(ercTokenHandler.connect(addr1).mint(lowAmount)).to.be.revertedWith(
 			"VaultHandler::mint: collateral below min required ratio"
 		);
