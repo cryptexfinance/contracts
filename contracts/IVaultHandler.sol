@@ -65,7 +65,6 @@ abstract contract IVaultHandler is
   ChainlinkOracle public immutable tcapOracle;
 
   /// @notice Collateral Token Address
-  /// @dev Collateral Token cannot have decimals > 18
   IERC20 public immutable collateralContract;
 
   /// @notice Collateral/USD Oracle Address
@@ -231,10 +230,6 @@ abstract contract IVaultHandler is
     require(
       ERC165Checker.supportsInterface(_treasury, _INTERFACE_ID_TIMELOCK),
       "VaultHandler::constructor: not a valid treasury"
-    );
-    require(
-      IERC20(_collateralAddress).decimals() <= 18,
-      "VaultHandler::constructor:Token decimals cannot be higher than 18"
     );
 
     divisor = _divisor;
@@ -672,11 +667,9 @@ abstract contract IVaultHandler is
     returns (uint256 collateral)
   {
     uint256 tcapPrice = TCAPPrice();
-    uint256 ethDecimals = 18;
-    uint256 decimals = 10**(ethDecimals.sub(collateralContract.decimals()));
     uint256 collateralPrice = getOraclePrice(collateralPriceOracle);
     collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100)).div(
-      collateralPrice.mul(decimals)
+      collateralPrice
     );
   }
 
@@ -788,6 +781,8 @@ abstract contract IVaultHandler is
    */
   function _burn(uint256 _vaultId, uint256 _amount) internal {
     Vault storage vault = vaults[_vaultId];
+    console.log("Vault Debt: ", vault.Debt);
+    console.log("Amount to burn: ", _amount);
     require(
       vault.Debt >= _amount,
       "VaultHandler::burn: amount greater than debt"

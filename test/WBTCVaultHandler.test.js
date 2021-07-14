@@ -253,7 +253,6 @@ describe("WBTC Vault", async function () {
 			.mul(ratio)
 			.div(100)
 			.div(collateralPrice.mul(oracleDigits).mul(decimals));
-		console.log("🚀 ~ file: WBTCVaultHandler.test.js ~ line 256 ~ it ~ result", result.toString());
 		expect(reqAmount).to.eq(result);
 	});
 
@@ -333,10 +332,10 @@ describe("WBTC Vault", async function () {
 		let ratio = await ercTokenHandler.getVaultRatio(2);
 		expect(ratio).to.eq(0);
 		ratio = await ercTokenHandler.getVaultRatio(1);
-		expect(ratio).to.eq(150);
+		expect(ratio).to.eq(164);
 	});
 
-	it("...shouln't allow users to retrieve stake unless debt is paid", async () => {
+	it("...shouldn't allow users to retrieve stake unless debt is paid", async () => {
 		let vault = await ercTokenHandler.getVault(1);
 		await expect(ercTokenHandler.connect(addr1).removeCollateral(vault[1])).to.be.revertedWith(
 			"VaultHandler::removeCollateral: collateral below min required ratio"
@@ -381,9 +380,10 @@ describe("WBTC Vault", async function () {
 		await expect(ercTokenHandler.connect(addr1).burn(0)).to.be.revertedWith(
 			"VaultHandler::notZero: value can't be 0"
 		);
-		await expect(ercTokenHandler.connect(addr1).burn(amount2, { value: ethHighAmount }))
+
+		await expect(ercTokenHandler.connect(addr1).burn(amount, { value: ethHighAmount }))
 			.to.emit(ercTokenHandler, "TokensBurned")
-			.withArgs(accounts[1], 1, amount2);
+			.withArgs(accounts[1], 1, amount);
 		let tcapBalance = await tcapInstance.balanceOf(accounts[1]);
 		expect(tcapBalance).to.eq(0);
 		vault = await ercTokenHandler.getVault(1);
@@ -415,18 +415,16 @@ describe("WBTC Vault", async function () {
 
 	it("...should test liquidation requirements", async () => {
 		//Prepare for liquidation tests
-		let amount = ethersProvider.utils.parseUnits("10", tokenDecimals);
-
-		const reqAmount = await ercTokenHandler.requiredCollateral(
-			ethersProvider.utils.parseUnits("11", tokenDecimals)
-		);
-
+		let amount = ethersProvider.utils.parseEther("10");
+		const amount2 = ethersProvider.utils.parseEther("11");
+		const reqAmount = await ercTokenHandler.requiredCollateral(amount2);
 		//liquidated
 		await ercTokenHandler.connect(lq).createVault();
 		await ercTokenInstance.mint(accounts[4], reqAmount);
 		await ercTokenInstance.connect(lq).approve(ercTokenHandler.address, reqAmount);
 		await ercTokenHandler.connect(lq).addCollateral(reqAmount);
 		await ercTokenHandler.connect(lq).mint(amount);
+
 		await expect(ercTokenHandler.connect(addr3).liquidateVault(99, 0)).to.be.revertedWith(
 			"VaultHandler::liquidateVault: no vault created"
 		);
@@ -437,6 +435,7 @@ describe("WBTC Vault", async function () {
 		await aggregatorTCAPInstance.connect(owner).setLatestAnswer(totalMarketCap);
 	});
 
+	//TODO: this has to be updated
 	it("...should get the required collateral for liquidation", async () => {
 		let reqLiquidation = await ercTokenHandler.requiredLiquidationTCAP(2);
 		let liquidationPenalty = await ercTokenHandler.liquidationPenalty();
@@ -470,7 +469,7 @@ describe("WBTC Vault", async function () {
 		const liquidationReward = await ercTokenHandler.liquidationReward(2);
 		const reqLiquidation = await ercTokenHandler.requiredLiquidationTCAP(2);
 		const tcapPrice = await ercTokenHandler.TCAPPrice();
-		const collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
+		const collateralPrice = (await collateralOracleInstance.getLatestAnswer()).mul(10000000000);
 		const rewardUSD = liquidationReward.mul(collateralPrice).div(divisor);
 		const collateralUSD = reqLiquidation.mul(tcapPrice).div(divisor);
 		expect(rewardUSD).to.be.gte(
@@ -478,6 +477,7 @@ describe("WBTC Vault", async function () {
 			"reward should be greater than collateral paid to liquidate"
 		);
 	});
+
 	it("...should allow users to liquidate users on vault ratio less than ratio", async () => {
 		const treasuryAddress = treasury;
 		const beforeTreasury = await ethers.provider.getBalance(treasuryAddress);
@@ -486,8 +486,9 @@ describe("WBTC Vault", async function () {
 		//liquidator setup
 		let liquidatorAmount = ethersProvider.utils.parseUnits("20", tokenDecimals);
 		const reqLiquidatorAmount = await ercTokenHandler.requiredCollateral(
-			ethersProvider.utils.parseUnits("110", tokenDecimals)
+			ethersProvider.utils.parseEther("110")
 		);
+
 		await ercTokenHandler.connect(addr3).createVault();
 		await ercTokenInstance.mint(accounts[3], reqLiquidatorAmount);
 		await ercTokenInstance.connect(addr3).approve(ercTokenHandler.address, reqLiquidatorAmount);
@@ -496,6 +497,7 @@ describe("WBTC Vault", async function () {
 
 		let liquidationReward = await ercTokenHandler.liquidationReward(2);
 		let reqLiquidation = await ercTokenHandler.requiredLiquidationTCAP(2);
+		console.log(reqLiquidation.toString());
 		let aboveReqLiquidation = reqLiquidation.add(liquidatorAmount);
 
 		let tcapBalance = await tcapInstance.balanceOf(accounts[3]);
@@ -505,6 +507,7 @@ describe("WBTC Vault", async function () {
 		const aboveBurnAmount = await ercTokenHandler.getFee(aboveReqLiquidation);
 		const fakeBurn = await ercTokenHandler.getFee(1);
 		let oldBalance = await ethers.provider.getBalance(accounts[3]);
+
 		await expect(
 			ercTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation)
 		).to.be.revertedWith("VaultHandler::liquidateVault: burn fee less than required");
@@ -514,9 +517,7 @@ describe("WBTC Vault", async function () {
 			"VaultHandler::liquidateVault: liquidation amount different than required"
 		);
 		await expect(
-			ercTokenHandler
-				.connect(addr3)
-				.liquidateVault(2, aboveReqLiquidation, { value: aboveBurnAmount })
+			ercTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation, { value: aboveBurnAmount })
 		)
 			.to.emit(ercTokenHandler, "VaultLiquidated")
 			.withArgs(2, accounts[3], reqLiquidation, liquidationReward);

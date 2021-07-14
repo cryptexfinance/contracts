@@ -106,6 +106,74 @@ contract WBTCVaultHandler is IVaultHandler {
   }
 
   /**
+   * @notice Returns the minimal required collateral to mint TCAP token
+   * @param _amount uint amount to mint
+   * @return collateral of the TCAP Token
+   * @dev TCAP token is 18 decimals
+   * @dev C = ((P * A * r) / 100) / cp
+   * C = Required Collateral
+   * P = TCAP Token Price
+   * A = Amount to Mint
+   * cp = Collateral Price
+   * r = Minimum Ratio for Liquidation
+   * Is only divided by 100 as eth price comes in wei to cancel the additional 0s
+   */
+  function requiredCollateral(uint256 _amount)
+    public
+    view
+    override
+    returns (uint256 collateral)
+  {
+    uint256 tcapPrice = TCAPPrice();
+    uint256 ethDecimals = 18;
+    uint256 tokenDigits =
+      10**((ethDecimals).sub(collateralContract.decimals()));
+    console.log("amount of tcap: ", _amount);
+    console.log("token digits: ", tokenDigits);
+    console.log("tcap price: ", tcapPrice);
+    uint256 collateralPrice = getOraclePrice(collateralPriceOracle);
+    console.log("collateral price: ", collateralPrice);
+    collateral = ((tcapPrice.mul(_amount).mul(ratio))).div(
+      collateralPrice.mul(tokenDigits).mul(100)
+    );
+  }
+
+  /**
+   * @notice Returns the minimal required TCAP to liquidate a Vault
+   * @param _vaultId of the vault to liquidate
+   * @return amount required of the TCAP Token
+   * @dev LT = ((((D * r) / 100) - cTcap) * 100) / (r - (p + 100))
+   * cTcap = ((C * cp) / P)
+   * LT = Required TCAP
+   * D = Vault Debt
+   * C = Required Collateral
+   * P = TCAP Token Price
+   * cp = Collateral Price
+   * r = Min Vault Ratio
+   * p = Liquidation Penalty
+   */
+  function requiredLiquidationTCAP(uint256 _vaultId)
+    public
+    view
+    override
+    returns (uint256 amount)
+  {
+    Vault memory vault = vaults[_vaultId];
+    uint256 tcapPrice = TCAPPrice();
+    uint256 ethDecimals = 18;
+    uint256 tokenDigits =
+      10**((ethDecimals).sub(collateralContract.decimals()));
+    uint256 collateralPrice = getOraclePrice(collateralPriceOracle);
+    uint256 collateralTcap =
+      (vault.Collateral.mul(collateralPrice)).div(tcapPrice);
+    uint256 reqDividend =
+      (((vault.Debt.mul(ratio)).div(100)).sub(collateralTcap)).mul(100);
+    uint256 reqDivisor = ratio.sub(liquidationPenalty.add(100));
+    amount = reqDividend.div(reqDivisor);
+    // TODO: ;liquidation error is here
+  }
+
+  /**
    * @notice Returns the Collateral Ratio of the Vault
    * @param _vaultId id of vault
    * @return currentRatio
