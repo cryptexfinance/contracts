@@ -12,3 +12,4 @@ cache/
 typechain/
 
 .idea/
+.idea/workspace.xml
