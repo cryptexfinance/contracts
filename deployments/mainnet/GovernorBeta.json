@@ -1,0 +1,1058 @@
+{
+  "address": "0x874C5D592AfC6803c3DD60d6442357879F196d5b",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "timelock_",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "ctx_",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "guardian_",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        }
+      ],
+      "name": "ProposalCanceled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "proposer",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address[]",
+          "name": "targets",
+          "type": "address[]"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256[]",
+          "name": "values",
+          "type": "uint256[]"
+        },
+        {
+          "indexed": false,
+          "internalType": "string[]",
+          "name": "signatures",
+          "type": "string[]"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes[]",
+          "name": "calldatas",
+          "type": "bytes[]"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "startBlock",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "endBlock",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "description",
+          "type": "string"
+        }
+      ],
+      "name": "ProposalCreated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        }
+      ],
+      "name": "ProposalExecuted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "eta",
+          "type": "uint256"
+        }
+      ],
+      "name": "ProposalQueued",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "voter",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "proposalId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "support",
+          "type": "bool"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "votes",
+          "type": "uint256"
+        }
+      ],
+      "name": "VoteCast",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "BALLOT_TYPEHASH",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "DOMAIN_TYPEHASH",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "acceptTimelockAdmin",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "proposalId",
+          "type": "uint256"
+        }
+      ],
+      "name": "cancel",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "proposalId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "support",
+          "type": "bool"
+        }
+      ],
+      "name": "castVote",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "proposalId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "support",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint8",
+          "name": "v",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "r",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "s",
+          "type": "bytes32"
+        }
+      ],
+      "name": "castVoteBySig",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "ctx",
+      "outputs": [
+        {
+          "internalType": "contract CtxInterface",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "proposalId",
+          "type": "uint256"
+        }
+      ],
+      "name": "execute",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "proposalId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getActions",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "targets",
+          "type": "address[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "values",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "string[]",
+          "name": "signatures",
+          "type": "string[]"
+        },
+        {
+          "internalType": "bytes[]",
+          "name": "calldatas",
+          "type": "bytes[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "proposalId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "voter",
+          "type": "address"
+        }
+      ],
+      "name": "getReceipt",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "bool",
+              "name": "hasVoted",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "support",
+              "type": "bool"
+            },
+            {
+              "internalType": "uint96",
+              "name": "votes",
+              "type": "uint96"
+            }
+          ],
+          "internalType": "struct GovernorBeta.Receipt",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "guardian",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "latestProposalIds",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "name",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "proposalCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "proposalMaxOperations",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "proposalThreshold",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "proposals",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "proposer",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "eta",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "startBlock",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "endBlock",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "forVotes",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "againstVotes",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "canceled",
+          "type": "bool"
+        },
+        {
+          "internalType": "bool",
+          "name": "executed",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address[]",
+          "name": "targets",
+          "type": "address[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "values",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "string[]",
+          "name": "signatures",
+          "type": "string[]"
+        },
+        {
+          "internalType": "bytes[]",
+          "name": "calldatas",
+          "type": "bytes[]"
+        },
+        {
+          "internalType": "string",
+          "name": "description",
+          "type": "string"
+        }
+      ],
+      "name": "propose",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "proposalId",
+          "type": "uint256"
+        }
+      ],
+      "name": "queue",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "quorumVotes",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "receipts",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "hasVoted",
+          "type": "bool"
+        },
+        {
+          "internalType": "bool",
+          "name": "support",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint96",
+          "name": "votes",
+          "type": "uint96"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "proposalId",
+          "type": "uint256"
+        }
+      ],
+      "name": "state",
+      "outputs": [
+        {
+          "internalType": "enum GovernorBeta.ProposalState",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "timelock",
+      "outputs": [
+        {
+          "internalType": "contract TimelockInterface",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "votingDelay",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "votingPeriod",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xa96b60e7fe5ed0869f7e283588ac4fc3673f174a0a928496f5531da65af2ddb5",
+  "receipt": {
+    "to": null,
+    "from": "0x294CB241EBF6fe95bbb76071c7cDa8DD62EB138e",
+    "contractAddress": "0x874C5D592AfC6803c3DD60d6442357879F196d5b",
+    "transactionIndex": 115,
+    "gasUsed": "2620699",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x20fd455e84b6d580ebe7cfd76191533fcac1ec3a8ae26daa2eb9305e230d4589",
+    "transactionHash": "0xa96b60e7fe5ed0869f7e283588ac4fc3673f174a0a928496f5531da65af2ddb5",
+    "logs": [],
+    "blockNumber": 12833919,
+    "cumulativeGasUsed": "11549432",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0xa54074b2cc0e96a43048d4a68472f7f046ac0da8",
+    "0x321C2fE4446C7c963dc41Dd58879AF648838f98D",
+    "0xa70b638b70154edfcbb8dbbbd04900f328f32c35"
+  ],
+  "solcInputHash": "f626c641902e21c100bfa593a268ab60",
+  "metadata": "{\"compiler\":{\"version\":\"0.7.5+commit.eb77ed08\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"timelock_\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"ctx_\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"guardian_\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"}],\"name\":\"ProposalCanceled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"proposer\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address[]\",\"name\":\"targets\",\"type\":\"address[]\"},{\"indexed\":false,\"internalType\":\"uint256[]\",\"name\":\"values\",\"type\":\"uint256[]\"},{\"indexed\":false,\"internalType\":\"string[]\",\"name\":\"signatures\",\"type\":\"string[]\"},{\"indexed\":false,\"internalType\":\"bytes[]\",\"name\":\"calldatas\",\"type\":\"bytes[]\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"startBlock\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"endBlock\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"description\",\"type\":\"string\"}],\"name\":\"ProposalCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"}],\"name\":\"ProposalExecuted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"eta\",\"type\":\"uint256\"}],\"name\":\"ProposalQueued\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"voter\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"proposalId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"support\",\"type\":\"bool\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"votes\",\"type\":\"uint256\"}],\"name\":\"VoteCast\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"BALLOT_TYPEHASH\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"DOMAIN_TYPEHASH\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"acceptTimelockAdmin\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"proposalId\",\"type\":\"uint256\"}],\"name\":\"cancel\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"proposalId\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"support\",\"type\":\"bool\"}],\"name\":\"castVote\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"proposalId\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"support\",\"type\":\"bool\"},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\"},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\"}],\"name\":\"castVoteBySig\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"ctx\",\"outputs\":[{\"internalType\":\"contract CtxInterface\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"proposalId\",\"type\":\"uint256\"}],\"name\":\"execute\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"proposalId\",\"type\":\"uint256\"}],\"name\":\"getActions\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"targets\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"values\",\"type\":\"uint256[]\"},{\"internalType\":\"string[]\",\"name\":\"signatures\",\"type\":\"string[]\"},{\"internalType\":\"bytes[]\",\"name\":\"calldatas\",\"type\":\"bytes[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"proposalId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"voter\",\"type\":\"address\"}],\"name\":\"getReceipt\",\"outputs\":[{\"components\":[{\"internalType\":\"bool\",\"name\":\"hasVoted\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"support\",\"type\":\"bool\"},{\"internalType\":\"uint96\",\"name\":\"votes\",\"type\":\"uint96\"}],\"internalType\":\"struct GovernorBeta.Receipt\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"guardian\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"latestProposalIds\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"proposalCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"proposalMaxOperations\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"proposalThreshold\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"proposals\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"proposer\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"eta\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"startBlock\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"endBlock\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"forVotes\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"againstVotes\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"canceled\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"executed\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"targets\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"values\",\"type\":\"uint256[]\"},{\"internalType\":\"string[]\",\"name\":\"signatures\",\"type\":\"string[]\"},{\"internalType\":\"bytes[]\",\"name\":\"calldatas\",\"type\":\"bytes[]\"},{\"internalType\":\"string\",\"name\":\"description\",\"type\":\"string\"}],\"name\":\"propose\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"proposalId\",\"type\":\"uint256\"}],\"name\":\"queue\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"quorumVotes\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"receipts\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"hasVoted\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"support\",\"type\":\"bool\"},{\"internalType\":\"uint96\",\"name\":\"votes\",\"type\":\"uint96\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"proposalId\",\"type\":\"uint256\"}],\"name\":\"state\",\"outputs\":[{\"internalType\":\"enum GovernorBeta.ProposalState\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"timelock\",\"outputs\":[{\"internalType\":\"contract TimelockInterface\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"votingDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"votingPeriod\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"events\":{\"ProposalCanceled(uint256)\":{\"notice\":\"An event emitted when a proposal has been canceled\"},\"ProposalCreated(uint256,address,address[],uint256[],string[],bytes[],uint256,uint256,string)\":{\"notice\":\"An event emitted when a new proposal is created\"},\"ProposalExecuted(uint256)\":{\"notice\":\"An event emitted when a proposal has been executed in the Timelock\"},\"ProposalQueued(uint256,uint256)\":{\"notice\":\"An event emitted when a proposal has been queued in the Timelock\"},\"VoteCast(address,uint256,bool,uint256)\":{\"notice\":\"An event emitted when a vote has been cast on a proposal\"}},\"kind\":\"user\",\"methods\":{\"BALLOT_TYPEHASH()\":{\"notice\":\"The EIP-712 typehash for the ballot struct used by the contract\"},\"DOMAIN_TYPEHASH()\":{\"notice\":\"The EIP-712 typehash for the contract's domain\"},\"ctx()\":{\"notice\":\"The address of the Ctx governance token\"},\"execute(uint256)\":{\"notice\":\"executes the transaction, but uses the msg.value from the eth stored in the timelock\"},\"guardian()\":{\"notice\":\"Guardian of the governor\"},\"latestProposalIds(address)\":{\"notice\":\"The latest proposal for each proposer\"},\"name()\":{\"notice\":\"The name of this contract\"},\"proposalCount()\":{\"notice\":\"The total number of proposals\"},\"proposalMaxOperations()\":{\"notice\":\"The maximum number of actions that can be included in a proposal\"},\"proposalThreshold()\":{\"notice\":\"The number of votes required in order for a voter to become a proposer\"},\"proposals(uint256)\":{\"notice\":\"The official record of all proposals ever proposed\"},\"quorumVotes()\":{\"notice\":\"The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed\"},\"receipts(uint256,address)\":{\"notice\":\"Receipts of ballots for the entire set of voters\"},\"timelock()\":{\"notice\":\"The address of the Ctx Protocol Timelock\"},\"votingDelay()\":{\"notice\":\"The delay before voting on a proposal may take place, once proposed\"},\"votingPeriod()\":{\"notice\":\"The duration of voting on a proposal, in blocks\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/governance/GovernorBeta.sol\":\"GovernorBeta\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/governance/GovernorBeta.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity 0.7.5;\\n\\npragma experimental ABIEncoderV2;\\n\\ncontract GovernorBeta {\\n  /// @notice The name of this contract\\n  string public constant name = \\\"Cryptex Governor Beta\\\";\\n\\n  /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed\\n  function quorumVotes() public pure returns (uint256) {\\n    return 400_000e18;\\n  } // 4% of Ctx\\n\\n  /// @notice The number of votes required in order for a voter to become a proposer\\n  function proposalThreshold() public pure returns (uint256) {\\n    return 100_000e18;\\n  } // 1% of Ctx\\n\\n  /// @notice The maximum number of actions that can be included in a proposal\\n  function proposalMaxOperations() public pure returns (uint256) {\\n    return 10;\\n  } // 10 actions\\n\\n  /// @notice The delay before voting on a proposal may take place, once proposed\\n  function votingDelay() public pure returns (uint256) {\\n    return 1;\\n  } // 1 block\\n\\n  /// @notice The duration of voting on a proposal, in blocks\\n  function votingPeriod() public pure returns (uint256) {\\n    return 17_280;\\n  } // ~3 days in blocks (assuming 15s blocks)\\n\\n  /// @notice The address of the Ctx Protocol Timelock\\n  TimelockInterface public timelock;\\n\\n  /// @notice The address of the Ctx governance token\\n  CtxInterface public ctx;\\n\\n  /// @notice The total number of proposals\\n  uint256 public proposalCount;\\n\\n  /// @notice Guardian of the governor\\n  address public guardian;\\n\\n  /// @param id Unique id for looking up a proposal\\n  /// @param proposer Creator of the proposal\\n  /// @param eta The timestamp that the proposal will be available for execution, set once the vote succeeds\\n  /// @param targets the ordered list of target addresses for calls to be made\\n  /// @param values The ordered list of values (i.e. msg.value) to be passed to the calls to be made\\n  /// @param signatures The ordered list of function signatures to be called\\n  /// @param calldatas The ordered list of calldata to be passed to each call\\n  /// @param startBlock The block at which voting begins: holders must delegate their votes prior to this block\\n  /// @param endBlock The block at which voting ends: votes must be cast prior to this block\\n  /// @param forVotes Current number of votes in favor of this proposal\\n  /// @param againstVotes Current number of votes in opposition to this proposal\\n  /// @param canceled Flag marking whether the proposal has been canceled\\n  /// @param executed Flag marking whether the proposal has been executed\\n  struct Proposal {\\n    uint256 id;\\n    address proposer;\\n    uint256 eta;\\n    address[] targets;\\n    uint256[] values;\\n    string[] signatures;\\n    bytes[] calldatas;\\n    uint256 startBlock;\\n    uint256 endBlock;\\n    uint256 forVotes;\\n    uint256 againstVotes;\\n    bool canceled;\\n    bool executed;\\n  }\\n\\n  /// @notice Receipts of ballots for the entire set of voters\\n  mapping(uint256 => mapping(address => Receipt)) public receipts;\\n\\n  /// @notice Ballot receipt record for a voter\\n  /// @param hasVoted or not a vote has been cast\\n  /// @param support or not the voter supports the proposal\\n  /// @param votes number of votes the voter had, which were cast\\n  struct Receipt {\\n    bool hasVoted;\\n    bool support;\\n    uint96 votes;\\n  }\\n\\n  /// @notice Possible states that a proposal may be in\\n  enum ProposalState {\\n    Pending,\\n    Active,\\n    Canceled,\\n    Defeated,\\n    Succeeded,\\n    Queued,\\n    Expired,\\n    Executed\\n  }\\n\\n  /// @notice The official record of all proposals ever proposed\\n  mapping(uint256 => Proposal) public proposals;\\n\\n  /// @notice The latest proposal for each proposer\\n  mapping(address => uint256) public latestProposalIds;\\n\\n  /// @notice The EIP-712 typehash for the contract's domain\\n  bytes32 public constant DOMAIN_TYPEHASH =\\n    keccak256(\\n      \\\"EIP712Domain(string name,uint256 chainId,address verifyingContract)\\\"\\n    );\\n\\n  /// @notice The EIP-712 typehash for the ballot struct used by the contract\\n  bytes32 public constant BALLOT_TYPEHASH =\\n    keccak256(\\\"Ballot(uint256 proposalId,bool support)\\\");\\n\\n  /// @notice An event emitted when a new proposal is created\\n  event ProposalCreated(\\n    uint256 id,\\n    address proposer,\\n    address[] targets,\\n    uint256[] values,\\n    string[] signatures,\\n    bytes[] calldatas,\\n    uint256 startBlock,\\n    uint256 endBlock,\\n    string description\\n  );\\n\\n  /// @notice An event emitted when a vote has been cast on a proposal\\n  event VoteCast(\\n    address voter,\\n    uint256 proposalId,\\n    bool support,\\n    uint256 votes\\n  );\\n\\n  /// @notice An event emitted when a proposal has been canceled\\n  event ProposalCanceled(uint256 id);\\n\\n  /// @notice An event emitted when a proposal has been queued in the Timelock\\n  event ProposalQueued(uint256 id, uint256 eta);\\n\\n  /// @notice An event emitted when a proposal has been executed in the Timelock\\n  event ProposalExecuted(uint256 id);\\n\\n  constructor(\\n    address timelock_,\\n    address ctx_,\\n    address guardian_\\n  ) {\\n    timelock = TimelockInterface(timelock_);\\n    ctx = CtxInterface(ctx_);\\n    guardian = guardian_;\\n  }\\n\\n  function propose(\\n    address[] memory targets,\\n    uint256[] memory values,\\n    string[] memory signatures,\\n    bytes[] memory calldatas,\\n    string memory description\\n  ) public returns (uint256) {\\n    require(\\n      ctx.getPriorVotes(msg.sender, sub256(block.number, 1)) >\\n        proposalThreshold(),\\n      \\\"GovernorBeta::propose: proposer votes below proposal threshold\\\"\\n    );\\n    require(\\n      targets.length == values.length &&\\n        targets.length == signatures.length &&\\n        targets.length == calldatas.length,\\n      \\\"GovernorBeta::propose: proposal function information arity mismatch\\\"\\n    );\\n    require(targets.length != 0, \\\"GovernorBeta::propose: must provide actions\\\");\\n    require(\\n      targets.length <= proposalMaxOperations(),\\n      \\\"GovernorBeta::propose: too many actions\\\"\\n    );\\n\\n    uint256 latestProposalId = latestProposalIds[msg.sender];\\n    if (latestProposalId != 0) {\\n      ProposalState proposersLatestProposalState = state(latestProposalId);\\n      require(\\n        proposersLatestProposalState != ProposalState.Active,\\n        \\\"GovernorBeta::propose: one live proposal per proposer, found an already active proposal\\\"\\n      );\\n      require(\\n        proposersLatestProposalState != ProposalState.Pending,\\n        \\\"GovernorBeta::propose: one live proposal per proposer, found an already pending proposal\\\"\\n      );\\n    }\\n\\n    uint256 startBlock = add256(block.number, votingDelay());\\n    uint256 endBlock = add256(startBlock, votingPeriod());\\n\\n    proposalCount++;\\n    Proposal memory newProposal =\\n      Proposal({\\n        id: proposalCount,\\n        proposer: msg.sender,\\n        eta: 0,\\n        targets: targets,\\n        values: values,\\n        signatures: signatures,\\n        calldatas: calldatas,\\n        startBlock: startBlock,\\n        endBlock: endBlock,\\n        forVotes: 0,\\n        againstVotes: 0,\\n        canceled: false,\\n        executed: false\\n      });\\n\\n    proposals[newProposal.id] = newProposal;\\n    latestProposalIds[newProposal.proposer] = newProposal.id;\\n\\n    emit ProposalCreated(\\n      newProposal.id,\\n      msg.sender,\\n      targets,\\n      values,\\n      signatures,\\n      calldatas,\\n      startBlock,\\n      endBlock,\\n      description\\n    );\\n    return newProposal.id;\\n  }\\n\\n  function queue(uint256 proposalId) public {\\n    require(\\n      state(proposalId) == ProposalState.Succeeded,\\n      \\\"GovernorBeta::queue: proposal can only be queued if it is succeeded\\\"\\n    );\\n    Proposal storage proposal = proposals[proposalId];\\n    uint256 eta = add256(block.timestamp, timelock.delay());\\n    for (uint256 i = 0; i < proposal.targets.length; i++) {\\n      _queueOrRevert(\\n        proposal.targets[i],\\n        proposal.values[i],\\n        proposal.signatures[i],\\n        proposal.calldatas[i],\\n        eta\\n      );\\n    }\\n    proposal.eta = eta;\\n    emit ProposalQueued(proposalId, eta);\\n  }\\n\\n  function _queueOrRevert(\\n    address target,\\n    uint256 value,\\n    string memory signature,\\n    bytes memory data,\\n    uint256 eta\\n  ) internal {\\n    require(\\n      !timelock.queuedTransactions(\\n        keccak256(abi.encode(target, value, signature, data, eta))\\n      ),\\n      \\\"GovernorBeta::_queueOrRevert: proposal action already queued at eta\\\"\\n    );\\n    timelock.queueTransaction(target, value, signature, data, eta);\\n  }\\n\\n  /// @notice executes the transaction, but uses the msg.value from the eth stored in the timelock\\n  function execute(uint256 proposalId) public {\\n    require(\\n      state(proposalId) == ProposalState.Queued,\\n      \\\"GovernorBeta::execute: proposal can only be executed if it is queued\\\"\\n    );\\n    Proposal storage proposal = proposals[proposalId];\\n    proposal.executed = true;\\n    for (uint256 i = 0; i < proposal.targets.length; i++) {\\n      timelock.executeTransaction{value: 0}(\\n        proposal.targets[i],\\n        proposal.values[i],\\n        proposal.signatures[i],\\n        proposal.calldatas[i],\\n        proposal.eta\\n      );\\n    }\\n    emit ProposalExecuted(proposalId);\\n  }\\n\\n  function cancel(uint256 proposalId) public {\\n    ProposalState currentState = state(proposalId);\\n    require(\\n      currentState != ProposalState.Executed,\\n      \\\"GovernorBeta::cancel: cannot cancel executed proposal\\\"\\n    );\\n\\n    Proposal storage proposal = proposals[proposalId];\\n    require(\\n      ctx.getPriorVotes(proposal.proposer, sub256(block.number, 1)) <\\n        proposalThreshold(),\\n      \\\"GovernorBeta::cancel: proposer above threshold\\\"\\n    );\\n\\n    proposal.canceled = true;\\n    for (uint256 i = 0; i < proposal.targets.length; i++) {\\n      timelock.cancelTransaction(\\n        proposal.targets[i],\\n        proposal.values[i],\\n        proposal.signatures[i],\\n        proposal.calldatas[i],\\n        proposal.eta\\n      );\\n    }\\n\\n    emit ProposalCanceled(proposalId);\\n  }\\n\\n  function getActions(uint256 proposalId)\\n    public\\n    view\\n    returns (\\n      address[] memory targets,\\n      uint256[] memory values,\\n      string[] memory signatures,\\n      bytes[] memory calldatas\\n    )\\n  {\\n    Proposal storage p = proposals[proposalId];\\n    return (p.targets, p.values, p.signatures, p.calldatas);\\n  }\\n\\n  function getReceipt(uint256 proposalId, address voter)\\n    public\\n    view\\n    returns (Receipt memory)\\n  {\\n    require(\\n      proposalCount >= proposalId && proposalId > 0,\\n      \\\"GovernorBeta::getReceipt: invalid proposal id\\\"\\n    );\\n    return receipts[proposalId][voter];\\n  }\\n\\n  function state(uint256 proposalId) public view returns (ProposalState) {\\n    require(\\n      proposalCount >= proposalId && proposalId > 0,\\n      \\\"GovernorBeta::state: invalid proposal id\\\"\\n    );\\n    Proposal storage proposal = proposals[proposalId];\\n    if (proposal.canceled) {\\n      return ProposalState.Canceled;\\n    } else if (block.number <= proposal.startBlock) {\\n      return ProposalState.Pending;\\n    } else if (block.number <= proposal.endBlock) {\\n      return ProposalState.Active;\\n    } else if (\\n      proposal.forVotes <= proposal.againstVotes ||\\n      proposal.forVotes < quorumVotes()\\n    ) {\\n      return ProposalState.Defeated;\\n    } else if (proposal.eta == 0) {\\n      return ProposalState.Succeeded;\\n    } else if (proposal.executed) {\\n      return ProposalState.Executed;\\n    } else if (\\n      block.timestamp >= add256(proposal.eta, timelock.GRACE_PERIOD())\\n    ) {\\n      return ProposalState.Expired;\\n    } else {\\n      return ProposalState.Queued;\\n    }\\n  }\\n\\n  function castVote(uint256 proposalId, bool support) public {\\n    return _castVote(msg.sender, proposalId, support);\\n  }\\n\\n  function castVoteBySig(\\n    uint256 proposalId,\\n    bool support,\\n    uint8 v,\\n    bytes32 r,\\n    bytes32 s\\n  ) public {\\n    bytes32 domainSeparator =\\n      keccak256(\\n        abi.encode(\\n          DOMAIN_TYPEHASH,\\n          keccak256(bytes(name)),\\n          getChainId(),\\n          address(this)\\n        )\\n      );\\n    bytes32 structHash =\\n      keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support));\\n    bytes32 digest =\\n      keccak256(abi.encodePacked(\\\"\\\\x19\\\\x01\\\", domainSeparator, structHash));\\n    address signatory = ecrecover(digest, v, r, s);\\n    require(\\n      signatory != address(0),\\n      \\\"GovernorBeta::castVoteBySig: invalid signature\\\"\\n    );\\n    return _castVote(signatory, proposalId, support);\\n  }\\n\\n  function _castVote(\\n    address voter,\\n    uint256 proposalId,\\n    bool support\\n  ) internal {\\n    require(\\n      state(proposalId) == ProposalState.Active,\\n      \\\"GovernorBeta::_castVote: voting is closed\\\"\\n    );\\n    Proposal storage proposal = proposals[proposalId];\\n    Receipt storage receipt = receipts[proposalId][voter];\\n    require(\\n      receipt.hasVoted == false,\\n      \\\"GovernorBeta::_castVote: voter already voted\\\"\\n    );\\n    uint96 votes = ctx.getPriorVotes(voter, proposal.startBlock);\\n\\n    if (support) {\\n      proposal.forVotes = add256(proposal.forVotes, votes);\\n    } else {\\n      proposal.againstVotes = add256(proposal.againstVotes, votes);\\n    }\\n\\n    receipt.hasVoted = true;\\n    receipt.support = support;\\n    receipt.votes = votes;\\n\\n    emit VoteCast(voter, proposalId, support, votes);\\n  }\\n\\n  function acceptTimelockAdmin() external {\\n    require(\\n      msg.sender == guardian,\\n      \\\"GovernorBeta::acceptTimelockAdmin: only guardian can call this function\\\"\\n    );\\n    timelock.acceptAdmin();\\n  }\\n\\n  function add256(uint256 a, uint256 b) internal pure returns (uint256) {\\n    uint256 c = a + b;\\n    require(c >= a, \\\"addition overflow\\\");\\n    return c;\\n  }\\n\\n  function sub256(uint256 a, uint256 b) internal pure returns (uint256) {\\n    require(b <= a, \\\"subtraction underflow\\\");\\n    return a - b;\\n  }\\n\\n  function getChainId() internal pure returns (uint256) {\\n    uint256 chainId;\\n    assembly {\\n      chainId := chainid()\\n    }\\n    return chainId;\\n  }\\n}\\n\\ninterface TimelockInterface {\\n  function delay() external view returns (uint256);\\n\\n  function GRACE_PERIOD() external view returns (uint256);\\n\\n  function acceptAdmin() external;\\n\\n  function queuedTransactions(bytes32 hash) external view returns (bool);\\n\\n  function queueTransaction(\\n    address target,\\n    uint256 value,\\n    string calldata signature,\\n    bytes calldata data,\\n    uint256 eta\\n  ) external returns (bytes32);\\n\\n  function cancelTransaction(\\n    address target,\\n    uint256 value,\\n    string calldata signature,\\n    bytes calldata data,\\n    uint256 eta\\n  ) external;\\n\\n  function executeTransaction(\\n    address target,\\n    uint256 value,\\n    string calldata signature,\\n    bytes calldata data,\\n    uint256 eta\\n  ) external payable returns (bytes memory);\\n}\\n\\ninterface CtxInterface {\\n  function getPriorVotes(address account, uint256 blockNumber)\\n    external\\n    view\\n    returns (uint96);\\n}\\n\",\"keccak256\":\"0x12168fe307f62cf957ccb010a6366f519633754db70d7d945a2498df06e15502\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60806040523480156200001157600080fd5b5060405162002e1638038062002e16833981016040819052620000349162000094565b600080546001600160a01b039485166001600160a01b031991821617909155600180549385169382169390931790925560038054919093169116179055620000dd565b80516001600160a01b03811681146200008f57600080fd5b919050565b600080600060608486031215620000a9578283fd5b620000b48462000077565b9250620000c46020850162000077565b9150620000d46040850162000077565b90509250925092565b612d2980620000ed6000396000f3fe608060405234801561001057600080fd5b50600436106101735760003560e01c80634178b249116100de578063da35c66411610097578063deaaa7cc11610071578063deaaa7cc14610301578063e23a9a5214610309578063eeaba75d14610329578063fe0d94c11461033157610173565b8063da35c664146102d3578063da95691a146102db578063ddf0b009146102ee57610173565b80634178b2491461027e578063452a9320146102a05780634634c61f146102a85780637bdbe4d0146102bb578063b58131b0146102c3578063d33219b4146102cb57610173565b806324bc1a641161013057806324bc1a6414610203578063277838df1461020b578063328dd982146102205780633932abb1146102435780633e4f49e61461024b57806340e58ee51461026b57610173565b8063013cf08b1461017857806302a251a3146101a957806306fdde03146101be57806315373e3d146101d357806317977c61146101e857806320606b70146101fb575b600080fd5b61018b610186366004612049565b610344565b6040516101a099989796959493929190612bef565b60405180910390f35b6101b161039d565b6040516101a09190612423565b6101c66103a3565b6040516101a0919061249a565b6101e66101e136600461208c565b6103d4565b005b6101b16101f6366004611ebc565b6103e3565b6101b16103f5565b6101b1610419565b610213610427565b6040516101a091906122c7565b61023361022e366004612049565b610436565b6040516101a094939291906123aa565b6101b16106c5565b61025e610259366004612049565b6106ca565b6040516101a09190612486565b6101e6610279366004612049565b61085d565b61029161028c366004612061565b610ab1565b6040516101a093929190612402565b610213610aec565b6101e66102b63660046120bb565b610afb565b6101b1610cac565b6101b1610cb1565b610213610cbf565b6101b1610cce565b6101b16102e9366004611ed6565b610cd4565b6101e66102fc366004612049565b6110f4565b6101b1611362565b61031c610317366004612061565b611386565b6040516101a09190612b29565b6101e661141c565b6101e661033f366004612049565b6114a1565b6005602052600090815260409020805460018201546002830154600784015460088501546009860154600a870154600b9097015495966001600160a01b0390951695939492939192909160ff8082169161010090041689565b61438090565b604051806040016040528060158152602001744372797074657820476f7665726e6f72204265746160581b81525081565b6103df338383611659565b5050565b60066020526000908152604090205481565b7f8cad95687ba82c2ce50e74f7b754645e5117c3a5bec8151c0726d5857980a86681565b6954b40b1f852bda00000090565b6001546001600160a01b031681565b606080606080600060056000878152602001908152602001600020905080600301816004018260050183600601838054806020026020016040519081016040528092919081815260200182805480156104b857602002820191906000526020600020905b81546001600160a01b0316815260019091019060200180831161049a575b505050505093508280548060200260200160405190810160405280929190818152602001828054801561050a57602002820191906000526020600020905b8154815260200190600101908083116104f6575b5050505050925081805480602002602001604051908101604052809291908181526020016000905b828210156105dd5760008481526020908190208301805460408051601f60026000196101006001871615020190941693909304928301859004850281018501909152818152928301828280156105c95780601f1061059e576101008083540402835291602001916105c9565b820191906000526020600020905b8154815290600101906020018083116105ac57829003601f168201915b505050505081526020019060010190610532565b50505050915080805480602002602001604051908101604052809291908181526020016000905b828210156106af5760008481526020908190208301805460408051601f600260001961010060018716150201909416939093049283018590048502810185019091528181529283018282801561069b5780601f106106705761010080835404028352916020019161069b565b820191906000526020600020905b81548152906001019060200180831161067e57829003601f168201915b505050505081526020019060010190610604565b5050505090509450945094509450509193509193565b600190565b600081600254101580156106de5750600082115b6107035760405162461bcd60e51b81526004016106fa90612ab2565b60405180910390fd5b6000828152600560205260409020600b81015460ff1615610728576002915050610858565b8060070154431161073d576000915050610858565b80600801544311610752576001915050610858565b80600a01548160090154111580610773575061076c610419565b8160090154105b15610782576003915050610858565b6002810154610795576004915050610858565b600b810154610100900460ff16156107b1576007915050610858565b610842816002015460008054906101000a90046001600160a01b03166001600160a01b031663c1a287e26040518163ffffffff1660e01b815260040160206040518083038186803b15801561080557600080fd5b505afa158015610819573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061083d9190611fbe565b611825565b4210610852576006915050610858565b60059150505b919050565b6000610868826106ca565b9050600781600781111561087857fe5b14156108965760405162461bcd60e51b81526004016106fa90612841565b60008281526005602052604090206108ac610cb1565b60018054838201546001600160a01b039182169263782d6fe192909116906108d5904390611851565b6040518363ffffffff1660e01b81526004016108f29291906122db565b60206040518083038186803b15801561090a57600080fd5b505afa15801561091e573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906109429190612111565b6001600160601b0316106109685760405162461bcd60e51b81526004016106fa90612591565b600b8101805460ff1916600117905560005b6003820154811015610a74576000546003830180546001600160a01b039092169163591fcdfe9190849081106109ac57fe5b6000918252602090912001546004850180546001600160a01b0390921691859081106109d457fe5b90600052602060002001548560050185815481106109ee57fe5b90600052602060002001866006018681548110610a0757fe5b9060005260206000200187600201546040518663ffffffff1660e01b8152600401610a36959493929190612371565b600060405180830381600087803b158015610a5057600080fd5b505af1158015610a64573d6000803e3d6000fd5b50506001909201915061097a9050565b507f789cf55be980739dad1d0699b93b58e806b51c9d96619bfa8fe0a28abaa7b30c83604051610aa49190612423565b60405180910390a1505050565b600460209081526000928352604080842090915290825290205460ff808216916101008104909116906201000090046001600160601b031683565b6003546001600160a01b031681565b6040805180820190915260158152744372797074657820476f7665726e6f72204265746160581b60209091015260007f8cad95687ba82c2ce50e74f7b754645e5117c3a5bec8151c0726d5857980a8667fb5402fd85f686e640901c51bd8bf906450a189d035d709803a09e1c72fe44852610b74611879565b30604051602001610b88949392919061242c565b60405160208183030381529060405280519060200120905060007f8e25870c07e0b0b3884c78da52790939a455c275406c44ae8b434b692fb916ee8787604051602001610bd793929190612450565b60405160208183030381529060405280519060200120905060008282604051602001610c049291906122ac565b604051602081830303815290604052805190602001209050600060018288888860405160008152602001604052604051610c419493929190612468565b6020604051602081039080840390855afa158015610c63573d6000803e3d6000fd5b5050604051601f1901519150506001600160a01b038116610c965760405162461bcd60e51b81526004016106fa90612543565b610ca1818a8a611659565b505050505050505050565b600a90565b69152d02c7e14af680000090565b6000546001600160a01b031681565b60025481565b6000610cde610cb1565b600180546001600160a01b03169063782d6fe1903390610cff904390611851565b6040518363ffffffff1660e01b8152600401610d1c9291906122db565b60206040518083038186803b158015610d3457600080fd5b505afa158015610d48573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610d6c9190612111565b6001600160601b031611610d925760405162461bcd60e51b81526004016106fa90612a55565b84518651148015610da4575083518651145b8015610db1575082518651145b610dcd5760405162461bcd60e51b81526004016106fa906126fc565b8551610deb5760405162461bcd60e51b81526004016106fa906126b1565b610df3610cac565b86511115610e135760405162461bcd60e51b81526004016106fa90612790565b336000908152600660205260409020548015610e90576000610e34826106ca565b90506001816007811115610e4457fe5b1415610e625760405162461bcd60e51b81526004016106fa90612986565b6000816007811115610e7057fe5b1415610e8e5760405162461bcd60e51b81526004016106fa90612903565b505b6000610e9e4361083d6106c5565b90506000610eae8261083d61039d565b6002805460010190559050610ec16119dc565b604051806101a001604052806002548152602001336001600160a01b03168152602001600081526020018b81526020018a815260200189815260200188815260200184815260200183815260200160008152602001600081526020016000151581526020016000151581525090508060056000836000015181526020019081526020016000206000820151816000015560208201518160010160006101000a8154816001600160a01b0302191690836001600160a01b03160217905550604082015181600201556060820151816003019080519060200190610fa4929190611a51565b5060808201518051610fc0916004840191602090910190611ab6565b5060a08201518051610fdc916005840191602090910190611af1565b5060c08201518051610ff8916006840191602090910190611b4a565b5060e082015181600701556101008201518160080155610120820151816009015561014082015181600a015561016082015181600b0160006101000a81548160ff02191690831515021790555061018082015181600b0160016101000a81548160ff02191690831515021790555090505080600001516006600083602001516001600160a01b03166001600160a01b03168152602001908152602001600020819055507f7d84a6263ae0d98d3329bd7b46bb4e8d6f98cd35a7adb45c274c8b7fd5ebd5e08160000151338c8c8c8c89898e6040516110de99989796959493929190612b57565b60405180910390a1519998505050505050505050565b60046110ff826106ca565b600781111561110a57fe5b146111275760405162461bcd60e51b81526004016106fa90612648565b600081815260056020908152604080832083548251630d48571f60e31b815292519194936111809342936001600160a01b0390931692636a42b8f892600480840193919291829003018186803b15801561080557600080fd5b905060005b6003830154811015611328576113208360030182815481106111a357fe5b6000918252602090912001546004850180546001600160a01b0390921691849081106111cb57fe5b90600052602060002001548560050184815481106111e557fe5b600091825260209182902001805460408051601f60026000196101006001871615020190941693909304928301859004850281018501909152818152928301828280156112735780601f1061124857610100808354040283529160200191611273565b820191906000526020600020905b81548152906001019060200180831161125657829003601f168201915b505050505086600601858154811061128757fe5b600091825260209182902001805460408051601f60026000196101006001871615020190941693909304928301859004850281018501909152818152928301828280156113155780601f106112ea57610100808354040283529160200191611315565b820191906000526020600020905b8154815290600101906020018083116112f857829003601f168201915b50505050508661187d565b600101611185565b50600282018190556040517f9a2e42fd6722813d69113e7d0079d3d940171428df7373df9c7f7617cfda289290610aa49085908490612c3b565b7f8e25870c07e0b0b3884c78da52790939a455c275406c44ae8b434b692fb916ee81565b61138e611ba3565b82600254101580156113a05750600083115b6113bc5760405162461bcd60e51b81526004016106fa906124f6565b5060009182526004602090815260408084206001600160a01b03939093168452918152918190208151606081018352905460ff80821615158352610100820416151593820193909352620100009092046001600160601b03169082015290565b6003546001600160a01b031633146114465760405162461bcd60e51b81526004016106fa90612896565b6000805460408051630e18b68160e01b815290516001600160a01b0390921692630e18b6819260048084019382900301818387803b15801561148757600080fd5b505af115801561149b573d6000803e3d6000fd5b50505050565b60056114ac826106ca565b60078111156114b757fe5b146114d45760405162461bcd60e51b81526004016106fa906127d7565b6000818152600560205260408120600b8101805461ff001916610100179055905b600382015481101561161d5760008054906101000a90046001600160a01b03166001600160a01b0316630825f38f600084600301848154811061153457fe5b6000918252602090912001546004860180546001600160a01b03909216918690811061155c57fe5b906000526020600020015486600501868154811061157657fe5b9060005260206000200187600601878154811061158f57fe5b9060005260206000200188600201546040518763ffffffff1660e01b81526004016115be959493929190612371565b6000604051808303818588803b1580156115d757600080fd5b505af11580156115eb573d6000803e3d6000fd5b50505050506040513d6000823e601f3d908101601f191682016040526116149190810190611fd6565b506001016114f5565b507f712ae1383f79ac853f8d882153778e0260ef8f03b504e2866e0593e04d2b291f8260405161164d9190612423565b60405180910390a15050565b6001611664836106ca565b600781111561166f57fe5b1461168c5760405162461bcd60e51b81526004016106fa906124ad565b6000828152600560209081526040808320600483528184206001600160a01b0388168552909252909120805460ff16156116d85760405162461bcd60e51b81526004016106fa90612a09565b600154600783015460405163782d6fe160e01b81526000926001600160a01b03169163782d6fe19161170e918a916004016122db565b60206040518083038186803b15801561172657600080fd5b505afa15801561173a573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061175e9190612111565b905083156117875761177d8360090154826001600160601b0316611825565b60098401556117a4565b61179e83600a0154826001600160601b0316611825565b600a8401555b8154600160ff199091161761ff00191661010085151502176dffffffffffffffffffffffff00001916620100006001600160601b038316021782556040517f877856338e13f63d0c36822ff0ef736b80934cd90574a3a5bc9262c39d217c46906118159088908890889086906122f4565b60405180910390a1505050505050565b60008282018381101561184a5760405162461bcd60e51b81526004016106fa90612765565b9392505050565b6000828211156118735760405162461bcd60e51b81526004016106fa90612afa565b50900390565b4690565b6000546040516001600160a01b039091169063f2b06537906118ab9088908890889088908890602001612325565b604051602081830303815290604052805190602001206040518263ffffffff1660e01b81526004016118dd9190612423565b60206040518083038186803b1580156118f557600080fd5b505afa158015611909573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061192d9190611fa2565b1561194a5760405162461bcd60e51b81526004016106fa906125df565b600054604051633a66f90160e01b81526001600160a01b0390911690633a66f901906119829088908890889088908890600401612325565b602060405180830381600087803b15801561199c57600080fd5b505af11580156119b0573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906119d49190611fbe565b505050505050565b604051806101a001604052806000815260200160006001600160a01b031681526020016000815260200160608152602001606081526020016060815260200160608152602001600081526020016000815260200160008152602001600081526020016000151581526020016000151581525090565b828054828255906000526020600020908101928215611aa6579160200282015b82811115611aa657825182546001600160a01b0319166001600160a01b03909116178255602090920191600190910190611a71565b50611ab2929150611bc3565b5090565b828054828255906000526020600020908101928215611aa6579160200282015b82811115611aa6578251825591602001919060010190611ad6565b828054828255906000526020600020908101928215611b3e579160200282015b82811115611b3e5782518051611b2e918491602090910190611bd8565b5091602001919060010190611b11565b50611ab2929150611c53565b828054828255906000526020600020908101928215611b97579160200282015b82811115611b975782518051611b87918491602090910190611bd8565b5091602001919060010190611b6a565b50611ab2929150611c70565b604080516060810182526000808252602082018190529181019190915290565b5b80821115611ab25760008155600101611bc4565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282611c0e5760008555611aa6565b82601f10611c2757805160ff1916838001178555611aa6565b82800160010185558215611aa65791820182811115611aa6578251825591602001919060010190611ad6565b80821115611ab2576000611c678282611c8d565b50600101611c53565b80821115611ab2576000611c848282611c8d565b50600101611c70565b50805460018160011615610100020316600290046000825580601f10611cb35750611cd1565b601f016020900490600052602060002090810190611cd19190611bc3565b50565b80356001600160a01b038116811461085857600080fd5b600082601f830112611cfb578081fd5b8135611d0e611d0982612c6d565b612c49565b818152915060208083019084810181840286018201871015611d2f57600080fd5b60005b84811015611d5557611d4382611cd4565b84529282019290820190600101611d32565b505050505092915050565b600082601f830112611d70578081fd5b8135611d7e611d0982612c6d565b818152915060208083019084810160005b84811015611d5557611da6888484358a0101611e6e565b84529282019290820190600101611d8f565b600082601f830112611dc8578081fd5b8135611dd6611d0982612c6d565b818152915060208083019084810160005b84811015611d5557611dfe888484358a0101611e6e565b84529282019290820190600101611de7565b600082601f830112611e20578081fd5b8135611e2e611d0982612c6d565b818152915060208083019084810181840286018201871015611e4f57600080fd5b60005b84811015611d5557813584529282019290820190600101611e52565b600082601f830112611e7e578081fd5b8135611e8c611d0982612c8b565b9150808252836020828501011115611ea357600080fd5b8060208401602084013760009082016020015292915050565b600060208284031215611ecd578081fd5b61184a82611cd4565b600080600080600060a08688031215611eed578081fd5b853567ffffffffffffffff80821115611f04578283fd5b611f1089838a01611ceb565b96506020880135915080821115611f25578283fd5b611f3189838a01611e10565b95506040880135915080821115611f46578283fd5b611f5289838a01611db8565b94506060880135915080821115611f67578283fd5b611f7389838a01611d60565b93506080880135915080821115611f88578283fd5b50611f9588828901611e6e565b9150509295509295909350565b600060208284031215611fb3578081fd5b815161184a81612ce5565b600060208284031215611fcf578081fd5b5051919050565b600060208284031215611fe7578081fd5b815167ffffffffffffffff811115611ffd578182fd5b8201601f8101841361200d578182fd5b805161201b611d0982612c8b565b81815285602083850101111561202f578384fd5b612040826020830160208601612cb9565b95945050505050565b60006020828403121561205a578081fd5b5035919050565b60008060408385031215612073578182fd5b8235915061208360208401611cd4565b90509250929050565b6000806040838503121561209e578182fd5b8235915060208301356120b081612ce5565b809150509250929050565b600080600080600060a086880312156120d2578283fd5b8535945060208601356120e481612ce5565b9350604086013560ff811681146120f9578384fd5b94979396509394606081013594506080013592915050565b600060208284031215612122578081fd5b81516001600160601b038116811461184a578182fd5b6000815180845260208085019450808401835b838110156121705781516001600160a01b03168752958201959082019060010161214b565b509495945050505050565b6000815180845260208085018081965082840281019150828601855b858110156121c15782840389526121af8483516121fd565b98850198935090840190600101612197565b5091979650505050505050565b6000815180845260208085019450808401835b83811015612170578151875295820195908201906001016121e1565b60008151808452612215816020860160208601612cb9565b601f01601f19169290920160200192915050565b600081546001808216600081146122475760018114612265576122a3565b60028304607f16865260ff19831660208701526040860193506122a3565b6002830480875261227586612cad565b60005b828110156122995781546020828b0101528482019150602081019050612278565b8801602001955050505b50505092915050565b61190160f01b81526002810192909252602282015260420190565b6001600160a01b0391909116815260200190565b6001600160a01b03929092168252602082015260400190565b6001600160a01b039490941684526020840192909252151560408301526001600160601b0316606082015260800190565b600060018060a01b038716825285602083015260a0604083015261234c60a08301866121fd565b828103606084015261235e81866121fd565b9150508260808301529695505050505050565b600060018060a01b038716825285602083015260a0604083015261239860a0830186612229565b828103606084015261235e8186612229565b6000608082526123bd6080830187612138565b82810360208401526123cf81876121ce565b905082810360408401526123e3818661217b565b905082810360608401526123f7818561217b565b979650505050505050565b921515835290151560208301526001600160601b0316604082015260600190565b90815260200190565b938452602084019290925260408301526001600160a01b0316606082015260800190565b92835260208301919091521515604082015260600190565b93845260ff9290921660208401526040830152606082015260800190565b602081016008831061249457fe5b91905290565b60006020825261184a60208301846121fd565b60208082526029908201527f476f7665726e6f72426574613a3a5f63617374566f74653a20766f74696e67206040820152681a5cc818db1bdcd95960ba1b606082015260800190565b6020808252602d908201527f476f7665726e6f72426574613a3a676574526563656970743a20696e76616c6960408201526c19081c1c9bdc1bdcd85b081a59609a1b606082015260800190565b6020808252602e908201527f476f7665726e6f72426574613a3a63617374566f746542795369673a20696e7660408201526d616c6964207369676e617475726560901b606082015260800190565b6020808252602e908201527f476f7665726e6f72426574613a3a63616e63656c3a2070726f706f736572206160408201526d189bdd99481d1a1c995cda1bdb1960921b606082015260800190565b60208082526043908201527f476f7665726e6f72426574613a3a5f71756575654f725265766572743a20707260408201527f6f706f73616c20616374696f6e20616c7265616479207175657565642061742060608201526265746160e81b608082015260a00190565b60208082526043908201527f476f7665726e6f72426574613a3a71756575653a2070726f706f73616c20636160408201527f6e206f6e6c79206265207175657565642069662069742069732073756363656560608201526219195960ea1b608082015260a00190565b6020808252602b908201527f476f7665726e6f72426574613a3a70726f706f73653a206d7573742070726f7660408201526a69646520616374696f6e7360a81b606082015260800190565b60208082526043908201527f476f7665726e6f72426574613a3a70726f706f73653a2070726f706f73616c2060408201527f66756e6374696f6e20696e666f726d6174696f6e206172697479206d69736d616060820152620e8c6d60eb1b608082015260a00190565b6020808252601190820152706164646974696f6e206f766572666c6f7760781b604082015260600190565b60208082526027908201527f476f7665726e6f72426574613a3a70726f706f73653a20746f6f206d616e7920604082015266616374696f6e7360c81b606082015260800190565b60208082526044908201527f476f7665726e6f72426574613a3a657865637574653a2070726f706f73616c2060408201527f63616e206f6e6c79206265206578656375746564206966206974206973207175606082015263195d595960e21b608082015260a00190565b60208082526035908201527f476f7665726e6f72426574613a3a63616e63656c3a2063616e6e6f742063616e60408201527418d95b08195e1958dd5d1959081c1c9bdc1bdcd85b605a1b606082015260800190565b60208082526047908201527f476f7665726e6f72426574613a3a61636365707454696d656c6f636b41646d6960408201527f6e3a206f6e6c7920677561726469616e2063616e2063616c6c207468697320666060820152663ab731ba34b7b760c91b608082015260a00190565b60208082526058908201527f476f7665726e6f72426574613a3a70726f706f73653a206f6e65206c6976652060408201527f70726f706f73616c207065722070726f706f7365722c20666f756e6420616e2060608201527f616c72656164792070656e64696e672070726f706f73616c0000000000000000608082015260a00190565b60208082526057908201527f476f7665726e6f72426574613a3a70726f706f73653a206f6e65206c6976652060408201527f70726f706f73616c207065722070726f706f7365722c20666f756e6420616e2060608201527f616c7265616479206163746976652070726f706f73616c000000000000000000608082015260a00190565b6020808252602c908201527f476f7665726e6f72426574613a3a5f63617374566f74653a20766f746572206160408201526b1b1c9958591e481d9bdd195960a21b606082015260800190565b6020808252603e908201527f476f7665726e6f72426574613a3a70726f706f73653a2070726f706f7365722060408201527f766f7465732062656c6f772070726f706f73616c207468726573686f6c640000606082015260800190565b60208082526028908201527f476f7665726e6f72426574613a3a73746174653a20696e76616c69642070726f6040820152671c1bdcd85b081a5960c21b606082015260800190565b6020808252601590820152747375627472616374696f6e20756e646572666c6f7760581b604082015260600190565b8151151581526020808301511515908201526040918201516001600160601b03169181019190915260600190565b8981526001600160a01b038916602082015261012060408201819052600090612b828382018b612138565b90508281036060840152612b96818a6121ce565b90508281036080840152612baa818961217b565b905082810360a0840152612bbe818861217b565b90508560c08401528460e0840152828103610100840152612bdf81856121fd565b9c9b505050505050505050505050565b9889526001600160a01b0397909716602089015260408801959095526060870193909352608086019190915260a085015260c0840152151560e083015215156101008201526101200190565b918252602082015260400190565b60405181810167ffffffffffffffff81118282101715612c6557fe5b604052919050565b600067ffffffffffffffff821115612c8157fe5b5060209081020190565b600067ffffffffffffffff821115612c9f57fe5b50601f01601f191660200190565b60009081526020902090565b60005b83811015612cd4578181015183820152602001612cbc565b8381111561149b5750506000910152565b8015158114611cd157600080fdfea2646970667358221220f332133e5cd6434b5dc9e6834771ae4666b327bc5b886bc0994605ec0a5c2ebf64736f6c63430007050033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106101735760003560e01c80634178b249116100de578063da35c66411610097578063deaaa7cc11610071578063deaaa7cc14610301578063e23a9a5214610309578063eeaba75d14610329578063fe0d94c11461033157610173565b8063da35c664146102d3578063da95691a146102db578063ddf0b009146102ee57610173565b80634178b2491461027e578063452a9320146102a05780634634c61f146102a85780637bdbe4d0146102bb578063b58131b0146102c3578063d33219b4146102cb57610173565b806324bc1a641161013057806324bc1a6414610203578063277838df1461020b578063328dd982146102205780633932abb1146102435780633e4f49e61461024b57806340e58ee51461026b57610173565b8063013cf08b1461017857806302a251a3146101a957806306fdde03146101be57806315373e3d146101d357806317977c61146101e857806320606b70146101fb575b600080fd5b61018b610186366004612049565b610344565b6040516101a099989796959493929190612bef565b60405180910390f35b6101b161039d565b6040516101a09190612423565b6101c66103a3565b6040516101a0919061249a565b6101e66101e136600461208c565b6103d4565b005b6101b16101f6366004611ebc565b6103e3565b6101b16103f5565b6101b1610419565b610213610427565b6040516101a091906122c7565b61023361022e366004612049565b610436565b6040516101a094939291906123aa565b6101b16106c5565b61025e610259366004612049565b6106ca565b6040516101a09190612486565b6101e6610279366004612049565b61085d565b61029161028c366004612061565b610ab1565b6040516101a093929190612402565b610213610aec565b6101e66102b63660046120bb565b610afb565b6101b1610cac565b6101b1610cb1565b610213610cbf565b6101b1610cce565b6101b16102e9366004611ed6565b610cd4565b6101e66102fc366004612049565b6110f4565b6101b1611362565b61031c610317366004612061565b611386565b6040516101a09190612b29565b6101e661141c565b6101e661033f366004612049565b6114a1565b6005602052600090815260409020805460018201546002830154600784015460088501546009860154600a870154600b9097015495966001600160a01b0390951695939492939192909160ff8082169161010090041689565b61438090565b604051806040016040528060158152602001744372797074657820476f7665726e6f72204265746160581b81525081565b6103df338383611659565b5050565b60066020526000908152604090205481565b7f8cad95687ba82c2ce50e74f7b754645e5117c3a5bec8151c0726d5857980a86681565b6954b40b1f852bda00000090565b6001546001600160a01b031681565b606080606080600060056000878152602001908152602001600020905080600301816004018260050183600601838054806020026020016040519081016040528092919081815260200182805480156104b857602002820191906000526020600020905b81546001600160a01b0316815260019091019060200180831161049a575b505050505093508280548060200260200160405190810160405280929190818152602001828054801561050a57602002820191906000526020600020905b8154815260200190600101908083116104f6575b5050505050925081805480602002602001604051908101604052809291908181526020016000905b828210156105dd5760008481526020908190208301805460408051601f60026000196101006001871615020190941693909304928301859004850281018501909152818152928301828280156105c95780601f1061059e576101008083540402835291602001916105c9565b820191906000526020600020905b8154815290600101906020018083116105ac57829003601f168201915b505050505081526020019060010190610532565b50505050915080805480602002602001604051908101604052809291908181526020016000905b828210156106af5760008481526020908190208301805460408051601f600260001961010060018716150201909416939093049283018590048502810185019091528181529283018282801561069b5780601f106106705761010080835404028352916020019161069b565b820191906000526020600020905b81548152906001019060200180831161067e57829003601f168201915b505050505081526020019060010190610604565b5050505090509450945094509450509193509193565b600190565b600081600254101580156106de5750600082115b6107035760405162461bcd60e51b81526004016106fa90612ab2565b60405180910390fd5b6000828152600560205260409020600b81015460ff1615610728576002915050610858565b8060070154431161073d576000915050610858565b80600801544311610752576001915050610858565b80600a01548160090154111580610773575061076c610419565b8160090154105b15610782576003915050610858565b6002810154610795576004915050610858565b600b810154610100900460ff16156107b1576007915050610858565b610842816002015460008054906101000a90046001600160a01b03166001600160a01b031663c1a287e26040518163ffffffff1660e01b815260040160206040518083038186803b15801561080557600080fd5b505afa158015610819573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061083d9190611fbe565b611825565b4210610852576006915050610858565b60059150505b919050565b6000610868826106ca565b9050600781600781111561087857fe5b14156108965760405162461bcd60e51b81526004016106fa90612841565b60008281526005602052604090206108ac610cb1565b60018054838201546001600160a01b039182169263782d6fe192909116906108d5904390611851565b6040518363ffffffff1660e01b81526004016108f29291906122db565b60206040518083038186803b15801561090a57600080fd5b505afa15801561091e573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906109429190612111565b6001600160601b0316106109685760405162461bcd60e51b81526004016106fa90612591565b600b8101805460ff1916600117905560005b6003820154811015610a74576000546003830180546001600160a01b039092169163591fcdfe9190849081106109ac57fe5b6000918252602090912001546004850180546001600160a01b0390921691859081106109d457fe5b90600052602060002001548560050185815481106109ee57fe5b90600052602060002001866006018681548110610a0757fe5b9060005260206000200187600201546040518663ffffffff1660e01b8152600401610a36959493929190612371565b600060405180830381600087803b158015610a5057600080fd5b505af1158015610a64573d6000803e3d6000fd5b50506001909201915061097a9050565b507f789cf55be980739dad1d0699b93b58e806b51c9d96619bfa8fe0a28abaa7b30c83604051610aa49190612423565b60405180910390a1505050565b600460209081526000928352604080842090915290825290205460ff808216916101008104909116906201000090046001600160601b031683565b6003546001600160a01b031681565b6040805180820190915260158152744372797074657820476f7665726e6f72204265746160581b60209091015260007f8cad95687ba82c2ce50e74f7b754645e5117c3a5bec8151c0726d5857980a8667fb5402fd85f686e640901c51bd8bf906450a189d035d709803a09e1c72fe44852610b74611879565b30604051602001610b88949392919061242c565b60405160208183030381529060405280519060200120905060007f8e25870c07e0b0b3884c78da52790939a455c275406c44ae8b434b692fb916ee8787604051602001610bd793929190612450565b60405160208183030381529060405280519060200120905060008282604051602001610c049291906122ac565b604051602081830303815290604052805190602001209050600060018288888860405160008152602001604052604051610c419493929190612468565b6020604051602081039080840390855afa158015610c63573d6000803e3d6000fd5b5050604051601f1901519150506001600160a01b038116610c965760405162461bcd60e51b81526004016106fa90612543565b610ca1818a8a611659565b505050505050505050565b600a90565b69152d02c7e14af680000090565b6000546001600160a01b031681565b60025481565b6000610cde610cb1565b600180546001600160a01b03169063782d6fe1903390610cff904390611851565b6040518363ffffffff1660e01b8152600401610d1c9291906122db565b60206040518083038186803b158015610d3457600080fd5b505afa158015610d48573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610d6c9190612111565b6001600160601b031611610d925760405162461bcd60e51b81526004016106fa90612a55565b84518651148015610da4575083518651145b8015610db1575082518651145b610dcd5760405162461bcd60e51b81526004016106fa906126fc565b8551610deb5760405162461bcd60e51b81526004016106fa906126b1565b610df3610cac565b86511115610e135760405162461bcd60e51b81526004016106fa90612790565b336000908152600660205260409020548015610e90576000610e34826106ca565b90506001816007811115610e4457fe5b1415610e625760405162461bcd60e51b81526004016106fa90612986565b6000816007811115610e7057fe5b1415610e8e5760405162461bcd60e51b81526004016106fa90612903565b505b6000610e9e4361083d6106c5565b90506000610eae8261083d61039d565b6002805460010190559050610ec16119dc565b604051806101a001604052806002548152602001336001600160a01b03168152602001600081526020018b81526020018a815260200189815260200188815260200184815260200183815260200160008152602001600081526020016000151581526020016000151581525090508060056000836000015181526020019081526020016000206000820151816000015560208201518160010160006101000a8154816001600160a01b0302191690836001600160a01b03160217905550604082015181600201556060820151816003019080519060200190610fa4929190611a51565b5060808201518051610fc0916004840191602090910190611ab6565b5060a08201518051610fdc916005840191602090910190611af1565b5060c08201518051610ff8916006840191602090910190611b4a565b5060e082015181600701556101008201518160080155610120820151816009015561014082015181600a015561016082015181600b0160006101000a81548160ff02191690831515021790555061018082015181600b0160016101000a81548160ff02191690831515021790555090505080600001516006600083602001516001600160a01b03166001600160a01b03168152602001908152602001600020819055507f7d84a6263ae0d98d3329bd7b46bb4e8d6f98cd35a7adb45c274c8b7fd5ebd5e08160000151338c8c8c8c89898e6040516110de99989796959493929190612b57565b60405180910390a1519998505050505050505050565b60046110ff826106ca565b600781111561110a57fe5b146111275760405162461bcd60e51b81526004016106fa90612648565b600081815260056020908152604080832083548251630d48571f60e31b815292519194936111809342936001600160a01b0390931692636a42b8f892600480840193919291829003018186803b15801561080557600080fd5b905060005b6003830154811015611328576113208360030182815481106111a357fe5b6000918252602090912001546004850180546001600160a01b0390921691849081106111cb57fe5b90600052602060002001548560050184815481106111e557fe5b600091825260209182902001805460408051601f60026000196101006001871615020190941693909304928301859004850281018501909152818152928301828280156112735780601f1061124857610100808354040283529160200191611273565b820191906000526020600020905b81548152906001019060200180831161125657829003601f168201915b505050505086600601858154811061128757fe5b600091825260209182902001805460408051601f60026000196101006001871615020190941693909304928301859004850281018501909152818152928301828280156113155780601f106112ea57610100808354040283529160200191611315565b820191906000526020600020905b8154815290600101906020018083116112f857829003601f168201915b50505050508661187d565b600101611185565b50600282018190556040517f9a2e42fd6722813d69113e7d0079d3d940171428df7373df9c7f7617cfda289290610aa49085908490612c3b565b7f8e25870c07e0b0b3884c78da52790939a455c275406c44ae8b434b692fb916ee81565b61138e611ba3565b82600254101580156113a05750600083115b6113bc5760405162461bcd60e51b81526004016106fa906124f6565b5060009182526004602090815260408084206001600160a01b03939093168452918152918190208151606081018352905460ff80821615158352610100820416151593820193909352620100009092046001600160601b03169082015290565b6003546001600160a01b031633146114465760405162461bcd60e51b81526004016106fa90612896565b6000805460408051630e18b68160e01b815290516001600160a01b0390921692630e18b6819260048084019382900301818387803b15801561148757600080fd5b505af115801561149b573d6000803e3d6000fd5b50505050565b60056114ac826106ca565b60078111156114b757fe5b146114d45760405162461bcd60e51b81526004016106fa906127d7565b6000818152600560205260408120600b8101805461ff001916610100179055905b600382015481101561161d5760008054906101000a90046001600160a01b03166001600160a01b0316630825f38f600084600301848154811061153457fe5b6000918252602090912001546004860180546001600160a01b03909216918690811061155c57fe5b906000526020600020015486600501868154811061157657fe5b9060005260206000200187600601878154811061158f57fe5b9060005260206000200188600201546040518763ffffffff1660e01b81526004016115be959493929190612371565b6000604051808303818588803b1580156115d757600080fd5b505af11580156115eb573d6000803e3d6000fd5b50505050506040513d6000823e601f3d908101601f191682016040526116149190810190611fd6565b506001016114f5565b507f712ae1383f79ac853f8d882153778e0260ef8f03b504e2866e0593e04d2b291f8260405161164d9190612423565b60405180910390a15050565b6001611664836106ca565b600781111561166f57fe5b1461168c5760405162461bcd60e51b81526004016106fa906124ad565b6000828152600560209081526040808320600483528184206001600160a01b0388168552909252909120805460ff16156116d85760405162461bcd60e51b81526004016106fa90612a09565b600154600783015460405163782d6fe160e01b81526000926001600160a01b03169163782d6fe19161170e918a916004016122db565b60206040518083038186803b15801561172657600080fd5b505afa15801561173a573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061175e9190612111565b905083156117875761177d8360090154826001600160601b0316611825565b60098401556117a4565b61179e83600a0154826001600160601b0316611825565b600a8401555b8154600160ff199091161761ff00191661010085151502176dffffffffffffffffffffffff00001916620100006001600160601b038316021782556040517f877856338e13f63d0c36822ff0ef736b80934cd90574a3a5bc9262c39d217c46906118159088908890889086906122f4565b60405180910390a1505050505050565b60008282018381101561184a5760405162461bcd60e51b81526004016106fa90612765565b9392505050565b6000828211156118735760405162461bcd60e51b81526004016106fa90612afa565b50900390565b4690565b6000546040516001600160a01b039091169063f2b06537906118ab9088908890889088908890602001612325565b604051602081830303815290604052805190602001206040518263ffffffff1660e01b81526004016118dd9190612423565b60206040518083038186803b1580156118f557600080fd5b505afa158015611909573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061192d9190611fa2565b1561194a5760405162461bcd60e51b81526004016106fa906125df565b600054604051633a66f90160e01b81526001600160a01b0390911690633a66f901906119829088908890889088908890600401612325565b602060405180830381600087803b15801561199c57600080fd5b505af11580156119b0573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906119d49190611fbe565b505050505050565b604051806101a001604052806000815260200160006001600160a01b031681526020016000815260200160608152602001606081526020016060815260200160608152602001600081526020016000815260200160008152602001600081526020016000151581526020016000151581525090565b828054828255906000526020600020908101928215611aa6579160200282015b82811115611aa657825182546001600160a01b0319166001600160a01b03909116178255602090920191600190910190611a71565b50611ab2929150611bc3565b5090565b828054828255906000526020600020908101928215611aa6579160200282015b82811115611aa6578251825591602001919060010190611ad6565b828054828255906000526020600020908101928215611b3e579160200282015b82811115611b3e5782518051611b2e918491602090910190611bd8565b5091602001919060010190611b11565b50611ab2929150611c53565b828054828255906000526020600020908101928215611b97579160200282015b82811115611b975782518051611b87918491602090910190611bd8565b5091602001919060010190611b6a565b50611ab2929150611c70565b604080516060810182526000808252602082018190529181019190915290565b5b80821115611ab25760008155600101611bc4565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282611c0e5760008555611aa6565b82601f10611c2757805160ff1916838001178555611aa6565b82800160010185558215611aa65791820182811115611aa6578251825591602001919060010190611ad6565b80821115611ab2576000611c678282611c8d565b50600101611c53565b80821115611ab2576000611c848282611c8d565b50600101611c70565b50805460018160011615610100020316600290046000825580601f10611cb35750611cd1565b601f016020900490600052602060002090810190611cd19190611bc3565b50565b80356001600160a01b038116811461085857600080fd5b600082601f830112611cfb578081fd5b8135611d0e611d0982612c6d565b612c49565b818152915060208083019084810181840286018201871015611d2f57600080fd5b60005b84811015611d5557611d4382611cd4565b84529282019290820190600101611d32565b505050505092915050565b600082601f830112611d70578081fd5b8135611d7e611d0982612c6d565b818152915060208083019084810160005b84811015611d5557611da6888484358a0101611e6e565b84529282019290820190600101611d8f565b600082601f830112611dc8578081fd5b8135611dd6611d0982612c6d565b818152915060208083019084810160005b84811015611d5557611dfe888484358a0101611e6e565b84529282019290820190600101611de7565b600082601f830112611e20578081fd5b8135611e2e611d0982612c6d565b818152915060208083019084810181840286018201871015611e4f57600080fd5b60005b84811015611d5557813584529282019290820190600101611e52565b600082601f830112611e7e578081fd5b8135611e8c611d0982612c8b565b9150808252836020828501011115611ea357600080fd5b8060208401602084013760009082016020015292915050565b600060208284031215611ecd578081fd5b61184a82611cd4565b600080600080600060a08688031215611eed578081fd5b853567ffffffffffffffff80821115611f04578283fd5b611f1089838a01611ceb565b96506020880135915080821115611f25578283fd5b611f3189838a01611e10565b95506040880135915080821115611f46578283fd5b611f5289838a01611db8565b94506060880135915080821115611f67578283fd5b611f7389838a01611d60565b93506080880135915080821115611f88578283fd5b50611f9588828901611e6e565b9150509295509295909350565b600060208284031215611fb3578081fd5b815161184a81612ce5565b600060208284031215611fcf578081fd5b5051919050565b600060208284031215611fe7578081fd5b815167ffffffffffffffff811115611ffd578182fd5b8201601f8101841361200d578182fd5b805161201b611d0982612c8b565b81815285602083850101111561202f578384fd5b612040826020830160208601612cb9565b95945050505050565b60006020828403121561205a578081fd5b5035919050565b60008060408385031215612073578182fd5b8235915061208360208401611cd4565b90509250929050565b6000806040838503121561209e578182fd5b8235915060208301356120b081612ce5565b809150509250929050565b600080600080600060a086880312156120d2578283fd5b8535945060208601356120e481612ce5565b9350604086013560ff811681146120f9578384fd5b94979396509394606081013594506080013592915050565b600060208284031215612122578081fd5b81516001600160601b038116811461184a578182fd5b6000815180845260208085019450808401835b838110156121705781516001600160a01b03168752958201959082019060010161214b565b509495945050505050565b6000815180845260208085018081965082840281019150828601855b858110156121c15782840389526121af8483516121fd565b98850198935090840190600101612197565b5091979650505050505050565b6000815180845260208085019450808401835b83811015612170578151875295820195908201906001016121e1565b60008151808452612215816020860160208601612cb9565b601f01601f19169290920160200192915050565b600081546001808216600081146122475760018114612265576122a3565b60028304607f16865260ff19831660208701526040860193506122a3565b6002830480875261227586612cad565b60005b828110156122995781546020828b0101528482019150602081019050612278565b8801602001955050505b50505092915050565b61190160f01b81526002810192909252602282015260420190565b6001600160a01b0391909116815260200190565b6001600160a01b03929092168252602082015260400190565b6001600160a01b039490941684526020840192909252151560408301526001600160601b0316606082015260800190565b600060018060a01b038716825285602083015260a0604083015261234c60a08301866121fd565b828103606084015261235e81866121fd565b9150508260808301529695505050505050565b600060018060a01b038716825285602083015260a0604083015261239860a0830186612229565b828103606084015261235e8186612229565b6000608082526123bd6080830187612138565b82810360208401526123cf81876121ce565b905082810360408401526123e3818661217b565b905082810360608401526123f7818561217b565b979650505050505050565b921515835290151560208301526001600160601b0316604082015260600190565b90815260200190565b938452602084019290925260408301526001600160a01b0316606082015260800190565b92835260208301919091521515604082015260600190565b93845260ff9290921660208401526040830152606082015260800190565b602081016008831061249457fe5b91905290565b60006020825261184a60208301846121fd565b60208082526029908201527f476f7665726e6f72426574613a3a5f63617374566f74653a20766f74696e67206040820152681a5cc818db1bdcd95960ba1b606082015260800190565b6020808252602d908201527f476f7665726e6f72426574613a3a676574526563656970743a20696e76616c6960408201526c19081c1c9bdc1bdcd85b081a59609a1b606082015260800190565b6020808252602e908201527f476f7665726e6f72426574613a3a63617374566f746542795369673a20696e7660408201526d616c6964207369676e617475726560901b606082015260800190565b6020808252602e908201527f476f7665726e6f72426574613a3a63616e63656c3a2070726f706f736572206160408201526d189bdd99481d1a1c995cda1bdb1960921b606082015260800190565b60208082526043908201527f476f7665726e6f72426574613a3a5f71756575654f725265766572743a20707260408201527f6f706f73616c20616374696f6e20616c7265616479207175657565642061742060608201526265746160e81b608082015260a00190565b60208082526043908201527f476f7665726e6f72426574613a3a71756575653a2070726f706f73616c20636160408201527f6e206f6e6c79206265207175657565642069662069742069732073756363656560608201526219195960ea1b608082015260a00190565b6020808252602b908201527f476f7665726e6f72426574613a3a70726f706f73653a206d7573742070726f7660408201526a69646520616374696f6e7360a81b606082015260800190565b60208082526043908201527f476f7665726e6f72426574613a3a70726f706f73653a2070726f706f73616c2060408201527f66756e6374696f6e20696e666f726d6174696f6e206172697479206d69736d616060820152620e8c6d60eb1b608082015260a00190565b6020808252601190820152706164646974696f6e206f766572666c6f7760781b604082015260600190565b60208082526027908201527f476f7665726e6f72426574613a3a70726f706f73653a20746f6f206d616e7920604082015266616374696f6e7360c81b606082015260800190565b60208082526044908201527f476f7665726e6f72426574613a3a657865637574653a2070726f706f73616c2060408201527f63616e206f6e6c79206265206578656375746564206966206974206973207175606082015263195d595960e21b608082015260a00190565b60208082526035908201527f476f7665726e6f72426574613a3a63616e63656c3a2063616e6e6f742063616e60408201527418d95b08195e1958dd5d1959081c1c9bdc1bdcd85b605a1b606082015260800190565b60208082526047908201527f476f7665726e6f72426574613a3a61636365707454696d656c6f636b41646d6960408201527f6e3a206f6e6c7920677561726469616e2063616e2063616c6c207468697320666060820152663ab731ba34b7b760c91b608082015260a00190565b60208082526058908201527f476f7665726e6f72426574613a3a70726f706f73653a206f6e65206c6976652060408201527f70726f706f73616c207065722070726f706f7365722c20666f756e6420616e2060608201527f616c72656164792070656e64696e672070726f706f73616c0000000000000000608082015260a00190565b60208082526057908201527f476f7665726e6f72426574613a3a70726f706f73653a206f6e65206c6976652060408201527f70726f706f73616c207065722070726f706f7365722c20666f756e6420616e2060608201527f616c7265616479206163746976652070726f706f73616c000000000000000000608082015260a00190565b6020808252602c908201527f476f7665726e6f72426574613a3a5f63617374566f74653a20766f746572206160408201526b1b1c9958591e481d9bdd195960a21b606082015260800190565b6020808252603e908201527f476f7665726e6f72426574613a3a70726f706f73653a2070726f706f7365722060408201527f766f7465732062656c6f772070726f706f73616c207468726573686f6c640000606082015260800190565b60208082526028908201527f476f7665726e6f72426574613a3a73746174653a20696e76616c69642070726f6040820152671c1bdcd85b081a5960c21b606082015260800190565b6020808252601590820152747375627472616374696f6e20756e646572666c6f7760581b604082015260600190565b8151151581526020808301511515908201526040918201516001600160601b03169181019190915260600190565b8981526001600160a01b038916602082015261012060408201819052600090612b828382018b612138565b90508281036060840152612b96818a6121ce565b90508281036080840152612baa818961217b565b905082810360a0840152612bbe818861217b565b90508560c08401528460e0840152828103610100840152612bdf81856121fd565b9c9b505050505050505050505050565b9889526001600160a01b0397909716602089015260408801959095526060870193909352608086019190915260a085015260c0840152151560e083015215156101008201526101200190565b918252602082015260400190565b60405181810167ffffffffffffffff81118282101715612c6557fe5b604052919050565b600067ffffffffffffffff821115612c8157fe5b5060209081020190565b600067ffffffffffffffff821115612c9f57fe5b50601f01601f191660200190565b60009081526020902090565b60005b83811015612cd4578181015183820152602001612cbc565b8381111561149b5750506000910152565b8015158114611cd157600080fdfea2646970667358221220f332133e5cd6434b5dc9e6834771ae4666b327bc5b886bc0994605ec0a5c2ebf64736f6c63430007050033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "events": {
+      "ProposalCanceled(uint256)": {
+        "notice": "An event emitted when a proposal has been canceled"
+      },
+      "ProposalCreated(uint256,address,address[],uint256[],string[],bytes[],uint256,uint256,string)": {
+        "notice": "An event emitted when a new proposal is created"
+      },
+      "ProposalExecuted(uint256)": {
+        "notice": "An event emitted when a proposal has been executed in the Timelock"
+      },
+      "ProposalQueued(uint256,uint256)": {
+        "notice": "An event emitted when a proposal has been queued in the Timelock"
+      },
+      "VoteCast(address,uint256,bool,uint256)": {
+        "notice": "An event emitted when a vote has been cast on a proposal"
+      }
+    },
+    "kind": "user",
+    "methods": {
+      "BALLOT_TYPEHASH()": {
+        "notice": "The EIP-712 typehash for the ballot struct used by the contract"
+      },
+      "DOMAIN_TYPEHASH()": {
+        "notice": "The EIP-712 typehash for the contract's domain"
+      },
+      "ctx()": {
+        "notice": "The address of the Ctx governance token"
+      },
+      "execute(uint256)": {
+        "notice": "executes the transaction, but uses the msg.value from the eth stored in the timelock"
+      },
+      "guardian()": {
+        "notice": "Guardian of the governor"
+      },
+      "latestProposalIds(address)": {
+        "notice": "The latest proposal for each proposer"
+      },
+      "name()": {
+        "notice": "The name of this contract"
+      },
+      "proposalCount()": {
+        "notice": "The total number of proposals"
+      },
+      "proposalMaxOperations()": {
+        "notice": "The maximum number of actions that can be included in a proposal"
+      },
+      "proposalThreshold()": {
+        "notice": "The number of votes required in order for a voter to become a proposer"
+      },
+      "proposals(uint256)": {
+        "notice": "The official record of all proposals ever proposed"
+      },
+      "quorumVotes()": {
+        "notice": "The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed"
+      },
+      "receipts(uint256,address)": {
+        "notice": "Receipts of ballots for the entire set of voters"
+      },
+      "timelock()": {
+        "notice": "The address of the Ctx Protocol Timelock"
+      },
+      "votingDelay()": {
+        "notice": "The delay before voting on a proposal may take place, once proposed"
+      },
+      "votingPeriod()": {
+        "notice": "The duration of voting on a proposal, in blocks"
+      }
+    },
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 54,
+        "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+        "label": "timelock",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_contract(TimelockInterface)1180"
+      },
+      {
+        "astId": 57,
+        "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+        "label": "ctx",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_contract(CtxInterface)1190"
+      },
+      {
+        "astId": 60,
+        "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+        "label": "proposalCount",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 63,
+        "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+        "label": "guardian",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_address"
+      },
+      {
+        "astId": 101,
+        "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+        "label": "receipts",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_mapping(t_uint256,t_mapping(t_address,t_struct(Receipt)108_storage))"
+      },
+      {
+        "astId": 122,
+        "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+        "label": "proposals",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_mapping(t_uint256,t_struct(Proposal)94_storage)"
+      },
+      {
+        "astId": 127,
+        "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+        "label": "latestProposalIds",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_mapping(t_address,t_uint256)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_array(t_address)dyn_storage": {
+        "base": "t_address",
+        "encoding": "dynamic_array",
+        "label": "address[]",
+        "numberOfBytes": "32"
+      },
+      "t_array(t_bytes_storage)dyn_storage": {
+        "base": "t_bytes_storage",
+        "encoding": "dynamic_array",
+        "label": "bytes[]",
+        "numberOfBytes": "32"
+      },
+      "t_array(t_string_storage)dyn_storage": {
+        "base": "t_string_storage",
+        "encoding": "dynamic_array",
+        "label": "string[]",
+        "numberOfBytes": "32"
+      },
+      "t_array(t_uint256)dyn_storage": {
+        "base": "t_uint256",
+        "encoding": "dynamic_array",
+        "label": "uint256[]",
+        "numberOfBytes": "32"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_bytes_storage": {
+        "encoding": "bytes",
+        "label": "bytes",
+        "numberOfBytes": "32"
+      },
+      "t_contract(CtxInterface)1190": {
+        "encoding": "inplace",
+        "label": "contract CtxInterface",
+        "numberOfBytes": "20"
+      },
+      "t_contract(TimelockInterface)1180": {
+        "encoding": "inplace",
+        "label": "contract TimelockInterface",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_address,t_struct(Receipt)108_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => struct GovernorBeta.Receipt)",
+        "numberOfBytes": "32",
+        "value": "t_struct(Receipt)108_storage"
+      },
+      "t_mapping(t_address,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_mapping(t_uint256,t_mapping(t_address,t_struct(Receipt)108_storage))": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => mapping(address => struct GovernorBeta.Receipt))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_address,t_struct(Receipt)108_storage)"
+      },
+      "t_mapping(t_uint256,t_struct(Proposal)94_storage)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => struct GovernorBeta.Proposal)",
+        "numberOfBytes": "32",
+        "value": "t_struct(Proposal)94_storage"
+      },
+      "t_string_storage": {
+        "encoding": "bytes",
+        "label": "string",
+        "numberOfBytes": "32"
+      },
+      "t_struct(Proposal)94_storage": {
+        "encoding": "inplace",
+        "label": "struct GovernorBeta.Proposal",
+        "members": [
+          {
+            "astId": 65,
+            "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+            "label": "id",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 67,
+            "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+            "label": "proposer",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address"
+          },
+          {
+            "astId": 69,
+            "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+            "label": "eta",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 72,
+            "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+            "label": "targets",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_array(t_address)dyn_storage"
+          },
+          {
+            "astId": 75,
+            "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+            "label": "values",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_array(t_uint256)dyn_storage"
+          },
+          {
+            "astId": 78,
+            "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+            "label": "signatures",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_array(t_string_storage)dyn_storage"
+          },
+          {
+            "astId": 81,
+            "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+            "label": "calldatas",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_array(t_bytes_storage)dyn_storage"
+          },
+          {
+            "astId": 83,
+            "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+            "label": "startBlock",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 85,
+            "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+            "label": "endBlock",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 87,
+            "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+            "label": "forVotes",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 89,
+            "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+            "label": "againstVotes",
+            "offset": 0,
+            "slot": "10",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 91,
+            "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+            "label": "canceled",
+            "offset": 0,
+            "slot": "11",
+            "type": "t_bool"
+          },
+          {
+            "astId": 93,
+            "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+            "label": "executed",
+            "offset": 1,
+            "slot": "11",
+            "type": "t_bool"
+          }
+        ],
+        "numberOfBytes": "384"
+      },
+      "t_struct(Receipt)108_storage": {
+        "encoding": "inplace",
+        "label": "struct GovernorBeta.Receipt",
+        "members": [
+          {
+            "astId": 103,
+            "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+            "label": "hasVoted",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_bool"
+          },
+          {
+            "astId": 105,
+            "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+            "label": "support",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool"
+          },
+          {
+            "astId": 107,
+            "contract": "contracts/governance/GovernorBeta.sol:GovernorBeta",
+            "label": "votes",
+            "offset": 2,
+            "slot": "0",
+            "type": "t_uint96"
+          }
+        ],
+        "numberOfBytes": "32"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      },
+      "t_uint96": {
+        "encoding": "inplace",
+        "label": "uint96",
+        "numberOfBytes": "12"
+      }
+    }
+  }
+}
