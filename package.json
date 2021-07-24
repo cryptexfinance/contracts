@@ -13,7 +13,7 @@
 		"coverage": "npx hardhat coverage",
 		"typechain": "npx hardhat compile && typechain --outDir typechain --target ethers 'artifacts/*.json'",
 		"deploy": "npx hardhat deploy",
-		"verify": "npx hardhat verify etherscan-verify",
+		"verify": "npx hardhat sourcify",
 		"docgen": "yarn run solidity-docgen --solc-module solc-0.7"
 	},
 	"dependencies": {
