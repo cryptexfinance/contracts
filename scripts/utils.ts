@@ -1,4 +1,4 @@
-import { Contract, Signer } from "ethers";
+import { BigNumber, Contract, Signer } from "ethers";
 import hre, { deployments, network, hardhatArguments } from "hardhat";
 import { Deployment } from "hardhat-deploy/dist/types";
 
@@ -9,8 +9,8 @@ let governorContract: Contract;
 
 const initialize = async () => {
 	signer = ethers.provider.getSigner("0xa70b638B70154EdfCbb8DbbBd04900F328F32c35");
-	governor = await deployments.get("GovernorAlpha");
-	governorContract = await ethers.getContractAt("GovernorAlpha", governor.address, signer);
+	governor = await deployments.get("GovernorBeta");
+	governorContract = await ethers.getContractAt("GovernorBeta", governor.address, signer);
 };
 
 export async function fundMultisign(amount: string) {
@@ -39,7 +39,7 @@ export async function fundMultisign(amount: string) {
 
 export async function createProposal(
 	targets: string[],
-	values: number[],
+	values: BigNumber[],
 	signatures: string[],
 	calldatas: string[],
 	description: string

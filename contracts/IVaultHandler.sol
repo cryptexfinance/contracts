@@ -75,7 +75,7 @@ abstract contract IVaultHandler is
   /// @notice Value used as divisor with the total market cap, just like the S&P 500 or any major financial index would to define the final tcap token price
   uint256 public divisor;
 
-  /// @notice Minimun ratio required to prevent liquidation of vault
+  /// @notice Minimum ratio required to prevent liquidation of vault
   uint256 public ratio;
 
   /// @notice Fee percentage of the total amount to burn charged on ETH when burning TCAP Tokens
@@ -579,7 +579,7 @@ abstract contract IVaultHandler is
    */
   function safeTransferETH(address _to, uint256 _value) internal {
     (bool success, ) = _to.call{value: _value}(new bytes(0));
-    require(success, "ETHVaultHandler::safeTransferETH: ETH transfer failed");
+    require(success, "IVaultHandler::safeTransferETH: ETH transfer failed");
   }
 
   /**

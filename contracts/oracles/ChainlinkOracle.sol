@@ -32,6 +32,7 @@ contract ChainlinkOracle is Ownable, IERC165 {
    * Set the Chainlink Oracle as an aggregator.
    */
   constructor(address _aggregator) {
+		// TODO: Transfer ownership to guardian
     aggregatorContract = AggregatorV3Interface(_aggregator);
   }
 
