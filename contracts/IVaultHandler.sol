@@ -226,11 +226,6 @@ abstract contract IVaultHandler is
       "VaultHandler::constructor: burn fee higher than MAX_FEE"
     );
 
-    require(
-      ERC165Checker.supportsInterface(_treasury, _INTERFACE_ID_TIMELOCK),
-      "VaultHandler::constructor: not a valid treasury"
-    );
-
     divisor = _divisor;
     ratio = _ratio;
     burnFee = _burnFee;
