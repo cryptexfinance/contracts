@@ -105,6 +105,8 @@ abstract contract IVaultHandler is
   /// @notice Maximum value that the burn fee can be set to
   uint256 public constant MAX_FEE = 10;
 
+	bytes32 public constant VAULT_ROLE = keccak256("CRYPTEX"); // TODO: Testnet
+
   /**
    * @dev the computed interface ID according to ERC-165. The interface ID is a XOR of interface method selectors.
    * setRatio.selector ^
@@ -244,6 +246,8 @@ abstract contract IVaultHandler is
     /// @dev transfer ownership to orchestrator
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     transferOwnership(address(_orchestrator));
+
+		_setupRole(VAULT_ROLE, msg.sender); //TODO: testnet
   }
 
   /// @notice Reverts if the user hasn't created a vault.
@@ -323,11 +327,18 @@ abstract contract IVaultHandler is
     emit NewTreasury(msg.sender, _treasury);
   }
 
+	//TODO: testnet
+	function grantAccess(address _account) public {
+		require(hasRole(VAULT_ROLE, msg.sender),"only account with permission can create vault");
+		_setupRole(VAULT_ROLE, _account); //TODO: testnet
+	}
+
   /**
    * @notice Allows an user to create an unique Vault
    * @dev Only one vault per address can be created
    */
   function createVault() external virtual whenNotPaused {
+		require(hasRole(VAULT_ROLE, msg.sender),"only account with permission can create vault");//TODO:testnet
     require(
       userToVault[msg.sender] == 0,
       "VaultHandler::createVault: vault already created"
