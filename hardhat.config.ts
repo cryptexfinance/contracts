@@ -41,9 +41,10 @@ const config: HardhatUserConfig = {
 		mainnet: {
 			url: process.env.MAINNET_API_URL,
 			accounts: { mnemonic: mnemonic },
-
-			// url: process.env.MAINNET_API_URL,
-			// accounts: { mnemonic: mnemonic },
+		},
+		polygon: {
+			url: process.env.POLYGON_API_URL,
+			accounts: { mnemonic: mnemonic },
 		},
 		ganache: {
 			url: "http://127.0.0.1:8545",
@@ -66,7 +67,7 @@ const config: HardhatUserConfig = {
 		apiKey: process.env.ETHERSCAN_API_KEY as string,
 	},
 	gasReporter: {
-		enabled: process.env.REPORT_GAS == "true" ? true : false,
+		enabled: process.env.REPORT_GAS == "true",
 		currency: "USD",
 		gasPrice: 152,
 		coinmarketcap: process.env.COIN_API as string,

@@ -47,6 +47,7 @@ const maticHandler: DeployFunction = async function (
                         tcapAddress,
                         collateralAddress,
                         maticOracle,
+                        maticOracle,
                         rewardAddress,
                         treasury,
                     ],
@@ -55,10 +56,10 @@ const maticHandler: DeployFunction = async function (
                 }
             );
             log(
-                `TCAP Oracle deployed at ${maticVaultHandler.address} for ${maticVaultHandler.receipt?.gasUsed}`
+                `Matic Vault deployed at ${maticVaultHandler.address} for ${maticVaultHandler.receipt?.gasUsed}`
             );
         } else {
-            log("TCAP Oracle already deployed");
+            log("Matic Vault already deployed");
         }
     }
 };

@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { deployments, hardhatArguments } from "hardhat";
 
-const tcapOracle: DeployFunction = async function(
+const tcapOracle: DeployFunction = async function (
     hre: HardhatRuntimeEnvironment
 ) {
     if (hardhatArguments.network === "polygon") {
@@ -13,19 +13,16 @@ const tcapOracle: DeployFunction = async function(
         if (!tcapOracle) {
             const namedAccounts = await hre.getNamedAccounts();
             // Params TODO: complete address
-            const aggregator = ""; // TCAP Chainlink Oracle
-            
-            
+            const aggregator = "0xBb9749B5AD68574C106AC4F9cd5E1c400dbb88C3"; // TCAP Chainlink Oracle
+
             const tcapOracleDeployment = await deployments.deploy(
                 "TCAPOracle",
                 {
                     contract: "ChainlinkOracle",
                     from: namedAccounts.deployer,
-                    args: [
-                        aggregator
-                    ],
+                    args: [aggregator],
                     skipIfAlreadyDeployed: true,
-                    log: true
+                    log: true,
                 }
             );
             log(
@@ -44,11 +41,9 @@ const tcapOracle: DeployFunction = async function(
                 {
                     contract: "ChainlinkOracle",
                     from: namedAccounts.deployer,
-                    args: [
-                        aggregator
-                    ],
+                    args: [aggregator],
                     skipIfAlreadyDeployed: true,
-                    log: true
+                    log: true,
                 }
             );
             log(
@@ -60,4 +55,3 @@ const tcapOracle: DeployFunction = async function(
     }
 };
 export default tcapOracle;
-
