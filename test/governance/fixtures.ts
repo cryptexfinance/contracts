@@ -5,7 +5,7 @@ const { deployContract } = waffle;
 
 import Ctx from "../../artifacts/contracts/governance/Ctx.sol/Ctx.json";
 import Timelock from "../../artifacts/contracts/governance/Timelock.sol/Timelock.json";
-import GovernorAlpha from "../../artifacts/contracts/governance/GovernorAlpha.sol/GovernorAlpha.json";
+import GovernorBeta from "../../artifacts/contracts/governance/GovernorBeta.sol/GovernorBeta.json";
 
 import { DELAY } from "./utils";
 
@@ -40,10 +40,7 @@ export async function governanceFixture(
 	expect(timelock.address).to.be.eq(timelockAddress);
 
 	// deploy governorAlpha
-	const governorAlpha = await deployContract(wallet, GovernorAlpha, [
-		timelock.address,
-		ctx.address,
-	]);
+	const governorAlpha = await deployContract(wallet, GovernorBeta, [timelock.address, ctx.address]);
 	expect(governorAlpha.address).to.be.eq(governorAlphaAddress);
 
 	return { ctx, timelock, governorAlpha };
