@@ -7,9 +7,9 @@ const maticHandler: DeployFunction = async function (
     hre: HardhatRuntimeEnvironment
 ) {
     if (hardhatArguments.network === "polygon") {
-        const tcap = await deployments.getOrNull("MATICVaultHandler");
+        const maticVault = await deployments.getOrNull("MATICVaultHandler");
         const { log } = deployments;
-        if (!tcap) {
+        if (!maticVault) {
             const namedAccounts = await hre.getNamedAccounts();
             const orchestratorDeployment = await deployments.get(
                 "Orchestrator"

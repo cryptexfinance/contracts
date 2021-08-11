@@ -36,7 +36,7 @@ const tcapOracle: DeployFunction = async function (
             const namedAccounts = await hre.getNamedAccounts();
             // Params
             const aggregator = "0xab594600376ec9fd91f8e885dadf0ce036862de0"; // MATIC Chainlink Oracle
-            const tcapOracleDeployment = await deployments.deploy(
+            const maticOracleDeployment = await deployments.deploy(
                 "MATICOracle",
                 {
                     contract: "ChainlinkOracle",
@@ -47,7 +47,7 @@ const tcapOracle: DeployFunction = async function (
                 }
             );
             log(
-                `TCAP Oracle deployed at ${tcapOracleDeployment.address} for ${tcapOracleDeployment.receipt?.gasUsed}`
+                `TCAP Oracle deployed at ${maticOracleDeployment.address} for ${maticOracleDeployment.receipt?.gasUsed}`
             );
         } else {
             log("TCAP Oracle already deployed");
