@@ -84,7 +84,7 @@ Previous rewards must be complete
 
 ### `lastTimeRewardApplicable() → uint256` (public)
 
-Returns the minimun between current block timestamp or the finish period of rewards.
+Returns the minimum between current block timestamp or the finish period of rewards.
 
 
 
@@ -103,7 +103,7 @@ Returns the amount of reward tokens a user has earned.
 
 ### `min(uint256 _a, uint256 _b) → uint256` (public)
 
-Returns the minimun between two variables
+Returns the minimum between two variables
 
 
 

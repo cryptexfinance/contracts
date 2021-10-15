@@ -81,13 +81,13 @@ ERC20 token must be approved first
 Allows users to remove collateral currently not being used to generate TCAP tokens from their vaults
 
 
-reverts if the resulting ratio is less than the minimun ratio
+reverts if the resulting ratio is less than the minimum ratio
 _amount should be higher than 0
 transfers the collateral back to the user
 
 ### `mint(uint256 _amount)` (external)
 
-Uses collateral to generate debt on TCAP Tokens which are minted and assigend to caller
+Uses collateral to generate debt on TCAP Tokens which are minted and assigned to caller
 
 
 _amount should be higher than 0
@@ -96,7 +96,7 @@ if reward handler is set stake to earn rewards
 
 ### `burn(uint256 _amount)` (external)
 
-Pays the debt of TCAP tokens resulting them on burn, this releases collateral up to minimun vault ratio
+Pays the debt of TCAP tokens resulting them on burn, this releases collateral up to minimum vault ratio
 
 
 _amount should be higher than 0
@@ -109,7 +109,7 @@ if reward handler is set exit rewards
 Allow users to burn TCAP tokens to liquidate vaults with vault collateral ratio under the minium ratio, the liquidator receives the staked collateral of the liquidated vault at a premium
 
 
-Resulting ratio must be above or equal minimun ratio
+Resulting ratio must be above or equal minimum ratio
 A fee of exactly burnFee must be sent as value on ETH
 The fee goes to the treasury contract //TODO
 
@@ -183,7 +183,7 @@ C = Required Collateral
 P = TCAP Token Price
 A = Amount to Mint
 cp = Collateral Price
-r = Minimun Ratio for Liquidation
+r = Minimum Ratio for Liquidation
 Is only divided by 100 as eth price comes in wei to cancel the additional 0s
 
 ### `requiredLiquidationTCAP(uint256 _vaultId) → uint256 amount` (public)
