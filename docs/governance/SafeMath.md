@@ -12,7 +12,7 @@ error, which is the standard behavior in high level programming languages.
 operation overflows.
 
 Using this library instead of the unchecked operations eliminates an entire
-class of bugs, so it's recommended to use it always.
+class of bugs, so it's recommended to always use it.
 
 
 ### `add(uint256 a, uint256 b) → uint256` (internal)
@@ -72,7 +72,7 @@ Requirements:
 
 
 Returns the integer division of two unsigned integers. Reverts on
-division by zero. The result is rounded towards zero.
+division by zero. The result will be rounded towards zero.
 
 Counterpart to Solidity's `/` operator. Note: this function uses a
 `revert` opcode (which leaves remaining gas untouched) while Solidity
@@ -87,7 +87,7 @@ Requirements:
 
 
 Returns the integer division of two unsigned integers. Reverts with custom message on
-division by zero. The result is rounded towards zero.
+division by zero. The result will be rounded towards zero.
 
 Counterpart to Solidity's `/` operator. Note: this function uses a
 `revert` opcode (which leaves remaining gas untouched) while Solidity
@@ -99,9 +99,8 @@ Requirements:
 
 ### `mod(uint256 a, uint256 b) → uint256` (internal)
 
+Returns the remainder of dividing two unsigned integers (unsigned integer modulo).
 
-
-Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
 Reverts when dividing by zero.
 
 Counterpart to Solidity's `%` operator. This function uses a `revert`
@@ -116,7 +115,8 @@ Requirements:
 
 
 
-Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
+Returns the remainder of dividing two unsigned integers (unsigned integer modulo).
+
 Reverts with custom message when dividing by zero.
 
 Counterpart to Solidity's `%` operator. This function uses a `revert`

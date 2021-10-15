@@ -1,6 +1,7 @@
 ## `ChainlinkOracle`
 
-Contract in charge or reading the information from a Chainlink Oracle. TCAP contracts read the price directly from this contract. More information can be found on Chainlink Documentation
+Contract in charge of reading the information from a Chainlink oracle. TCAP contracts read the price directly from this contract. 
+More information can be found on the [Chainlink Documentation](https://docs.chain.link/).
 
 
 
