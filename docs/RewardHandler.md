@@ -1,170 +1,119 @@
 ## `RewardHandler`
 
-
-
-
-
 ### `updateReward(address _account)`
 
-Updates the reward and time on call.
-
-
-
+Updates the reward and time when called. <!-- TODO: Does this update the reward and time _for an account_ when called? -->
 
 ### `onlyVault()`
 
 Reverts if the caller is not a vault.
 
-
-
-
 ### `constructor(address _owner, address _rewardsToken, address _vault)` (public)
 
-Constructor
-
-
-
+Constructs a new RewardHandler.
 
 ### `totalSupply() → uint256` (external)
 
-Returns the total amount of TCAP tokens minted and getting reward on this vault.
-
-
+Returns the total amount of TCAP tokens minted and getting rewards on this vault.
 
 ### `balanceOf(address _account) → uint256` (external)
 
-Returns the amount of TCAP tokens minted and getting reward from specific user.
-
-
-
+Returns the amount of TCAP tokens minted and getting rewards from a specific user `_account`.
 
 ### `getRewardForDuration() → uint256` (external)
 
-
-
-
-
 ### `stake(address _staker, uint256 _amount)` (external)
 
-Called when TCAP is minted, adds the minted value as stake
+Called when TCAP is minted, adding the minted value as stake. 
 
+Rewards will be updated when called. 
 
-Only vault can call it
-updates rewards on call
+Only the vault can call this function.
 
 ### `exit(address _staker)` (external)
 
-Removes all stake and transfers all rewards to the staker.
+Removes all stake and transfers all rewards to the staker. 
 
-
-Only vault can call it
+Only the vault can call this function.
 
 ### `notifyRewardAmount(uint256 _reward)` (external)
 
-Notifies the contract that reward has been added to be given.
+Notifies the contract that a reward has been added to be given and increases the duration of rewards. 
 
-
-Only owner  can call it
-Increases duration of rewards
+Only the owner can call this function.
 
 ### `recoverERC20(address _tokenAddress, uint256 _tokenAmount)` (external)
 
- Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
+Added to support recovering LP rewards from other systems such as BAL to be distributed to holders.
 
-
-Only owner  can call it
+Only the owner can call this function.
 
 ### `setRewardsDuration(uint256 _rewardsDuration)` (external)
 
- Updates the reward duration
-
-
-Only owner  can call it
-Previous rewards must be complete
+Updates the reward duration. Previous rewards must be complete. 
+Only the owner can call this function.
 
 ### `lastTimeRewardApplicable() → uint256` (public)
 
 Returns the minimum between current block timestamp or the finish period of rewards.
 
-
-
 ### `rewardPerToken() → uint256` (public)
 
 Returns the calculated reward per token deposited.
-
-
 
 ### `earned(address _account) → uint256` (public)
 
 Returns the amount of reward tokens a user has earned.
 
-
-
-
 ### `min(uint256 _a, uint256 _b) → uint256` (public)
 
-Returns the minimum between two variables
-
-
-
+Returns the minimum between two variables.
 
 ### `withdraw(address _staker, uint256 _amount)` (public)
 
-Called when TCAP is burned or liquidated, removes the burned value as stake
+Called when TCAP is burned or liquidated, removing the burned value as stake. 
 
+Rewards will be updated when called.
 
-Only vault can call it
-updates rewards on call
+Only the vault can call this function.
 
 ### `getRewardFromVault(address _staker)` (public)
 
-Called when TCAP is burned or liquidated, transfers to the staker the current amount of rewards tokens earned.
+Called when TCAP is burned or liquidated, transferring the current amount of rewards tokens earned to the staker.
 
+Rewards will be updated when called.
 
-Only vault can call it
-updates rewards on call
+Only the vault can call this function.
 
 ### `getReward()` (public)
 
-Transfers to the caller the current amount of rewards tokens earned.
+Transfers the current amount of rewards tokens earned to the caller. 
 
-
-updates rewards on call
-
+Rewards will be updated when called.
 
 ### `RewardAdded(uint256 reward)`
 
-An event emitted when a reward is added
-
-
+An event emitted when a reward has been added.
 
 ### `Staked(address user, uint256 amount)`
 
-An event emitted when TCAP is minted and staked to earn rewards
-
-
+An event emitted when TCAP is minted and staked to earn rewards.
 
 ### `Withdrawn(address user, uint256 amount)`
 
-An event emitted when TCAP is burned and removed of stake
-
-
+An event emitted when TCAP is burned and removed from stake.
 
 ### `RewardPaid(address user, uint256 reward)`
 
-An event emitted when reward is paid to a user
-
-
+An event emitted when reward has been paid to a user.
 
 ### `RewardsDurationUpdated(uint256 newDuration)`
 
-An event emitted when the rewards duration is updated
-
-
+An event emitted when the rewards duration has been updated.
 
 ### `Recovered(address token, uint256 amount)`
 
-An event emitted when a erc20 token is recovered
+An event emitted when an ERC20 token has been recovered.
 
 
 
