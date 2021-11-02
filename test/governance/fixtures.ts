@@ -5,14 +5,14 @@ const { deployContract } = waffle;
 
 import Ctx from "../../artifacts/contracts/governance/Ctx.sol/Ctx.json";
 import Timelock from "../../artifacts/contracts/governance/Timelock.sol/Timelock.json";
-import GovernorAlpha from "../../artifacts/contracts/governance/GovernorAlpha.sol/GovernorAlpha.json";
+import GovernorBeta from "../../artifacts/contracts/governance/GovernorBeta.sol/GovernorBeta.json";
 
 import { DELAY } from "./utils";
 
 interface GovernanceFixture {
 	ctx: Contract;
 	timelock: Contract;
-	governorAlpha: Contract;
+	governorBeta: Contract;
 }
 
 export async function governanceFixture(
@@ -29,22 +29,23 @@ export async function governanceFixture(
 	});
 
 	// deploy timelock, controlled by what will be the governor
-	const governorAlphaAddress = Contract.getContractAddress({
+	const governorBetaAddress = Contract.getContractAddress({
 		from: wallet.address,
 		nonce: nonce++,
 	});
 
 	const ctx = await deployContract(wallet, Ctx, [wallet.address, timelockAddress, now + 60 * 60]);
 
-	const timelock = await deployContract(wallet, Timelock, [governorAlphaAddress, DELAY]);
+	const timelock = await deployContract(wallet, Timelock, [governorBetaAddress, DELAY]);
+
 	expect(timelock.address).to.be.eq(timelockAddress);
 
-	// deploy governorAlpha
-	const governorAlpha = await deployContract(wallet, GovernorAlpha, [
+	// deploy governorBeta
+	const governorBeta = await deployContract(wallet, GovernorBeta, [
 		timelock.address,
 		ctx.address,
+		wallet.address,
 	]);
-	expect(governorAlpha.address).to.be.eq(governorAlphaAddress);
-
-	return { ctx, timelock, governorAlpha };
+	expect(governorBeta.address).to.be.eq(governorBetaAddress);
+	return { ctx, timelock, governorBeta };
 }

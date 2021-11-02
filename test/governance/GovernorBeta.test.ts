@@ -5,7 +5,7 @@ import { waffle } from "hardhat";
 import { governanceFixture } from "./fixtures";
 import { DELAY } from "./utils";
 
-describe("GovernorAlpha", () => {
+describe("GovernorBeta", () => {
 	// waffle;
 	// const provider = new MockProvider({
 	// 	ganacheOptions: {
@@ -19,12 +19,12 @@ describe("GovernorAlpha", () => {
 
 	let ctx: Contract;
 	let timelock: Contract;
-	let governorAlpha: Contract;
+	let governorBeta: Contract;
 	beforeEach(async () => {
 		const fixture = await loadFixture(governanceFixture);
 		ctx = fixture.ctx;
 		timelock = fixture.timelock;
-		governorAlpha = fixture.governorAlpha;
+		governorBeta = fixture.governorBeta;
 	});
 
 	it("...should test ctx", async () => {
@@ -35,7 +35,7 @@ describe("GovernorAlpha", () => {
 
 	it("...should set timelock", async () => {
 		const admin = await timelock.admin();
-		expect(admin).to.be.eq(governorAlpha.address);
+		expect(admin).to.be.eq(governorBeta.address);
 		const pendingAdmin = await timelock.pendingAdmin();
 		expect(pendingAdmin).to.be.eq(constants.AddressZero);
 		const delay = await timelock.delay();
@@ -43,11 +43,11 @@ describe("GovernorAlpha", () => {
 	});
 
 	it("...should set governor", async () => {
-		const votingPeriod = await governorAlpha.votingPeriod();
+		const votingPeriod = await governorBeta.votingPeriod();
 		expect(votingPeriod).to.be.eq(17280);
-		const timelockAddress = await governorAlpha.timelock();
+		const timelockAddress = await governorBeta.timelock();
 		expect(timelockAddress).to.be.eq(timelock.address);
-		const ctxFromGovernor = await governorAlpha.ctx();
+		const ctxFromGovernor = await governorBeta.ctx();
 		expect(ctxFromGovernor).to.be.eq(ctx.address);
 	});
 });

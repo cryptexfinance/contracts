@@ -57,8 +57,8 @@ describe("ERC20 Vault", async function () {
 		const aggregatorTcap = await ethers.getContractFactory("AggregatorInterfaceTCAP");
 		let aggregatorInstance = await aggregator.deploy();
 		aggregatorTCAPInstance = await aggregatorTcap.deploy();
-		priceOracleInstance = await collateralOracle.deploy(aggregatorInstance.address);
-		tcapOracleInstance = await oracle.deploy(aggregatorTCAPInstance.address);
+		priceOracleInstance = await collateralOracle.deploy(aggregatorInstance.address, accounts[0]);
+		tcapOracleInstance = await oracle.deploy(aggregatorTCAPInstance.address, accounts[0]);
 		await priceOracleInstance.deployed();
 
 		const wbtc = await ethers.getContractFactory("WBTC");

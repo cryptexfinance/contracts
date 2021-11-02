@@ -1,5 +1,6 @@
 var expect = require("chai").expect;
 var ethersProvider = require("ethers");
+const { exec } = require("child_process");
 
 describe("Chainlink Oracle", async function () {
 	let chainlinkInstance;
@@ -25,9 +26,14 @@ describe("Chainlink Oracle", async function () {
 		const aggregator = await ethers.getContractFactory("AggregatorInterface");
 		let aggregatorInstance = await aggregator.deploy();
 		const oracle = await ethers.getContractFactory("ChainlinkOracle");
-		chainlinkInstance = await oracle.deploy(aggregatorInstance.address);
+		chainlinkInstance = await oracle.deploy(aggregatorInstance.address, accounts[0]);
 		await chainlinkInstance.deployed();
 		expect(chainlinkInstance.address).properAddress;
+	});
+
+	it("...should set the parameters", async () => {
+		const currentOwner = await chainlinkInstance.owner();
+		expect(currentOwner).eq(accounts[0]);
 	});
 
 	it("...should get the oracle answer", async () => {
