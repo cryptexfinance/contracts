@@ -128,31 +128,31 @@ The duration of voting on a proposal, in blocks
 
 ### `ProposalCreated(uint256 id, address proposer, address[] targets, uint256[] values, string[] signatures, bytes[] calldatas, uint256 startBlock, uint256 endBlock, string description)`
 
-An event emitted when a new proposal is created
+An event that is emitted when a new proposal has been created.
 
 
 
 ### `VoteCast(address voter, uint256 proposalId, bool support, uint256 votes)`
 
-An event emitted when a vote has been cast on a proposal
+An event that is emitted when a vote has been cast on a proposal.
 
 
 
 ### `ProposalCanceled(uint256 id)`
 
-An event emitted when a proposal has been canceled
+An event that is emitted when a proposal has been canceled.
 
 
 
 ### `ProposalQueued(uint256 id, uint256 eta)`
 
-An event emitted when a proposal has been queued in the Timelock
+An event emitted when a proposal has been queued in the Timelock.
 
 
 
 ### `ProposalExecuted(uint256 id)`
 
-An event emitted when a proposal has been executed in the Timelock
+An event emitted when a proposal has been executed in the Timelock.
 
 
 
