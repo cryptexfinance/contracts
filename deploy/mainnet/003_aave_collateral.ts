@@ -4,7 +4,7 @@ import { deployments, hardhatArguments } from "hardhat";
 import "hardhat-deploy/dist/src/type-extensions";
 import { ethers } from "ethers";
 
-const merkleDistributor: DeployFunction = async function (
+const aaveVaultHandler: DeployFunction = async function (
     hre: HardhatRuntimeEnvironment
 ) {
     if (hardhatArguments.network === "mainnet") {
@@ -14,7 +14,7 @@ const merkleDistributor: DeployFunction = async function (
         const aaveVaultHandler = await deployments.getOrNull(
             "AaveVaultHandler"
         );
-        const aaveOracle = await deployments.getOrNull("AaveOracle");
+        let aaveOracle = await deployments.getOrNull("AaveOracle");
 
         const namedAccounts = await hre.getNamedAccounts();
         const orchestrator = "0x373C74BcE7893097ab26d22f05691907D4f2c18e";
@@ -42,11 +42,12 @@ const merkleDistributor: DeployFunction = async function (
                 }
             );
             log(
-                `AaveVaultHandler deployed at ${aaveOracleDeployment.address} for ${aaveOracleDeployment.receipt?.gasUsed}`
+                `AaveOracle deployed at ${aaveOracleDeployment.address} for ${aaveOracleDeployment.receipt?.gasUsed}`
             );
         } else {
-            log("AaveVaultHandler already deployed");
+            log("AaveOracle already deployed");
         }
+        aaveOracle = await deployments.getOrNull("AaveOracle");
 
         if (!aaveVaultHandler && aaveOracle) {
             const aaveVaultHandlerDeployment = await deployments.deploy(
@@ -81,4 +82,4 @@ const merkleDistributor: DeployFunction = async function (
     }
 };
 
-export default merkleDistributor;
+export default aaveVaultHandler;

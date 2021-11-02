@@ -4,19 +4,17 @@ import { deployments, hardhatArguments } from "hardhat";
 import "hardhat-deploy/dist/src/type-extensions";
 import { ethers } from "ethers";
 
-const merkleDistributor: DeployFunction = async function (
+const linkVaultHandler: DeployFunction = async function (
     hre: HardhatRuntimeEnvironment
 ) {
     if (hardhatArguments.network === "mainnet") {
         console.log("=====Mainnet Deploy=====");
         const { log } = deployments;
 
-        // TODO: Deploy Aave Oracle
-        // TODO: Deploy Aave Vault
         const linkVaultHandler = await deployments.getOrNull(
             "LinkVaultHandler"
         );
-        const linkOracle = await deployments.getOrNull("LinkOracle");
+        let linkOracle = await deployments.getOrNull("LinkOracle");
 
         const namedAccounts = await hre.getNamedAccounts();
         const orchestrator = "0x373C74BcE7893097ab26d22f05691907D4f2c18e";
@@ -44,11 +42,12 @@ const merkleDistributor: DeployFunction = async function (
                 }
             );
             log(
-                `LinkVaultHandler deployed at ${linkOracleDeployment.address} for ${linkOracleDeployment.receipt?.gasUsed}`
+                `LinkOracle deployed at ${linkOracleDeployment.address} for ${linkOracleDeployment.receipt?.gasUsed}`
             );
         } else {
-            log("LinkVaultHandler already deployed");
+            log("LinkOracle already deployed");
         }
+        linkOracle = await deployments.getOrNull("LinkOracle");
 
         if (!linkVaultHandler && linkOracle) {
             const linkVaultHandlerDeployment = await deployments.deploy(
@@ -83,4 +82,4 @@ const merkleDistributor: DeployFunction = async function (
     }
 };
 
-export default merkleDistributor;
+export default linkVaultHandler;
