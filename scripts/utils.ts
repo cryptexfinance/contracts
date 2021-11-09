@@ -9,8 +9,8 @@ let governorContract: Contract;
 
 const initialize = async () => {
 	signer = ethers.provider.getSigner("0xa70b638B70154EdfCbb8DbbBd04900F328F32c35");
-	governor = await deployments.get("GovernorAlpha");
-	governorContract = await ethers.getContractAt("GovernorAlpha", governor.address, signer);
+	governor = await deployments.get("GovernorBeta");
+	governorContract = await ethers.getContractAt("GovernorBeta", governor.address, signer);
 };
 
 export async function fundMultisign(amount: string) {
