@@ -61,6 +61,10 @@ const config: HardhatUserConfig = {
 			url: process.env.GOERLI_API_URL,
 			accounts: { mnemonic: mnemonic },
 		},
+		kovan: {
+			url: process.env.KOVAN_API_URL,
+			accounts: { mnemonic: mnemonic },
+		},
 	},
 	etherscan: {
 		apiKey: process.env.ETHERSCAN_API_KEY as string,
