@@ -1,4 +1,0 @@
-ds-test/=lib/ds-test/src/
-ds-test=lib/ds-test/src/index.sol
-@openzeppelin/=lib/openzeppelin-contracts/contracts/
-@openzeppelin=lib/openzeppelin-contracts/contracts/index.sol

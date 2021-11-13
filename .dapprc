@@ -1,2 +1,0 @@
-DAPP_REMAPPINGS=$(cat remappings.txt)
-
