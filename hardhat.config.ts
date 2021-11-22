@@ -65,6 +65,10 @@ const config: HardhatUserConfig = {
 			url: process.env.KOVAN_API_URL,
 			accounts: { mnemonic: mnemonic },
 		},
+		optimism: {
+			url: process.env.OPTIMISM_API_URL,
+			accounts: { mnemonic: mnemonic },
+		},
 	},
 	etherscan: {
 		apiKey: process.env.ETHERSCAN_API_KEY as string,
