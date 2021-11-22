@@ -9,7 +9,7 @@ module.exports = async ({ deployments }: any) => {
 		let tcap = await deployments.get("TCAP");
 
 		let orchestrator = await ethershardhat.getContractAt(
-			"Orchestrator",
+			"OptimisticOrchestrator",
 			OrchestratorDeployment.address
 		);
 
@@ -17,9 +17,13 @@ module.exports = async ({ deployments }: any) => {
 		console.log("DAI Vault", await tcapContract.vaultHandlers(DAIHandler.address));
 		console.log("WETHHandler Vault", await tcapContract.vaultHandlers(WETHHandler.address));
 
+		console.log(await orchestrator.owner());
+		console.log(await orchestrator.ovmL2CrossDomainMessenger());
+
 		console.log("Adding vault Handlers");
-		await orchestrator.addTCAPVault(tcap.address, DAIHandler.address);
-		await orchestrator.addTCAPVault(tcap.address, WETHHandler.address);
+
+		// await orchestrator.addTCAPVault(tcap.address, DAIHandler.address);
+		// await orchestrator.addTCAPVault(tcap.address, WETHHandler.address);
 	}
 };
 module.exports.tags = ["Initialize"];

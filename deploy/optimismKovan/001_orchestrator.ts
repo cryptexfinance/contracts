@@ -9,8 +9,8 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 			orchestrator = await deployments.get("OptimisticOrchestrator");
 		} catch (error) {
 			try {
-				const crossDomain = "0x4361d0F75A0186C05f971c566dC6bEa5957483fD";
-				const timelock = "0xeCfaAE58487B64d777cDc8fb9f9e3B154f5563F1";
+				const crossDomain = "0x4200000000000000000000000000000000000007";
+				const timelock = "0x71cEA4383F7FadDD1F17c960DE7b6A32bFDAf139"; // Testing address for now
 				const deployResult = await deployIfDifferent(
 					["data"],
 					"OptimisticOrchestrator",

@@ -8,11 +8,10 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 		const namedAccounts = await hre.getNamedAccounts();
 		const deployer = namedAccounts.deployer;
 		const ethers = hre.ethers;
-		const [owner] = await ethers.getSigners();
 
 		let handlerContract;
 		let orchestrator = await deployments.get("OptimisticOrchestrator");
-		let ctx = await deployments.get("Ctx");
+
 		try {
 			handlerContract = await deployments.get("DAIVaultHandler");
 		} catch (error) {
@@ -25,22 +24,12 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 				let ratio = process.env.RATIO as string;
 				let burnFee = process.env.BURN_FEE as string;
 				let liquidationPenalty = process.env.LIQUIDATION_PENALTY as string;
-
 				let tcapOracle = await deployments.get("TCAPOracle");
 				let priceFeedETH = await deployments.get("WETHOracle");
 				let priceFeedDAI = await deployments.get("DAIOracle");
-				let nonce = await owner.getTransactionCount();
+				const timelock = "0x71cEA4383F7FadDD1F17c960DE7b6A32bFDAf139"; // Testing address for now
+				let rewardAddress = ethers.constants.AddressZero;
 
-				const vaultAddress = ethers.utils.getContractAddress({
-					from: deployer,
-					nonce: nonce++,
-				});
-
-				const rewardAddress = ethers.utils.getContractAddress({
-					from: deployer,
-					nonce: nonce++,
-				});
-				const timelock = await deployments.get("Timelock");
 				const deployResult = await deployments.deploy("DAIVaultHandler", {
 					from: deployer,
 					contract: "ERC20VaultHandler",
@@ -56,7 +45,7 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						priceFeedDAI.address,
 						priceFeedETH.address,
 						rewardAddress,
-						timelock.address,
+						timelock,
 					],
 				});
 				handlerContract = await deployments.get("DAIVaultHandler");
@@ -65,14 +54,6 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						`DAIVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt?.gasUsed}`
 					);
 				}
-				const rewardDeployment = await deployments.deploy("DAIRewardHandler", {
-					contract: "RewardHandler",
-					from: deployer,
-					args: [orchestrator.address, ctx.address, vaultAddress],
-				});
-				log(
-					`Reward Handler deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
-				);
 			} catch (error) {
 				log(error.message);
 			}

@@ -7,7 +7,8 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 
 		let TCAPOracle, WETHOracle, DAIOracle;
 
-		const timelock = await deployments.getOrNull("Timelock");
+		const timelock = "0x71cEA4383F7FadDD1F17c960DE7b6A32bFDAf139"; // Testing address for now
+
 		const tcapAggregator = await deployments.getOrNull("AggregatorInterfaceTCAP");
 
 		try {
@@ -21,7 +22,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 				{ from: deployer },
 				"ChainlinkOracle",
 				oracleAddress,
-				timelock.address
+				timelock
 			);
 			TCAPOracle = await deployments.get("TCAPOracle");
 			if (deployResult.newlyDeployed) {
@@ -38,7 +39,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 					{ from: deployer },
 					"ChainlinkOracle",
 					oracleAddress,
-					timelock.address
+					timelock
 				);
 				WETHOracle = await deployments.get("WETHOracle");
 				if (deployResult.newlyDeployed) {
@@ -57,7 +58,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 						{ from: deployer },
 						"ChainlinkOracle",
 						oracleAddress,
-						timelock.address
+						timelock
 					);
 					DAIOracle = await deployments.get("DAIOracle");
 					if (deployResult.newlyDeployed) {
