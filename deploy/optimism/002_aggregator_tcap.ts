@@ -4,7 +4,7 @@ import { deployments, hardhatArguments } from "hardhat";
 import "hardhat-deploy/dist/src/type-extensions";
 
 const AggregatorInterfaceTCAP: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-	if (hardhatArguments.network === "optimism") {
+	if (hardhatArguments.network === "optimismKovan") {
 		const { log } = deployments;
 
 		const namedAccounts = await hre.getNamedAccounts();

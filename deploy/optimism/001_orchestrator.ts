@@ -1,6 +1,6 @@
 import { hardhatArguments } from "hardhat";
 module.exports = async ({ getNamedAccounts, deployments }: any) => {
-	if (hardhatArguments.network === "optimism") {
+	if (hardhatArguments.network === "optimismKovan") {
 		const { deployIfDifferent, log } = deployments;
 		const { deployer } = await getNamedAccounts();
 

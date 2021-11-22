@@ -1,7 +1,7 @@
 import { hardhatArguments } from "hardhat";
 require("dotenv").config();
 module.exports = async ({ getNamedAccounts, deployments }: any) => {
-	if (hardhatArguments.network === "optimism") {
+	if (hardhatArguments.network === "optimismKovan") {
 		const { deployIfDifferent, log } = deployments;
 		const { deployer } = await getNamedAccounts();
 		const name = process.env.NAME;

@@ -3,7 +3,7 @@ import { deployments } from "hardhat";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 const BTCVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
-	if (hardhatArguments.network === "optimism") {
+	if (hardhatArguments.network === "optimismKovan") {
 		const { log } = deployments;
 		const namedAccounts = await hre.getNamedAccounts();
 		const deployer = namedAccounts.deployer;

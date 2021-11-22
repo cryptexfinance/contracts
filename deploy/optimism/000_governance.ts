@@ -3,9 +3,9 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { deployments, hardhatArguments } from "hardhat";
 
 const governance: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-	console.log("Optimism Deploy");
+	console.log("optimismKovan Deploy");
 
-	if (hardhatArguments.network === "optimism") {
+	if (hardhatArguments.network === "optimismKovan") {
 		const Ctx = await deployments.getOrNull("Ctx");
 		const { log } = deployments;
 		if (!Ctx) {
@@ -35,6 +35,7 @@ const governance: DeployFunction = async function (hre: HardhatRuntimeEnvironmen
 			const ctxDeployment = await deployments.deploy("Ctx", {
 				from: namedAccounts.deployer,
 				args: [namedAccounts.deployer, timelockAddress, oneYear],
+				skipIfAlreadyDeployed: true,
 			});
 
 			log(`Ctx deployed at ${ctxDeployment.address} for ${ctxDeployment.receipt?.gasUsed}`);
@@ -42,6 +43,7 @@ const governance: DeployFunction = async function (hre: HardhatRuntimeEnvironmen
 			const timelockDeployment = await deployments.deploy("Timelock", {
 				from: namedAccounts.deployer,
 				args: [governorAddress, threeDays],
+				skipIfAlreadyDeployed: true,
 			});
 
 			log(
@@ -51,6 +53,7 @@ const governance: DeployFunction = async function (hre: HardhatRuntimeEnvironmen
 			const governorDeployment = await deployments.deploy("GovernorAlpha", {
 				from: namedAccounts.deployer,
 				args: [timelockAddress, ctxAddress],
+				skipIfAlreadyDeployed: true,
 			});
 
 			log(
