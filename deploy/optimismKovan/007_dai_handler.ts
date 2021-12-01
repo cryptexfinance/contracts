@@ -18,7 +18,7 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 			try {
 				let tcap = await deployments.get("TCAP");
 
-				let DAIContract = await deployments.get("DAI");
+				let DAIContract = "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1";
 
 				let divisor = process.env.DIVISOR as string;
 				let ratio = process.env.RATIO as string;
@@ -41,7 +41,7 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						liquidationPenalty,
 						tcapOracle.address,
 						tcap.address,
-						DAIContract.address,
+						DAIContract,
 						priceFeedDAI.address,
 						priceFeedETH.address,
 						rewardAddress,
