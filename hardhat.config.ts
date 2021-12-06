@@ -38,13 +38,13 @@ const config: HardhatUserConfig = {
 				url: process.env.MAINNET_API_URL as string,
 			},
 		},
-		// mainnet: {
-		// 	url: process.env.MAINNET_API_URL,
-		// 	accounts: { mnemonic: mnemonic },
-		//
-		// 	// url: process.env.MAINNET_API_URL,
-		// 	// accounts: { mnemonic: mnemonic },
-		// },
+		mainnet: {
+			url: process.env.MAINNET_API_URL,
+			accounts: { mnemonic: mnemonic },
+
+			// url: process.env.MAINNET_API_URL,
+			// accounts: { mnemonic: mnemonic },
+		},
 		ganache: {
 			url: "http://127.0.0.1:8545",
 			accounts: { mnemonic: ganacheMnemonic },
