@@ -115,14 +115,6 @@ abstract contract IVaultHandler is
    */
   bytes4 private constant _INTERFACE_ID_IVAULT = 0x9e75ab0c;
 
-  /**
-   * @dev the computed interface ID according to ERC-165. The interface ID is a XOR of interface method selectors.
-   * queueTransaction.selector ^
-   * cancelTransaction.selector ^
-   * executeTransaction.selector  =>  0x6b5cc770
-   */
-  bytes4 private constant _INTERFACE_ID_TIMELOCK = 0x6b5cc770;
-
   /// @dev bytes4(keccak256('supportsInterface(bytes4)')) == 0x01ffc9a7
   bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
 
@@ -226,11 +218,6 @@ abstract contract IVaultHandler is
       "VaultHandler::constructor: burn fee higher than MAX_FEE"
     );
 
-    require(
-      ERC165Checker.supportsInterface(_treasury, _INTERFACE_ID_TIMELOCK),
-      "VaultHandler::constructor: not a valid treasury"
-    );
-
     divisor = _divisor;
     ratio = _ratio;
     burnFee = _burnFee;
@@ -321,10 +308,10 @@ abstract contract IVaultHandler is
    */
   function setTreasury(address _treasury) external virtual onlyOwner {
     require(
-      ERC165Checker.supportsInterface(_treasury, _INTERFACE_ID_TIMELOCK),
+      _treasury != address(0),
       "VaultHandler::setTreasury: not a valid treasury"
     );
-    treasury = (_treasury);
+    treasury = _treasury;
     emit NewTreasury(msg.sender, _treasury);
   }
 

@@ -13,3 +13,4 @@ typechain/
 
 .idea/
 .idea/workspace.xml
+/out
