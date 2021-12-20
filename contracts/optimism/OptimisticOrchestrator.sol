@@ -52,6 +52,8 @@ contract OptimisticOrchestrator {
 	/**
 	 * @notice Constructor
 	 * @param _guardian The guardian address
+	 * @param _owner the owner of the contract
+	 * @param _ovmL2CrossDomainMessenger address of the optimism ovmL2CrossDomainMessenger
 	 */
 	constructor(address _guardian, address _owner, address _ovmL2CrossDomainMessenger) {
 		require(
