@@ -38,7 +38,6 @@ contract OptimisticTreasury {
 			_owner != address(0) && _ovmL2CrossDomainMessenger != address(0),
 			"OptimisticTreasury::constructor: address can't be zero"
 		);
-		guardian = _guardian;
 		owner = _owner;
 		ovmL2CrossDomainMessenger = iOVM_CrossDomainMessenger(_ovmL2CrossDomainMessenger);
 	}
@@ -71,7 +70,7 @@ contract OptimisticTreasury {
 	modifier onlyOwner() {
 		require(
 			msg.sender == address(ovmL2CrossDomainMessenger)
-			&& ovmL2CrossDomainMessenger.xDomainMessageSender() == owner
+			&& ovmL2CrossDomainMessenger.xDomainMessageSender() == owner, "Ownable: caller is not the owner"
 		);
 		_;
 	}
