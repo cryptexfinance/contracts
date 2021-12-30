@@ -18,6 +18,14 @@ contract OVMl2CrossDomainMessenger {
 	function transferOwnership(OptimisticTreasury ot, address owner) public {
 		ot.transferOwnership(owner);
 	}
+
+	function retrieveEth(OptimisticTreasury ot, address to) public {
+		ot.retrieveETH(to);
+	}
+
+	function executeTransaction(OptimisticTreasury ot, address target, uint256 value, string memory signature, bytes memory data) public {
+		ot.executeTransaction(target, value, signature, data);
+	}
 }
 
 interface Vm {
@@ -75,14 +83,27 @@ contract OptimisticTreasuryTest is DSTest {
 		if (_newOwner == address(0)) {
 			vm.expectRevert("Ownable: new owner is the zero address");
 			ol2.transferOwnership(oTreasury, _newOwner);
-		}else{
+		} else {
 			ol2.transferOwnership(oTreasury, _newOwner);
 			assertEq(oTreasury.owner(), _newOwner);
 		}
 	}
 
-	function testRetrieveEth() public {
+	function testRetrieveEth(address _to) public {
 		vm.deal(address(oTreasury), 1 ether);
 		assertEq(address(oTreasury).balance, 1 ether);
+		vm.expectRevert("Ownable: caller is not the owner");
+		oTreasury.retrieveETH(_to);
+		if (_to == address(0)) {
+			vm.expectRevert("OptimisticTreasury::retrieveETH: address can't be zero");
+			ol2.retrieveEth(oTreasury, _to);
+		} else {
+			ol2.retrieveEth(oTreasury, _to);
+			assertEq(_to.balance, 1 ether);
+		}
+	}
+
+	function testExecuteTransaction() public {
+		//TODO
 	}
 }
