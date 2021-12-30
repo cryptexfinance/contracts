@@ -3,6 +3,7 @@ pragma solidity 0.7.5;
 
 import "ds-test/test.sol";
 import "../contracts/optimism/OptimisticTreasury.sol";
+import "../contracts/mocks/DAI.sol";
 
 contract OVMl2CrossDomainMessenger {
 	address public immutable xDomainMessageSender;
@@ -58,6 +59,7 @@ contract OptimisticTreasuryTest is DSTest {
 	Vm vm;
 	OVMl2CrossDomainMessenger ol2;
 
+
 	function setUp() public {
 		ol2 = new OVMl2CrossDomainMessenger(address(this));
 		oTreasury = new OptimisticTreasury(address(this), address(ol2));
@@ -104,6 +106,24 @@ contract OptimisticTreasuryTest is DSTest {
 	}
 
 	function testExecuteTransaction() public {
-		//TODO
+		DAI dai = new DAI();
+		dai.mint(address(oTreasury), 100 ether);
+		assertEq(dai.balanceOf(address(oTreasury)), 100 ether);
+		string memory signature = "transfer(address,uint256)";
+		bytes memory data = abi.encode(
+			address(this), 100 ether
+		);
+		uint256 value = 0;
+		// Not Owner
+		vm.expectRevert("Ownable: caller is not the owner");
+		oTreasury.executeTransaction(address(dai), value, signature, data);
+
+		// Empty address
+		vm.expectRevert("OptimisticTreasury::executeTransaction: target can't be zero");
+		ol2.executeTransaction(oTreasury, address(0),value, signature,data);
+
+		ol2.executeTransaction(oTreasury, address(dai),value, signature,data);
+		assertEq(dai.balanceOf(address(this)),100 ether);
+		assertEq(dai.balanceOf(address(oTreasury)), 0 ether);
 	}
 }
