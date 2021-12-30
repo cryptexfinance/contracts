@@ -16,7 +16,7 @@
 		"verify": "npx hardhat sourcify",
 		"docgen": "yarn run solidity-docgen --solc-module solc-0.7",
 		"fbuild": " forge build --remappings @openzeppelin/=node_modules/@openzeppelin/ @chainlink/=node_modules/@chainlink/ --contracts contracts",
-		"ftest": " forge test --remappings @openzeppelin/=node_modules/@openzeppelin/ @chainlink/=node_modules/@chainlink/ --contracts test"
+		"ftest": "./test.sh"
 	},
 	"dependencies": {
 		"@chainlink/contracts": "^0.0.12",
