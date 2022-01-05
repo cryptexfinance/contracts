@@ -72,18 +72,18 @@ contract OptimisticTreasuryTest is DSTest {
 	}
 
 	function testRenounceOwnership() public {
-		vm.expectRevert("Ownable: caller is not the owner");
+		vm.expectRevert("OptimisticTreasury: caller is not the owner");
 		oTreasury.renounceOwnership();
 		ol2.renounceOwnership(oTreasury);
 		assertEq(oTreasury.owner(), address(0));
 	}
 
 	function testTransferOwnership(address _newOwner) public {
-		vm.expectRevert("Ownable: caller is not the owner");
+		vm.expectRevert("OptimisticTreasury: caller is not the owner");
 		oTreasury.transferOwnership(_newOwner);
 
 		if (_newOwner == address(0)) {
-			vm.expectRevert("Ownable: new owner is the zero address");
+			vm.expectRevert("OptimisticTreasury: new owner is the zero address");
 			ol2.transferOwnership(oTreasury, _newOwner);
 		} else {
 			ol2.transferOwnership(oTreasury, _newOwner);
@@ -94,10 +94,10 @@ contract OptimisticTreasuryTest is DSTest {
 	function testRetrieveEth(address _to) public {
 		vm.deal(address(oTreasury), 1 ether);
 		assertEq(address(oTreasury).balance, 1 ether);
-		vm.expectRevert("Ownable: caller is not the owner");
+		vm.expectRevert("OptimisticTreasury: caller is not the owner");
 		oTreasury.retrieveETH(_to);
 		if (_to == address(0)) {
-			vm.expectRevert("OptimisticTreasury::retrieveETH: address can't be zero");
+			vm.expectRevert("ITreasury::retrieveETH: address can't be zero");
 			ol2.retrieveEth(oTreasury, _to);
 		} else {
 			ol2.retrieveEth(oTreasury, _to);
@@ -115,11 +115,11 @@ contract OptimisticTreasuryTest is DSTest {
 		);
 		uint256 value = 0;
 		// Not Owner
-		vm.expectRevert("Ownable: caller is not the owner");
+		vm.expectRevert("OptimisticTreasury: caller is not the owner");
 		oTreasury.executeTransaction(address(dai), value, signature, data);
 
 		// Empty address
-		vm.expectRevert("OptimisticTreasury::executeTransaction: target can't be zero");
+		vm.expectRevert("ITreasury::executeTransaction: target can't be zero");
 		ol2.executeTransaction(oTreasury, address(0),value, signature,data);
 
 		ol2.executeTransaction(oTreasury, address(dai),value, signature,data);
