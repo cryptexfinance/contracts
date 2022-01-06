@@ -37,7 +37,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
             } catch (error) {
                 log(error.message);
                 let oracleAddress =
-                    "0x9326BFA02ADD2366b30bacB125260Af641031331";
+                    "0x0715A7794a1dc8e42615F059dD6e406A6594651A";
                 const deployResult = await deployIfDifferent(
                     ["data"],
                     "WETHOracle",
@@ -58,7 +58,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
                 } catch (error) {
                     log(error.message);
                     let oracleAddress =
-                        "0x777A68032a88E5A84678A77Af2CD65A7b3c0775a";
+                        "0x0FCAa9c899EC5A91eBc3D5Dd869De833b06fB046";
                     const deployResult = await deployIfDifferent(
                         ["data"],
                         "DAIOracle",

@@ -2,8 +2,6 @@ import { expect } from "chai";
 import { Contract } from "ethers";
 import hre, { waffle } from "hardhat";
 
-const { deployContract } = waffle;
-
 describe("PolygonL2Messenger Test", async function () {
 	const [deployer, l1MsgSender, fxChild, acc1] = waffle.provider.getWallets();
 	let polygonL2Messenger: Contract;

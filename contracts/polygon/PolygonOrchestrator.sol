@@ -36,8 +36,6 @@ contract PolygonOrchestrator is IOrchestrator {
 			_polygonMessenger != address(0),
 			"PolygonOrchestrator::constructor: address can't be zero"
 		);
-		guardian = _guardian;
-		owner = _owner;
 		polygonMessenger = PolygonL2Messenger(_polygonMessenger);
 	}
 }
