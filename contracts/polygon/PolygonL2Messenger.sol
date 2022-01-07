@@ -33,14 +33,11 @@ contract PolygonL2Messenger is
 	/// @notice temporarily stores the cross domain sender address when processMessageFromRoot is called
 	address public xDomainMsgSender = DEFAULT_XDOMAIN_SENDER;
 
-	/// @notice address of the contract will receive the cross domain messages
-	address public messageReceiver;
+	/// @notice map that stores addresses that are approved to receive messages
+	mapping (address => bool) public registeredReceivers;
 
-	/// @notice An event emitted when the messageReceiver is updated
-  event MessageReceiverUpdate(address previousMsgReceiver, address newMsgReceiver);
-
-	/// @notice map that stores the hash messages that are successfully executed
-	mapping (bytes32 => bool) public successfulMessages;
+	/// @notice An event emitted when approval for an address to receive messages is changed
+	event RegistrationUpdated(address receiver, bool approve);
 
 	/**
    * @notice Throws if called by any account other than the fxChild.
@@ -52,7 +49,7 @@ contract PolygonL2Messenger is
 
 	/// @inheritdoc IFxMessageProcessor
 	function processMessageFromRoot(
-		uint256 stateId,
+		uint256, /* stateId */
 		address rootMessageSender,
 		bytes calldata data
 	) override
@@ -60,31 +57,24 @@ contract PolygonL2Messenger is
 		onlyFxChild
 		external {
 		require(
-			messageReceiver != address(0),
-			"messageReceiver has not been set"
+			rootMessageSender == fxRootSender,
+				"PolygonL2Messenger::processMessageFromRoot:UNAUTHORIZED_ROOT_ORIGIN"
 		);
-		require(rootMessageSender == fxRootSender, 'UNAUTHORIZED_ROOT_ORIGIN');
 
-		bytes memory xDomainCalldata = abi.encodeWithSignature(
-			"processMessageFromRoot(uint256,address,bytes)",
-			stateId,
-			rootMessageSender,
-			data
-		);
-		bytes32 xDomainCalldataHash = keccak256(xDomainCalldata);
-
+		(address target,  bytes memory callData) = abi.decode(data, (address, bytes));
 		require(
-			successfulMessages[xDomainCalldataHash] == false,
-			"Provided message has already been received."
-    );
+			registeredReceivers[target],
+			"PolygonL2Messenger::processMessageFromRoot:UNAUTHORIZED_RECEIVER"
+		);
 
 		xDomainMsgSender = rootMessageSender;
-		(bool success, ) = messageReceiver.call(data);
+		(bool success, ) = target.call(callData);
 		xDomainMsgSender = DEFAULT_XDOMAIN_SENDER;
 
-		if (success == true) {
-			successfulMessages[xDomainCalldataHash] = true;
-		}
+		require(
+      success,
+      "PolygonL2Messenger::processMessageFromRoot: Message execution reverted."
+    );
 	}
 
 	/**
@@ -102,12 +92,13 @@ contract PolygonL2Messenger is
 	}
 
 	/**
-   * @dev Updates the address of PolygonL2Messenger contract
-   * @param msgReceiver address of the L2 contract that will execute the received message - likely the cryptex orchestartor
-   **/
-	function setMessageReceiver(address msgReceiver) external onlyOwner {
-		emit MessageReceiverUpdate(messageReceiver, msgReceiver);
-		messageReceiver = msgReceiver;
+   * @dev updates the approval for an address to receive messages
+   * @param receiver address of message receiver
+   * @param approve flag that approves or disapproves a receiver
+  **/
+	function updateRegisteredReceivers(address receiver, bool approve) external onlyOwner {
+			registeredReceivers[receiver] = approve;
+			emit RegistrationUpdated(receiver, approve);
 	}
 
 	/**

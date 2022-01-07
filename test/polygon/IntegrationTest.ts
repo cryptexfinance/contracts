@@ -24,6 +24,7 @@ let stateSender: Contract;
 let aggregatorInterfaceTCAP: Contract;
 let tCAP: Contract;
 let wETH: Contract;
+let polygonTreasury: Contract;
 let tCAPOracle: Contract;
 let wETHOracle: Contract;
 let wETHVaultHandler: Contract;
@@ -121,7 +122,7 @@ describe("Polygon Integration Test", async function () {
 			timelock.address,
 			polygonMessenger.address
 		]);
-		await polygonMessenger.functions.setMessageReceiver(polygonOrchestrator.address);
+		await polygonMessenger.functions.updateRegisteredReceivers(polygonOrchestrator.address, true);
 		await polygonMessenger.functions.updateFxRootSender(timelock.address);
 		await polygonMessenger.functions.updateFxChild(fxChild.address);
 		aggregatorInterfaceTCAP = await deployContract("AggregatorInterfaceTCAP", wallet, []);
@@ -139,7 +140,9 @@ describe("Polygon Integration Test", async function () {
 			wallet,
 			[aggregatorInterfaceTCAP.address, timelock.address]
 		);
-
+		polygonTreasury = await deployContract(
+			"PolygonTreasury", wallet, [timelock.address, polygonMessenger.address]
+		);
 		let nonce = await wallet.getTransactionCount();
 		const rewardAddress = hre.ethers.utils.getContractAddress({
 				from: wallet.address,
@@ -160,7 +163,7 @@ describe("Polygon Integration Test", async function () {
 				wETHOracle.address,
 				wETHOracle.address,
 				rewardAddress,
-				timelock.address,
+				polygonTreasury.address,
 			]
 		);
 		wETHRewardHandler = await deployContract(
@@ -174,14 +177,15 @@ describe("Polygon Integration Test", async function () {
 
 	it("...Add new vault", async () => {
 			expect(await tCAP.vaultHandlers(wETHVaultHandler.address)).to.be.false;
+			let abiCoder = new utils.AbiCoder();
 			let ABI = [ "function addTCAPVault(address,address)" ];
 			let iface = new hre.ethers.utils.Interface(ABI);
-			const _callData = iface.encodeFunctionData("addTCAPVault", [tCAP.address, wETHVaultHandler.address]);
+			const _data = iface.encodeFunctionData("addTCAPVault", [tCAP.address, wETHVaultHandler.address]);
+			const _callData = abiCoder.encode(['address', 'bytes'], [polygonOrchestrator.address, _data])
 
 			targets = [fxRoot.address];
 			values = [0];
 			signatures = ["sendMessageToChild(address,bytes)"];
-			let abiCoder = new utils.AbiCoder();
 			callDatas = [abiCoder.encode(['address', 'bytes'], [polygonMessenger.address, _callData])];
 
 			await executeProposal(targets, values, signatures, callDatas);
