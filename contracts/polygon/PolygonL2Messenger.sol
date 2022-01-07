@@ -1,13 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.5;
 
-
-import "fx-portal-contracts/contracts/FxChild.sol";
-
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { Context } from "@openzeppelin/contracts/GSN/Context.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
+// IFxMessageProcessor represents interface to process message
+interface IFxMessageProcessor {
+    function processMessageFromRoot(
+			uint256 stateId,
+			address rootMessageSender,
+			bytes calldata data
+		) external;
+}
 
 contract PolygonL2Messenger is
 	IFxMessageProcessor,
