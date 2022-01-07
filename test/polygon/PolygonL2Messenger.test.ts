@@ -1,11 +1,12 @@
 import { expect } from "chai";
-import { Contract } from "ethers";
+import { Contract, utils } from "ethers";
 import hre, { waffle } from "hardhat";
 
 describe("PolygonL2Messenger Test", async function () {
 	const [deployer, l1MsgSender, fxChild, acc1] = waffle.provider.getWallets();
 	let polygonL2Messenger: Contract;
 	let crossChainMsgTester: Contract;
+	let abiCoder = new utils.AbiCoder();
 
 	beforeEach(async () => {
 		const messenger = await hre.ethers.getContractFactory("PolygonL2Messenger");
@@ -16,9 +17,9 @@ describe("PolygonL2Messenger Test", async function () {
 		const [ owner ] = await crossChainMsgTester.functions.owner();
 		expect(owner).to.be.eq(l1MsgSender.address);
 
-		await polygonL2Messenger.functions.setMessageReceiver(crossChainMsgTester.address);
-		const [ _msgReceiver ] = await polygonL2Messenger.functions.messageReceiver()
-		expect(_msgReceiver).to.be.eq(crossChainMsgTester.address);
+		await polygonL2Messenger.functions.updateRegisteredReceivers(crossChainMsgTester.address, true);
+		const [iscrossChainMsgTesterRegistered] = await polygonL2Messenger.functions.registeredReceivers(crossChainMsgTester.address);
+		expect(iscrossChainMsgTesterRegistered).to.be.true;
 
 		await polygonL2Messenger.functions.updateFxRootSender(l1MsgSender.address);
 		const [ _fxRootSender ] = await polygonL2Messenger.functions.fxRootSender()
@@ -33,7 +34,9 @@ describe("PolygonL2Messenger Test", async function () {
 		let ABI = [ "function setMessage(string memory _msg)" ];
 		const iface = new hre.ethers.utils.Interface(ABI);
 		const new_message = "New Message";
-		const callData = iface.encodeFunctionData("setMessage", [new_message]);
+		const _data = iface.encodeFunctionData("setMessage", [new_message]);
+		const callData = abiCoder.encode(['address', 'bytes'], [crossChainMsgTester.address, _data])
+
 		// mock l2 call
 		await polygonL2Messenger.connect(fxChild).processMessageFromRoot(
 			1, l1MsgSender.address, callData
@@ -47,7 +50,8 @@ describe("PolygonL2Messenger Test", async function () {
 		let ABI = [ "function setMessage(string memory _msg)" ];
 		const iface = new hre.ethers.utils.Interface(ABI);
 		const new_message = "New Message";
-		const callData = iface.encodeFunctionData("setMessage", [new_message]);
+		const _data = iface.encodeFunctionData("setMessage", [new_message]);
+		const callData = abiCoder.encode(['address', 'bytes'], [crossChainMsgTester.address, _data])
 		// mock l2 call
 		// acc1 is not an owner
 		await expect(
@@ -59,7 +63,8 @@ describe("PolygonL2Messenger Test", async function () {
 		let ABI = [ "function setMessage(string memory _msg)" ];
 		const iface = new hre.ethers.utils.Interface(ABI);
 		const new_message = "New Message";
-		const callData = iface.encodeFunctionData("setMessage", [new_message]);
+		const _data = iface.encodeFunctionData("setMessage", [new_message]);
+		const callData = abiCoder.encode(['address', 'bytes'], [crossChainMsgTester.address, _data])
 		// mock l2 call
 		// deployer is not fxChild
 		await expect(
