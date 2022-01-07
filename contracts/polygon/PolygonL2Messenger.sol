@@ -46,7 +46,7 @@ contract PolygonL2Messenger is
 
 	/**
    * @notice Throws if called by any account other than the fxChild.
-  */
+  **/
 	modifier onlyFxChild() {
     require(msg.sender == fxChild, 'UNAUTHORIZED_CHILD_ORIGIN');
     _;
@@ -63,7 +63,7 @@ contract PolygonL2Messenger is
 		external {
 		require(
 			rootMessageSender == fxRootSender,
-				"PolygonL2Messenger::processMessageFromRoot:UNAUTHORIZED_ROOT_ORIGIN"
+			"PolygonL2Messenger::processMessageFromRoot:UNAUTHORIZED_ROOT_ORIGIN"
 		);
 
 		(address target,  bytes memory callData) = abi.decode(data, (address, bytes));
@@ -109,7 +109,7 @@ contract PolygonL2Messenger is
 	/**
    * @dev Update the expected address of contract originating from a cross-chain transaction
    * @param _fxRootSender contract originating a cross-chain transaction- likely the cryptex timelock
-   **/
+  **/
   function updateFxRootSender(address _fxRootSender) external onlyOwner {
     emit FxRootSenderUpdate(fxRootSender, _fxRootSender);
     fxRootSender = _fxRootSender;
@@ -118,7 +118,7 @@ contract PolygonL2Messenger is
   /**
    * @dev Update the address of the FxChild contract
    * @param _fxChild the address of the contract used to foward cross-chain transactions on Polygon
-   **/
+  **/
   function updateFxChild(address _fxChild) external onlyOwner {
     emit FxChildUpdate(fxChild, _fxChild);
     fxChild = _fxChild;
