@@ -22,7 +22,7 @@ abstract contract Proprietor {
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    constructor (address _owner) internal {
+    constructor (address _owner) {
         require(_owner != address(0), "Proprietor::constructor: address can't be zero");
         owner = _owner;
         emit OwnershipTransferred(address(0), owner);

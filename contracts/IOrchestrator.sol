@@ -95,7 +95,7 @@ abstract contract IOrchestrator is Proprietor {
 	modifier validChainlinkOracle(address _oracle) {
 		require(
 			ERC165Checker.supportsInterface(
-				address(_oracle),
+				_oracle,
 				_INTERFACE_ID_CHAINLINK_ORACLE
 			),
 			"IOrchestrator::validChainlinkOrchestrator: not a valid Chainlink Oracle"
