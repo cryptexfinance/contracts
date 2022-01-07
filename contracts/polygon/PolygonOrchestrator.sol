@@ -11,7 +11,13 @@ import "./PolygonL2Messenger.sol";
  */
 contract PolygonOrchestrator is IOrchestrator {
 	/// @notice Address of the polygonMessenger contract.
-	PolygonL2Messenger public immutable polygonMessenger;
+	PolygonL2Messenger public polygonMessenger;
+
+	/// @notice event emitted when polygonMessenger is updated.
+	event UpdatedPolygonMessenger(
+		PolygonL2Messenger oldPolygonMessenger,
+		PolygonL2Messenger newPolygonMessenger
+	);
 
 	// @notice Throws if called by an account different from the owner
 	// @dev call needs to come from polygonMessenger
@@ -26,7 +32,7 @@ contract PolygonOrchestrator is IOrchestrator {
 	/**
 	 * @notice Constructor
 	 * @param _guardian The guardian address
-	 */
+	**/
 	constructor(
 		address _guardian,
 		address _owner,
@@ -37,5 +43,18 @@ contract PolygonOrchestrator is IOrchestrator {
 			"PolygonOrchestrator::constructor: address can't be zero"
 		);
 		polygonMessenger = PolygonL2Messenger(_polygonMessenger);
+	}
+
+	/**
+	 * @notice updated the polygonMessenger instance
+	 * @param newPolygonMessenger address of the new PolygonL2Messenger contract
+	**/
+	function updatePolygonMessenger(address newPolygonMessenger) external onlyOwner {
+		require(
+			newPolygonMessenger != address (0),
+			"PolygonOrchestrator: new owner is the zero address"
+		);
+		emit UpdatedPolygonMessenger(polygonMessenger, PolygonL2Messenger(newPolygonMessenger));
+		polygonMessenger = PolygonL2Messenger(newPolygonMessenger);
 	}
 }
