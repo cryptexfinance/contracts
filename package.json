@@ -15,7 +15,7 @@
 		"deploy": "npx hardhat deploy",
 		"verify": "npx hardhat sourcify",
 		"docgen": "yarn run solidity-docgen --solc-module solc-0.7",
-		"fbuild": " forge build --remappings @openzeppelin/=node_modules/@openzeppelin/ @chainlink/=node_modules/@chainlink/ --contracts contracts",
+		"fbuild": " forge build --remappings @openzeppelin/=node_modules/@openzeppelin/ @chainlink/=node_modules/@chainlink/ fx-portal-contracts/=node_modules/fx-portal-contracts --contracts contracts ",
 		"ftest": "./test.sh"
 	},
 	"dependencies": {

@@ -39,5 +39,4 @@ contract OptimisticTreasury is ITreasury {
 		);
 		_;
 	}
-
 }
