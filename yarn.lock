@@ -1144,11 +1144,6 @@
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-3.3.0.tgz#ffdb693c5c349fc33bba420248dd3ac0a2d7c408"
   integrity sha512-AemZEsQYtUp1WRkcmZm1div5ORfTpLquLaziCIrSagjxyKdmObxuaY1yjQ5SHFMctR8rLwp706NXTbiIRJg7pw==
 
-"@openzeppelin/contracts@^4.2.0":
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.4.1.tgz#3382db2cd83ab565ed9626765e7da92944b45de8"
-  integrity sha512-o+pHCf/yMLSlV5MkDQEzEQL402i6SoRnktru+0rdSxVEFZcTzzGhZCAtZjUFyKGazMSv1TilzMg+RbED1N8XHQ==
-
 "@resolver-engine/core@^0.3.3":
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/@resolver-engine/core/-/core-0.3.3.tgz#590f77d85d45bc7ecc4e06c654f41345db6ca967"
@@ -4995,13 +4990,6 @@ functional-red-black-tree@^1.0.1, functional-red-black-tree@~1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
   integrity sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
-
-fx-portal-contracts@0.7.0:
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/fx-portal-contracts/-/fx-portal-contracts-0.7.0.tgz#32d89d64a99c9b5f410e415c69a02aa290add491"
-  integrity sha512-1bkJSQZwFBkxLtW2hVhVAAqEBtIQf/sGZFiZAQ3QLlqdlTkVlO08LJtBqrm47izseK9omPemNsIXY8OYfhkswg==
-  dependencies:
-    "@openzeppelin/contracts" "^4.2.0"
 
 ganache-cli@^6.11.0:
   version "6.12.2"
