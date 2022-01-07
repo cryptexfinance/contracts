@@ -23,12 +23,13 @@ let fxRoot: Contract;
 let stateSender: Contract;
 let aggregatorInterfaceTCAP: Contract;
 let tCAP: Contract;
-let wETH: Contract;
 let polygonTreasury: Contract;
 let tCAPOracle: Contract;
-let wETHOracle: Contract;
-let wETHVaultHandler: Contract;
-let wETHRewardHandler: Contract;
+let wMATIC: Contract;
+let wMATICOracle: Contract;
+let wMATICVaultHandler: Contract;
+let wMATICRewardHandler: Contract;
+let abiCoder = new utils.AbiCoder();
 
 enum ProposalState {
 	Pending,
@@ -119,37 +120,35 @@ describe("Polygon Integration Test", async function () {
 		polygonMessenger = await deployContract("PolygonL2Messenger", wallet, []);
 		polygonOrchestrator = await deployContract("PolygonOrchestrator", wallet, [
 			wallet.address,
-			timelock.address,
+			wallet.address,
 			polygonMessenger.address
 		]);
 		await polygonMessenger.functions.updateRegisteredReceivers(polygonOrchestrator.address, true);
-		await polygonMessenger.functions.updateFxRootSender(timelock.address);
-		await polygonMessenger.functions.updateFxChild(fxChild.address);
+		polygonTreasury = await deployContract(
+			"PolygonTreasury", wallet, [timelock.address, polygonMessenger.address]
+		);
 		aggregatorInterfaceTCAP = await deployContract("AggregatorInterfaceTCAP", wallet, []);
 		tCAP = await deployContract(
 			"TCAP", wallet, ["TCAP Token", "TCAP", 0, polygonOrchestrator.address]
 		);
-		wETH = await deployContract("AggregatorInterfaceTCAP", wallet, []);
 		tCAPOracle = await deployContract(
 			"ChainlinkOracle",
 			wallet,
 			[aggregatorInterfaceTCAP.address, timelock.address]
 		);
-		wETHOracle = await deployContract(
+		wMATIC = await deployContract("WMATIC", wallet, []);
+		wMATICOracle = await deployContract(
 			"ChainlinkOracle",
 			wallet,
 			[aggregatorInterfaceTCAP.address, timelock.address]
 		);
-		polygonTreasury = await deployContract(
-			"PolygonTreasury", wallet, [timelock.address, polygonMessenger.address]
-		);
 		let nonce = await wallet.getTransactionCount();
-		const rewardAddress = hre.ethers.utils.getContractAddress({
+		const wMATICRewardAddress = hre.ethers.utils.getContractAddress({
 				from: wallet.address,
 				nonce: nonce + 1,
 		});
-		wETHVaultHandler = await deployContract(
-			"ETHVaultHandler",
+		wMATICVaultHandler = await deployContract(
+			"MATICVaultHandler",
 			wallet,
 			[
 				polygonOrchestrator.address,
@@ -159,37 +158,65 @@ describe("Polygon Integration Test", async function () {
 				"10",
 				tCAPOracle.address,
 				tCAP.address,
-				wETH.address,
-				wETHOracle.address,
-				wETHOracle.address,
-				rewardAddress,
+				wMATIC.address,
+				wMATICOracle.address,
+				wMATICOracle.address,
+				wMATICRewardAddress,
 				polygonTreasury.address,
 			]
 		);
-		wETHRewardHandler = await deployContract(
+		wMATICRewardHandler = await deployContract(
 			"RewardHandler",
 			wallet,
-			[polygonOrchestrator.address, ctx.address, wETHVaultHandler.address]
+			[polygonOrchestrator.address, ctx.address, wMATICVaultHandler.address]
 		);
 
+		// 		setting deployer address in order to directly control Orchestrator
+		await polygonMessenger.functions.updateFxRootSender(wallet.address);
+		await polygonMessenger.functions.updateFxChild(wallet.address);
+
+	});
+
+	it("...Add new vault without Governance", async () => {
+		expect(await tCAP.vaultHandlers(wMATICVaultHandler.address)).to.be.false;
+		let ABI = [ "function addTCAPVault(address,address)" ];
+		let iface = new hre.ethers.utils.Interface(ABI);
+		const _data = iface.encodeFunctionData("addTCAPVault", [tCAP.address, wMATICVaultHandler.address]);
+		const _callData = abiCoder.encode(['address', 'bytes'], [polygonOrchestrator.address, _data])
+
+		await polygonMessenger.functions.processMessageFromRoot(1, wallet.address, _callData)
+		expect(await tCAP.vaultHandlers(wMATICVaultHandler.address)).to.be.true;
+
 	});
 
 
-	it("...Add new vault", async () => {
-			expect(await tCAP.vaultHandlers(wETHVaultHandler.address)).to.be.false;
-			let abiCoder = new utils.AbiCoder();
-			let ABI = [ "function addTCAPVault(address,address)" ];
-			let iface = new hre.ethers.utils.Interface(ABI);
-			const _data = iface.encodeFunctionData("addTCAPVault", [tCAP.address, wETHVaultHandler.address]);
-			const _callData = abiCoder.encode(['address', 'bytes'], [polygonOrchestrator.address, _data])
+	it("...Add new vault through Governance", async () => {
+		// 		Transfer ownership to the DAO
+		let ABI = [ "function transferOwnership(address)" ];
+		let iface = new hre.ethers.utils.Interface(ABI);
+		let _data = iface.encodeFunctionData("transferOwnership", [timelock.address]);
+		let _callData = abiCoder.encode(['address', 'bytes'], [polygonOrchestrator.address, _data])
+		await polygonMessenger.functions.processMessageFromRoot(1, wallet.address, _callData);
+		const [ orchestratorOwner ] = await polygonOrchestrator.functions.owner();
+		expect(orchestratorOwner).to.be.eq(timelock.address);
+		await polygonMessenger.functions.updateFxRootSender(timelock.address);
+		await polygonMessenger.functions.updateFxChild(fxChild.address);
 
-			targets = [fxRoot.address];
-			values = [0];
-			signatures = ["sendMessageToChild(address,bytes)"];
-			callDatas = [abiCoder.encode(['address', 'bytes'], [polygonMessenger.address, _callData])];
+		expect(await tCAP.vaultHandlers(wMATICVaultHandler.address)).to.be.false;
 
-			await executeProposal(targets, values, signatures, callDatas);
-			expect(await tCAP.vaultHandlers(wETHVaultHandler.address)).to.be.true;
+		ABI = [ "function addTCAPVault(address,address)" ];
+		iface = new hre.ethers.utils.Interface(ABI);
+		_data = iface.encodeFunctionData("addTCAPVault", [tCAP.address, wMATICVaultHandler.address]);
+		_callData = abiCoder.encode(['address', 'bytes'], [polygonOrchestrator.address, _data])
+
+		targets = [fxRoot.address];
+		values = [0];
+		signatures = ["sendMessageToChild(address,bytes)"];
+		callDatas = [abiCoder.encode(['address', 'bytes'], [polygonMessenger.address, _callData])];
+
+		await executeProposal(targets, values, signatures, callDatas);
+		expect(await tCAP.vaultHandlers(wMATICVaultHandler.address)).to.be.true;
 	});
+
 
 });
