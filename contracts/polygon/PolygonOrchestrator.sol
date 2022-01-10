@@ -46,7 +46,7 @@ contract PolygonOrchestrator is IOrchestrator {
 	}
 
 	/**
-	 * @notice updated the polygonMessenger instance
+	 * @notice updates the polygonMessenger instance
 	 * @param newPolygonMessenger address of the new PolygonL2Messenger contract
 	**/
 	function updatePolygonMessenger(address newPolygonMessenger) external onlyOwner {
