@@ -15,27 +15,25 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 		let handlerContract;
 		let orchestrator = await deployments.get("PolygonOrchestrator");
 		try {
-			handlerContract = await deployments.get("WETHVaultHandler");
+			handlerContract = await deployments.get("MATICVaultHandler");
 		} catch (error) {
 			log(error.message);
 			try {
 				let tcap = await deployments.get("TCAP");
 
-				let WETHContract = await deployments.get("WETH");
+				let WETHContract = await deployments.get("WMATIC");
 
 				let divisor = process.env.DIVISOR as string;
 				let ratio = process.env.RATIO as string;
 				let burnFee = process.env.BURN_FEE as string;
 				let liquidationPenalty = process.env.LIQUIDATION_PENALTY as string;
 				let tcapOracle = await deployments.get("TCAPOracle");
-				let priceFeedETH = await deployments.get("WETHOracle");
-				// TODO: use actual timelock address
-				const timelock = deployer;
+				let priceFeedETH = await deployments.get("WMATICOracle");
+				const polygonTreasuryDeployResult = await deployments.get("PolygonTreasury");
 				let rewardAddress = ethers.constants.AddressZero;
 
-				const deployResult = await deployments.deploy("WETHVaultHandler", {
+				const deployResult = await deployments.deploy("MATICVaultHandler", {
 					from: deployer,
-					contract: "ETHVaultHandler",
 					args: [
 						orchestrator.address,
 						divisor,
@@ -48,13 +46,13 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 						priceFeedETH.address,
 						priceFeedETH.address,
 						rewardAddress,
-						timelock,
+						polygonTreasuryDeployResult.address,
 					],
 				});
-				handlerContract = await deployments.get("WETHVaultHandler");
+				handlerContract = await deployments.get("MATICVaultHandler");
 				if (deployResult.newlyDeployed) {
 					log(
-						`WETHVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt?.gasUsed}`
+						`MATICVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt?.gasUsed}`
 					);
 				}
 			} catch (error) {
@@ -63,4 +61,4 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 		}
 	}
 };
-module.exports.tags = ['WETHVaultHandler'];
+module.exports.tags = ['WMATICVaultHandler'];

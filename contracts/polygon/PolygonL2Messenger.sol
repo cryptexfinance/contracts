@@ -36,12 +36,6 @@ contract PolygonL2Messenger is
 	/// @notice temporarily stores the cross domain sender address when processMessageFromRoot is called
 	address public xDomainMsgSender = DEFAULT_XDOMAIN_SENDER;
 
-	/// @notice map that stores addresses that are approved to receive messages
-	mapping (address => bool) public registeredReceivers;
-
-	/// @notice An event emitted when approval for an address to receive messages is changed
-	event RegistrationUpdated(address receiver, bool approve);
-
 	/**
 	 * @notice Throws if called by any account other than this contract.
 	**/
@@ -58,14 +52,9 @@ contract PolygonL2Messenger is
     _;
   }
 
-	constructor(address _fxRootSender, address _fxChild, address [] memory _registeredReceivers) {
+	constructor(address _fxRootSender, address _fxChild) {
 		fxRootSender = _fxRootSender;
 		fxChild = _fxChild;
-		for (uint i=0; i < _registeredReceivers.length; i++) {
-				registeredReceivers[_registeredReceivers[i]] = true;
-		}
-		// This is needed so that functions that need the onlyThis modifier can be called.
-		registeredReceivers[address(this)] = true;
 	}
 
 	/// @inheritdoc IFxMessageProcessor
@@ -83,10 +72,6 @@ contract PolygonL2Messenger is
 		);
 
 		(address target,  bytes memory callData) = abi.decode(data, (address, bytes));
-		require(
-			registeredReceivers[target],
-			"PolygonL2Messenger::processMessageFromRoot:UNAUTHORIZED_RECEIVER"
-		);
 
 		xDomainMsgSender = rootMessageSender;
 		(bool success, ) = target.call(callData);
@@ -110,17 +95,6 @@ contract PolygonL2Messenger is
 		) {
 			require(xDomainMsgSender != DEFAULT_XDOMAIN_SENDER, "xDomainMessageSender is not set");
 			return xDomainMsgSender;
-	}
-
-	/**
-   * @dev updates the approval for an address to receive messages
-   * @param receiver address of message receiver
-   * @param approve flag that approves or disapproves a receiver
-  **/
-	function updateRegisteredReceivers(address receiver, bool approve) external onlyThis {
-		require(receiver != address(0), "PolygonL2Messenger: receiver is the zero address");
-		registeredReceivers[receiver] = approve;
-		emit RegistrationUpdated(receiver, approve);
 	}
 
 	/**

@@ -5,29 +5,20 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 			return;
 	const { deployIfDifferent, log } = deployments;
 	const { deployer } = await getNamedAccounts();
-	const messengerDeployResult = await deployments.getOrNull("PolygonL2Messenger");
-
-	if(!messengerDeployResult){
-		log(
-			`PolygonL2Messenger needs to be deployed before deploying PolygonOrchestrator`
-		);
-		return process.exit(1)
-	}
+	const deploymentPolygonMessengerDeployResult = await deployments.get("deploymentPolygonMessenger");
 
 	const orchestratorDeployResult = await deployments.deploy("PolygonOrchestrator", {
 		from: deployer,
 		skipIfAlreadyDeployed: true,
 		log: true,
-		// 	TODO: arg2 should timelock address
-		args: [deployer, deployer, messengerDeployResult.address]
+		// 	Note: Owner is set to deployer so that initial vaults can be
+		// launched without the need for voting
+		// The owner should be changed to timelock post setup
+		args: [deployer, deployer, deploymentPolygonMessengerDeployResult.address]
 	});
 
 	log(
 		`PolygonOrchestrator deployed at ${orchestratorDeployResult.address} for ${orchestratorDeployResult.receipt?.gasUsed}`
 	);
 
-	const polygonL2Messenger = await hre.ethers.getContractAt("PolygonL2Messenger", messengerDeployResult.address);
-
-	const tx = await polygonL2Messenger.functions.setMessageReceiver(orchestratorDeployResult.address);
-	const receipt = tx.wait();
 }

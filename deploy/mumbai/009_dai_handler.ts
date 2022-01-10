@@ -25,12 +25,10 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 				let burnFee = process.env.BURN_FEE as string;
 				let liquidationPenalty = process.env.LIQUIDATION_PENALTY as string;
 				let tcapOracle = await deployments.get("TCAPOracle");
-				let priceFeedETH = await deployments.get("WETHOracle");
+				let priceFeedETH = await deployments.get("WMATICOracle");
 				let priceFeedDAI = await deployments.get("DAIOracle");
-				// TODO: use actual timelock address
-				const timelock = deployer;
+				const polygonTreasuryDeployResult = await deployments.get("PolygonTreasury");
 				let rewardAddress = ethers.constants.AddressZero;
-				console.log("divisor", divisor);
 
 				const deployResult = await deployments.deploy("DAIVaultHandler", {
 					from: deployer,
@@ -47,7 +45,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 						priceFeedDAI.address,
 						priceFeedETH.address,
 						rewardAddress,
-						timelock,
+						polygonTreasuryDeployResult.address,
 					],
 				});
 				handlerContract = await deployments.get("DAIVaultHandler");

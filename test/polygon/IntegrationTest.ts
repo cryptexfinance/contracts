@@ -189,14 +189,14 @@ describe("Polygon Integration Test", async function () {
 		deploymentPolygonMessenger = await deployContract(
 			"PolygonL2Messenger",
 			wallet,
- 			[wallet.address, wallet.address, [polygonOrchestratorAddress, polygonTreasuryAddress]]
+ 			[wallet.address, wallet.address]
 		);
 
 		polygonMessenger = await deployContract(
 			"PolygonL2Messenger",
 			wallet,
 			// set FxRootSender to deployer. This will be changed later
- 			[wallet.address, fxChild.address, [polygonOrchestratorAddress, polygonTreasuryAddress]]
+ 			[wallet.address, fxChild.address]
 		);
 
 		polygonOrchestrator = await deployContract("PolygonOrchestrator", wallet, [

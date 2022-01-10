@@ -15,16 +15,13 @@ describe("PolygonL2Messenger Test", async function () {
 				nonce: nonce + 1,
 		});
 		const messenger = await hre.ethers.getContractFactory("PolygonL2Messenger");
-		polygonL2Messenger = await messenger.deploy(l1MsgSender.address, fxChild.address, [crossChainMsgTesterAddress]);
+		polygonL2Messenger = await messenger.deploy(l1MsgSender.address, fxChild.address);
 
 		const tester = await hre.ethers.getContractFactory("PolygonMsgTester");
 		crossChainMsgTester = await tester.deploy(l1MsgSender.address, polygonL2Messenger.address);
 
 		const [ owner ] = await crossChainMsgTester.functions.owner();
 		expect(owner).to.be.eq(l1MsgSender.address);
-
-		const [iscrossChainMsgTesterRegistered] = await polygonL2Messenger.functions.registeredReceivers(crossChainMsgTester.address);
-		expect(iscrossChainMsgTesterRegistered).to.be.true;
 
 		const [ _fxRootSender ] = await polygonL2Messenger.functions.fxRootSender()
 		expect(_fxRootSender).to.be.eq(l1MsgSender.address);

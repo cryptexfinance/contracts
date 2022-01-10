@@ -10,7 +10,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
         );
 
         //Deploy Mock DAIs
-        let DAI, WETH;
+        let DAI, WMATIC;
         try {
             DAI = await deployments.get("DAI");
         } catch (error) {
@@ -30,24 +30,24 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
             }
 
             try {
-                WETH = await deployments.get("WETH");
+                WMATIC = await deployments.get("WMATIC");
             } catch (error) {
                 log(error.message);
 
                 const deployResult = await deployIfDifferent(
                     ["data"],
-                    "WETH",
+                    "WMATIC",
                     { from: deployer },
-                    "WETH"
+                    "WMATIC"
                 );
-                WETH = await deployments.get("WETH");
+                WMATIC = await deployments.get("WMATIC");
                 if (deployResult.newlyDeployed) {
                     log(
-                        `WETH deployed at ${WETH.address} for ${deployResult.receipt.gasUsed}`
+                        `WMATIC deployed at ${WMATIC.address} for ${deployResult.receipt.gasUsed}`
                     );
                 }
             }
         }
     }
 };
-module.exports.tags = ["DAI", "WETH"];
+module.exports.tags = ["DAI", "WMATIC"];
