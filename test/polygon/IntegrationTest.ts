@@ -16,6 +16,7 @@ let targets: string[];
 let values: number[];
 let signatures: string[];
 let callDatas: string[];
+let deploymentPolygonMessenger: Contract;
 let polygonMessenger: Contract;
 let polygonOrchestrator: Contract;
 let fxChild: Contract;
@@ -40,6 +41,64 @@ enum ProposalState {
 	Queued,
 	Expired,
 	Executed
+}
+
+async function makePolygonMessageCall(
+		_polygonMessenger: Contract,
+		_target_address: string,
+		function_name: string,
+		args_type: string[],
+		args: any[],
+) {
+	let ABI = [ `function ${function_name}(${args_type.toString()})` ];
+	let iface = new hre.ethers.utils.Interface(ABI);
+	let _data = iface.encodeFunctionData(function_name, args);
+	let _callData = abiCoder.encode(['address', 'bytes'], [_target_address, _data]);
+	await _polygonMessenger.functions.processMessageFromRoot(1, wallet.address, _callData);
+}
+
+async function makePolygonMessageCallViaFxRoot(
+		_polygonMessenger: Contract,
+		_target_address: string,
+		function_name: string,
+		args_type: string[],
+		args: any[],
+) {
+	let ABI = [ `function ${function_name}(${args_type.toString()})` ];
+	let iface = new hre.ethers.utils.Interface(ABI);
+	let _data = iface.encodeFunctionData(function_name, args);
+	let _callData = abiCoder.encode(['address', 'bytes'], [_target_address, _data])
+	await fxRoot.functions.sendMessageToChild(_polygonMessenger.address, _callData);
+}
+
+async function transferOwnershipToDAO() {
+	// Change polygonMessenger
+	// This call will be made from polygon mainnet or mumbai
+	await makePolygonMessageCall(
+		deploymentPolygonMessenger,
+		polygonOrchestrator.address,
+		"updatePolygonMessenger",
+		["address"],
+		[polygonMessenger.address]
+	);
+	// Transfer Orchestrator OwnerShip
+	// This call will be made from ethereum mainet or goerli
+	await makePolygonMessageCallViaFxRoot(
+		polygonMessenger,
+		polygonOrchestrator.address,
+		"transferOwnership",
+		["address"],
+		[timelock.address]
+	);
+	// Transfer polyMessenger OwnerShip to timelock
+	// This call will be made from ethereum mainet or goerli
+	await makePolygonMessageCallViaFxRoot(
+		polygonMessenger,
+		polygonMessenger.address,
+		"updateFxRootSender",
+		["address"],
+		[timelock.address]
+	);
 }
 
 async function executeProposal(
@@ -71,7 +130,6 @@ async function executeProposal(
 	for (let i = 0; i < 20000; i++) {
 		await hre.network.provider.send("evm_mine");
 	}
-	debugger;
 	[ status ] = await governorBeta.functions.state(proposalID.toString());
 	expect(
 		status
@@ -96,7 +154,7 @@ async function executeProposal(
 		status
 	).to.be.eq(ProposalState.Queued);
 
-	// 		Execute proposal
+	// 	Execute proposal
 	await governorBeta.functions.execute(proposalID.toString());
 	[ status ] = await governorBeta.functions.state(proposalID.toString());
 	expect(
@@ -117,13 +175,36 @@ describe("Polygon Integration Test", async function () {
 		fxChild = await deployContract("MockFxChild", wallet, []);
 		await fxRoot.setFxChild(fxChild.address);
 		await stateSender.register(fxRoot.address, fxChild.address);
-		polygonMessenger = await deployContract("PolygonL2Messenger", wallet, []);
+
+		let nonce = await wallet.getTransactionCount();
+		const polygonOrchestratorAddress = hre.ethers.utils.getContractAddress({
+				from: wallet.address,
+				nonce: nonce + 2,
+		});
+		const polygonTreasuryAddress = hre.ethers.utils.getContractAddress({
+				from: wallet.address,
+				nonce: nonce + 3,
+		});
+		// Messenger used to setup vaults
+		deploymentPolygonMessenger = await deployContract(
+			"PolygonL2Messenger",
+			wallet,
+ 			[wallet.address, wallet.address, [polygonOrchestratorAddress, polygonTreasuryAddress]]
+		);
+
+		polygonMessenger = await deployContract(
+			"PolygonL2Messenger",
+			wallet,
+			// set FxRootSender to deployer. This will be changed later
+ 			[wallet.address, fxChild.address, [polygonOrchestratorAddress, polygonTreasuryAddress]]
+		);
+
 		polygonOrchestrator = await deployContract("PolygonOrchestrator", wallet, [
 			wallet.address,
-			wallet.address,
-			polygonMessenger.address
+			wallet.address, // For deployment only. Should be set to timelock post deployment
+			deploymentPolygonMessenger.address // For deployment only. Should be set to correct polygonMessenger post deployment
 		]);
-		await polygonMessenger.functions.updateRegisteredReceivers(polygonOrchestrator.address, true);
+
 		polygonTreasury = await deployContract(
 			"PolygonTreasury", wallet, [timelock.address, polygonMessenger.address]
 		);
@@ -142,7 +223,8 @@ describe("Polygon Integration Test", async function () {
 			wallet,
 			[aggregatorInterfaceTCAP.address, timelock.address]
 		);
-		let nonce = await wallet.getTransactionCount();
+
+		nonce = await wallet.getTransactionCount();
 		const wMATICRewardAddress = hre.ethers.utils.getContractAddress({
 				from: wallet.address,
 				nonce: nonce + 1,
@@ -171,43 +253,73 @@ describe("Polygon Integration Test", async function () {
 			[polygonOrchestrator.address, ctx.address, wMATICVaultHandler.address]
 		);
 
-		// 		setting deployer address in order to directly control Orchestrator
-		await polygonMessenger.functions.updateFxRootSender(wallet.address);
-		await polygonMessenger.functions.updateFxChild(wallet.address);
-
 	});
 
 	it("...Add new vault without Governance", async () => {
-		expect(await tCAP.vaultHandlers(wMATICVaultHandler.address)).to.be.false;
-		let ABI = [ "function addTCAPVault(address,address)" ];
-		let iface = new hre.ethers.utils.Interface(ABI);
-		const _data = iface.encodeFunctionData("addTCAPVault", [tCAP.address, wMATICVaultHandler.address]);
-		const _callData = abiCoder.encode(['address', 'bytes'], [polygonOrchestrator.address, _data])
+       expect(await tCAP.vaultHandlers(wMATICVaultHandler.address)).to.be.false;
+       let ABI = [ "function addTCAPVault(address,address)" ];
+       let iface = new hre.ethers.utils.Interface(ABI);
+       const _data = iface.encodeFunctionData("addTCAPVault", [tCAP.address, wMATICVaultHandler.address]);
+       const _callData = abiCoder.encode(['address', 'bytes'], [polygonOrchestrator.address, _data])
+       await deploymentPolygonMessenger.functions.processMessageFromRoot(1, wallet.address, _callData)
+       expect(await tCAP.vaultHandlers(wMATICVaultHandler.address)).to.be.true;
 
-		await polygonMessenger.functions.processMessageFromRoot(1, wallet.address, _callData)
-		expect(await tCAP.vaultHandlers(wMATICVaultHandler.address)).to.be.true;
+	});
 
+	it("...Transfer OwnerShip to DAO post setup", async () => {
+		const [ oldPolygonMessenger ] = await polygonOrchestrator.functions.polygonMessenger();
+		expect(oldPolygonMessenger).to.be.eq(deploymentPolygonMessenger.address);
+		// Change polygonMessenger
+		// This call will be made from polygon mainnet or mumbai
+		await makePolygonMessageCall(
+			deploymentPolygonMessenger,
+			polygonOrchestrator.address,
+			"updatePolygonMessenger",
+			["address"],
+			[polygonMessenger.address]
+		);
+		const [ newPolygonMessenger ] = await polygonOrchestrator.functions.polygonMessenger();
+		expect(newPolygonMessenger).to.be.eq(polygonMessenger.address);
+
+		const [ oldOrchestratorOwner ] = await polygonOrchestrator.functions.owner();
+		expect(oldOrchestratorOwner).to.be.eq(wallet.address);
+		// Transfer Orchestrator OwnerShip
+		// This call will be made from ethereum mainet or goerli
+		await makePolygonMessageCallViaFxRoot(
+			polygonMessenger,
+			polygonOrchestrator.address,
+			"transferOwnership",
+			["address"],
+			[timelock.address]
+		);
+		const [ newOrchestratorOwner ] = await polygonOrchestrator.functions.owner();
+		expect(newOrchestratorOwner).to.be.eq(timelock.address);
+
+		const [ oldFxRootSender ] = await polygonMessenger.functions.fxRootSender();
+		expect(oldFxRootSender).to.be.eq(wallet.address);
+		// Transfer polyMessenger OwnerShip to timelock
+		// This call will be made from ethereum mainet or goerli
+		await makePolygonMessageCallViaFxRoot(
+			polygonMessenger,
+			polygonMessenger.address,
+			"updateFxRootSender",
+			["address"],
+			[timelock.address]
+		);
+		const [ newFxRootSender ] = await polygonMessenger.functions.fxRootSender();
+		expect(newFxRootSender).to.be.eq(timelock.address);
 	});
 
 
 	it("...Add new vault through Governance", async () => {
-		// 		Transfer ownership to the DAO
-		let ABI = [ "function transferOwnership(address)" ];
-		let iface = new hre.ethers.utils.Interface(ABI);
-		let _data = iface.encodeFunctionData("transferOwnership", [timelock.address]);
-		let _callData = abiCoder.encode(['address', 'bytes'], [polygonOrchestrator.address, _data])
-		await polygonMessenger.functions.processMessageFromRoot(1, wallet.address, _callData);
-		const [ orchestratorOwner ] = await polygonOrchestrator.functions.owner();
-		expect(orchestratorOwner).to.be.eq(timelock.address);
-		await polygonMessenger.functions.updateFxRootSender(timelock.address);
-		await polygonMessenger.functions.updateFxChild(fxChild.address);
+		await transferOwnershipToDAO();
 
 		expect(await tCAP.vaultHandlers(wMATICVaultHandler.address)).to.be.false;
 
-		ABI = [ "function addTCAPVault(address,address)" ];
-		iface = new hre.ethers.utils.Interface(ABI);
-		_data = iface.encodeFunctionData("addTCAPVault", [tCAP.address, wMATICVaultHandler.address]);
-		_callData = abiCoder.encode(['address', 'bytes'], [polygonOrchestrator.address, _data])
+		let ABI = [ "function addTCAPVault(address,address)" ];
+		let iface = new hre.ethers.utils.Interface(ABI);
+		let _data = iface.encodeFunctionData("addTCAPVault", [tCAP.address, wMATICVaultHandler.address]);
+		let _callData = abiCoder.encode(['address', 'bytes'], [polygonOrchestrator.address, _data])
 
 		targets = [fxRoot.address];
 		values = [0];
