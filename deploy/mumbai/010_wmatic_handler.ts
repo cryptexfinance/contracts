@@ -21,14 +21,14 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 			try {
 				let tcap = await deployments.get("TCAP");
 
-				let WETHContract = await deployments.get("WMATIC");
+				let WMATICContractAddress = "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889";
 
 				let divisor = process.env.DIVISOR as string;
 				let ratio = process.env.RATIO as string;
 				let burnFee = process.env.BURN_FEE as string;
 				let liquidationPenalty = process.env.LIQUIDATION_PENALTY as string;
 				let tcapOracle = await deployments.get("TCAPOracle");
-				let priceFeedETH = await deployments.get("WMATICOracle");
+				let priceFeedMATIC = await deployments.get("WMATICOracle");
 				const polygonTreasuryDeployResult = await deployments.get("PolygonTreasury");
 				let rewardAddress = ethers.constants.AddressZero;
 
@@ -42,9 +42,9 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 						liquidationPenalty,
 						tcapOracle.address,
 						tcap.address,
-						WETHContract.address,
-						priceFeedETH.address,
-						priceFeedETH.address,
+						WMATICContractAddress,
+						priceFeedMATIC.address,
+						priceFeedMATIC.address,
 						rewardAddress,
 						polygonTreasuryDeployResult.address,
 					],

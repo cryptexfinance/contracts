@@ -10,7 +10,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
         );
 
         //Deploy Mock DAIs
-        let DAI, WMATIC;
+        let DAI
         try {
             DAI = await deployments.get("DAI");
         } catch (error) {
@@ -28,26 +28,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
                     `DAI deployed at ${DAI.address} for ${deployResult.receipt.gasUsed}`
                 );
             }
-
-            try {
-                WMATIC = await deployments.get("WMATIC");
-            } catch (error) {
-                log(error.message);
-
-                const deployResult = await deployIfDifferent(
-                    ["data"],
-                    "WMATIC",
-                    { from: deployer },
-                    "WMATIC"
-                );
-                WMATIC = await deployments.get("WMATIC");
-                if (deployResult.newlyDeployed) {
-                    log(
-                        `WMATIC deployed at ${WMATIC.address} for ${deployResult.receipt.gasUsed}`
-                    );
-                }
-            }
         }
     }
 };
-module.exports.tags = ["DAI", "WMATIC"];
+module.exports.tags = ["DAI"];
