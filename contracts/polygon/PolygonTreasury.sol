@@ -12,7 +12,13 @@ import "./PolygonL2Messenger.sol";
 contract PolygonTreasury is ITreasury {
 
 	/// @notice Address of the polygonMessenger contract.
-	PolygonL2Messenger public immutable polygonMessenger;
+	PolygonL2Messenger public polygonMessenger;
+
+	/// @notice event emitted when polygonMessenger is updated.
+	event UpdatedPolygonMessenger(
+		PolygonL2Messenger oldPolygonMessenger,
+		PolygonL2Messenger newPolygonMessenger
+	);
 
 	/**
 	 * @notice Constructor
@@ -39,6 +45,19 @@ contract PolygonTreasury is ITreasury {
 			"PolygonTreasury: caller is not the owner"
 		);
 		_;
+	}
+
+	/**
+	 * @notice updates the polygonMessenger instance
+	 * @param newPolygonMessenger address of the new PolygonL2Messenger contract
+	**/
+	function updatePolygonMessenger(address newPolygonMessenger) external onlyOwner {
+		require(
+			newPolygonMessenger != address (0),
+			"PolygonTreasury: new owner is the zero address"
+		);
+		emit UpdatedPolygonMessenger(polygonMessenger, PolygonL2Messenger(newPolygonMessenger));
+		polygonMessenger = PolygonL2Messenger(newPolygonMessenger);
 	}
 
 }

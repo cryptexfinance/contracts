@@ -5,10 +5,9 @@ import { deployments, hardhatArguments } from "hardhat";
 const governance: DeployFunction = async function (
     hre: HardhatRuntimeEnvironment
 ) {
-    console.log("Kovan Deploy");
-
     if (hardhatArguments.network === "kovan") {
-        const Ctx = await deployments.getOrNull("Ctx");
+				console.log("Kovan Deploy");
+				const Ctx = await deployments.getOrNull("Ctx");
         const { log } = deployments;
         if (!Ctx) {
             const ethers = hre.ethers;

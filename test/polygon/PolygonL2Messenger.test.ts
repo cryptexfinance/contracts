@@ -9,23 +9,23 @@ describe("PolygonL2Messenger Test", async function () {
 	let abiCoder = new utils.AbiCoder();
 
 	beforeEach(async () => {
+		let nonce = await deployer.getTransactionCount();
+		const crossChainMsgTesterAddress = hre.ethers.utils.getContractAddress({
+				from: deployer.address,
+				nonce: nonce + 1,
+		});
 		const messenger = await hre.ethers.getContractFactory("PolygonL2Messenger");
-		polygonL2Messenger = await messenger.deploy();
+		polygonL2Messenger = await messenger.deploy(l1MsgSender.address, fxChild.address);
+
 		const tester = await hre.ethers.getContractFactory("PolygonMsgTester");
 		crossChainMsgTester = await tester.deploy(l1MsgSender.address, polygonL2Messenger.address);
 
 		const [ owner ] = await crossChainMsgTester.functions.owner();
 		expect(owner).to.be.eq(l1MsgSender.address);
 
-		await polygonL2Messenger.functions.updateRegisteredReceivers(crossChainMsgTester.address, true);
-		const [iscrossChainMsgTesterRegistered] = await polygonL2Messenger.functions.registeredReceivers(crossChainMsgTester.address);
-		expect(iscrossChainMsgTesterRegistered).to.be.true;
-
-		await polygonL2Messenger.functions.updateFxRootSender(l1MsgSender.address);
 		const [ _fxRootSender ] = await polygonL2Messenger.functions.fxRootSender()
 		expect(_fxRootSender).to.be.eq(l1MsgSender.address);
 
-		await polygonL2Messenger.functions.updateFxChild(fxChild.address);
 		const [ _fxChild ] = await polygonL2Messenger.functions.fxChild()
 		expect(_fxChild).to.be.eq(fxChild.address);
 	});

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.5;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { Context } from "@openzeppelin/contracts/GSN/Context.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
@@ -16,7 +15,6 @@ interface IFxMessageProcessor {
 
 contract PolygonL2Messenger is
 	IFxMessageProcessor,
-	Ownable,
 	ReentrancyGuard {
 	/// @notice Address of the contract that is allowed to make calls to this contract.
 	address public fxRootSender;
@@ -38,19 +36,26 @@ contract PolygonL2Messenger is
 	/// @notice temporarily stores the cross domain sender address when processMessageFromRoot is called
 	address public xDomainMsgSender = DEFAULT_XDOMAIN_SENDER;
 
-	/// @notice map that stores addresses that are approved to receive messages
-	mapping (address => bool) public registeredReceivers;
-
-	/// @notice An event emitted when approval for an address to receive messages is changed
-	event RegistrationUpdated(address receiver, bool approve);
+	/**
+	 * @notice Throws if called by any account other than this contract.
+	**/
+	modifier onlyThis() {
+    require(msg.sender == address(this), 'UNAUTHORIZED_ORIGIN_ONLY_THIS');
+    _;
+  }
 
 	/**
    * @notice Throws if called by any account other than the fxChild.
-  */
+  **/
 	modifier onlyFxChild() {
     require(msg.sender == fxChild, 'UNAUTHORIZED_CHILD_ORIGIN');
     _;
   }
+
+	constructor(address _fxRootSender, address _fxChild) {
+		fxRootSender = _fxRootSender;
+		fxChild = _fxChild;
+	}
 
 	/// @inheritdoc IFxMessageProcessor
 	function processMessageFromRoot(
@@ -63,14 +68,10 @@ contract PolygonL2Messenger is
 		external {
 		require(
 			rootMessageSender == fxRootSender,
-				"PolygonL2Messenger::processMessageFromRoot:UNAUTHORIZED_ROOT_ORIGIN"
+			"PolygonL2Messenger::processMessageFromRoot:UNAUTHORIZED_ROOT_ORIGIN"
 		);
 
 		(address target,  bytes memory callData) = abi.decode(data, (address, bytes));
-		require(
-			registeredReceivers[target],
-			"PolygonL2Messenger::processMessageFromRoot:UNAUTHORIZED_RECEIVER"
-		);
 
 		xDomainMsgSender = rootMessageSender;
 		(bool success, ) = target.call(callData);
@@ -97,30 +98,22 @@ contract PolygonL2Messenger is
 	}
 
 	/**
-   * @dev updates the approval for an address to receive messages
-   * @param receiver address of message receiver
-   * @param approve flag that approves or disapproves a receiver
-  **/
-	function updateRegisteredReceivers(address receiver, bool approve) external onlyOwner {
-			registeredReceivers[receiver] = approve;
-			emit RegistrationUpdated(receiver, approve);
-	}
-
-	/**
    * @dev Update the expected address of contract originating from a cross-chain transaction
    * @param _fxRootSender contract originating a cross-chain transaction- likely the cryptex timelock
-   **/
-  function updateFxRootSender(address _fxRootSender) external onlyOwner {
-    emit FxRootSenderUpdate(fxRootSender, _fxRootSender);
-    fxRootSender = _fxRootSender;
+  **/
+  function updateFxRootSender(address _fxRootSender) external onlyThis {
+		require(_fxRootSender != address(0), "PolygonL2Messenger: _fxRootSender is the zero address");
+		emit FxRootSenderUpdate(fxRootSender, _fxRootSender);
+		fxRootSender = _fxRootSender;
   }
 
   /**
    * @dev Update the address of the FxChild contract
    * @param _fxChild the address of the contract used to foward cross-chain transactions on Polygon
-   **/
-  function updateFxChild(address _fxChild) external onlyOwner {
-    emit FxChildUpdate(fxChild, _fxChild);
-    fxChild = _fxChild;
+  **/
+  function updateFxChild(address _fxChild) external onlyThis {
+		require(_fxChild != address(0), "PolygonL2Messenger: _fxChild is the zero address");
+		emit FxChildUpdate(fxChild, _fxChild);
+		fxChild = _fxChild;
   }
 }

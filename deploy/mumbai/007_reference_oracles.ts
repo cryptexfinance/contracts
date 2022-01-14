@@ -5,9 +5,9 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
         const { deployIfDifferent, log } = deployments;
         const { deployer } = await getNamedAccounts();
 
-        let TCAPOracle, WETHOracle, DAIOracle;
+        let TCAPOracle, WMATICOracle, DAIOracle;
 
-        const timelock = await deployments.getOrNull("Timelock");
+        const timelock = process.env.GOERLI_TIMELOCK_ADDRESS as string;
         const tcapAggregator = await deployments.getOrNull(
             "AggregatorInterfaceTCAP"
         );
@@ -33,24 +33,24 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
                 );
             }
             try {
-                WETHOracle = await deployments.get("WETHOracle");
+                WMATICOracle = await deployments.get("WMATICOracle");
             } catch (error) {
                 log(error.message);
                 let oracleAddress =
                     "0x0715A7794a1dc8e42615F059dD6e406A6594651A";
                 const deployResult = await deployIfDifferent(
                     ["data"],
-                    "WETHOracle",
+                    "WMATICOracle",
                     { from: deployer },
                     "ChainlinkOracle",
                     oracleAddress,
                     // 	TODO: deployer should timelock address
                     deployer
                 );
-                WETHOracle = await deployments.get("WETHOracle");
+                WMATICOracle = await deployments.get("WMATICOracle");
                 if (deployResult.newlyDeployed) {
                     log(
-                        `Price Feed Oracle deployed at ${WETHOracle.address} for ${deployResult.receipt.gasUsed}`
+                        `Price Feed Oracle deployed at ${WMATICOracle.address} for ${deployResult.receipt.gasUsed}`
                     );
                 }
                 try {
