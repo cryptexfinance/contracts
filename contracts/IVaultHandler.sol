@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/SafeCast.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
@@ -13,6 +14,7 @@ import "@openzeppelin/contracts/introspection/IERC165.sol";
 import "./TCAP.sol";
 import "./Orchestrator.sol";
 import "./oracles/ChainlinkOracle.sol";
+import "hardhat/console.sol";
 
 interface IRewardHandler {
   function stake(address _staker, uint256 amount) external;
@@ -98,6 +100,12 @@ abstract contract IVaultHandler is
 
   /// @notice value used to multiply chainlink oracle for handling decimals
   uint256 public constant oracleDigits = 10000000000;
+
+	/// @notice Maximum decimal places that are supported by the collateral
+  uint8 public constant MAX_DECIMAL_PLACES = 18;
+
+	/// @notice value used to divide collateral to adjust the decimal places
+  uint256 public collateralDecimalsAdjustmentFactor;
 
   /// @notice Minimum value that the ratio can be set to
   uint256 public constant MIN_RATIO = 150;
@@ -229,6 +237,12 @@ abstract contract IVaultHandler is
     TCAPToken = _tcapAddress;
     rewardHandler = IRewardHandler(_rewardHandler);
     treasury = _treasury;
+		uint8 _collateralDecimals = ERC20(_collateralAddress).decimals();
+		require(
+			_collateralDecimals <= MAX_DECIMAL_PLACES,
+			"Collateral decimals greater than MAX_DECIMAL_PLACES"
+		);
+		collateralDecimalsAdjustmentFactor = 10 ** (MAX_DECIMAL_PLACES - _collateralDecimals);
 
     /// @dev counter starts in 1 as 0 is reserved for empty objects
     counter.increment();
@@ -418,6 +432,7 @@ abstract contract IVaultHandler is
     );
 
     vault.Debt = vault.Debt.add(_amount);
+
     require(
       getVaultRatio(vault.Id) >= ratio,
       "VaultHandler::mint: collateral below min required ratio"
@@ -608,6 +623,9 @@ abstract contract IVaultHandler is
    * @notice Returns the price of the chainlink oracle multiplied by the digits to get 18 decimals format
    * @param _oracle to be the price called
    * @return price
+   * @dev The price returned here is in USD is equivalent to 1 `ether` unit  times 10 ** 18
+   * eg. For ETH This will return the price of USD of 1 ETH * 10 ** 18 and **not** 1 wei * 10 ** 18
+   * eg. For DAI This will return the price of USD of 1 DAI * 10 ** 18 and **not** (1 / 10 ** 18) * 10 ** 18
    */
   function getOraclePrice(ChainlinkOracle _oracle)
     public
@@ -638,13 +656,13 @@ abstract contract IVaultHandler is
    * @param _amount uint amount to mint
    * @return collateral of the TCAP Token
    * @dev TCAP token is 18 decimals
-   * @dev C = ((P * A * r) / 100) / cp
+   * @dev C = ((P * A * r) / 100) / (cp * cdaf)
    * C = Required Collateral
    * P = TCAP Token Price
    * A = Amount to Mint
    * cp = Collateral Price
    * r = Minimum Ratio for Liquidation
-   * Is only divided by 100 as eth price comes in wei to cancel the additional 0s
+   * cdaf = Collateral decimals adjust factor
    */
   function requiredCollateral(uint256 _amount)
     public
@@ -656,7 +674,7 @@ abstract contract IVaultHandler is
     uint256 collateralPrice = getOraclePrice(collateralPriceOracle);
     collateral = ((tcapPrice.mul(_amount).mul(ratio)).div(100)).div(
       collateralPrice
-    );
+    ).div(collateralDecimalsAdjustmentFactor);
   }
 
   /**
@@ -664,11 +682,12 @@ abstract contract IVaultHandler is
    * @param _vaultId of the vault to liquidate
    * @return amount required of the TCAP Token
    * @dev LT = ((((D * r) / 100) - cTcap) * 100) / (r - (p + 100))
-   * cTcap = ((C * cp) / P)
+   * cTcap = ((C * cdaf * cp) / P)
    * LT = Required TCAP
    * D = Vault Debt
    * C = Required Collateral
    * P = TCAP Token Price
+   * cdaf = Collateral Decimals adjustment Factor
    * cp = Collateral Price
    * r = Min Vault Ratio
    * p = Liquidation Penalty
@@ -682,8 +701,9 @@ abstract contract IVaultHandler is
     Vault memory vault = vaults[_vaultId];
     uint256 tcapPrice = TCAPPrice();
     uint256 collateralPrice = getOraclePrice(collateralPriceOracle);
-    uint256 collateralTcap =
-      (vault.Collateral.mul(collateralPrice)).div(tcapPrice);
+    uint256 collateralTcap = (
+			vault.Collateral.mul(collateralDecimalsAdjustmentFactor).mul(collateralPrice)
+		).div(tcapPrice);
     uint256 reqDividend =
       (((vault.Debt.mul(ratio)).div(100)).sub(collateralTcap)).mul(100);
     uint256 reqDivisor = ratio.sub(liquidationPenalty.add(100));
@@ -691,14 +711,18 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Returns the Reward for liquidating a vault
+   * @notice Returns the Reward Collateral amount for liquidating a vault
    * @param _vaultId of the vault to liquidate
    * @return rewardCollateral for liquidating Vault
    * @dev the returned value is returned as collateral currency
    * @dev R = (LT * (p  + 100)) / 100
+   * @dev RC = R / (cp * cdaf)
    * R = Liquidation Reward
+   * RC = Liquidation Reward Collateral
    * LT = Required Liquidation TCAP
    * p = liquidation penalty
+   * cp = Collateral Price
+   * cdaf = Collateral Decimals adjustment factor
    */
   function liquidationReward(uint256 _vaultId)
     public
@@ -710,16 +734,21 @@ abstract contract IVaultHandler is
     uint256 tcapPrice = TCAPPrice();
     uint256 collateralPrice = getOraclePrice(collateralPriceOracle);
     uint256 reward = (req.mul(liquidationPenalty.add(100)));
-    rewardCollateral = (reward.mul(tcapPrice)).div(collateralPrice.mul(100));
+    rewardCollateral = (
+			reward.mul(tcapPrice)
+		).div(
+				collateralPrice.mul(100)
+		).div(collateralDecimalsAdjustmentFactor);
   }
 
   /**
    * @notice Returns the Collateral Ratio of the Vault
    * @param _vaultId id of vault
    * @return currentRatio
-   * @dev vr = (cp * (C * 100)) / D * P
+   * @dev vr = (cp * (C * 100 * cdaf)) / D * P
    * vr = Vault Ratio
    * C = Vault Collateral
+   * cdaf = Collateral Decimals Adjustment Factor
    * cp = Collateral Price
    * D = Vault Debt
    * P = TCAP Token Price
@@ -735,8 +764,9 @@ abstract contract IVaultHandler is
       currentRatio = 0;
     } else {
       uint256 collateralPrice = getOraclePrice(collateralPriceOracle);
-      currentRatio = (
-        (collateralPrice.mul(vault.Collateral.mul(100))).div(
+      currentRatio = ((
+					collateralPrice.mul(vault.Collateral.mul(100).mul(collateralDecimalsAdjustmentFactor)
+					)).div(
           vault.Debt.mul(TCAPPrice())
         )
       );
@@ -749,9 +779,9 @@ abstract contract IVaultHandler is
    * @return fee
    * @dev The returned value is returned in wei
    * @dev f = (((P * A * b)/ 100))/ EP
-   * f = Burn Fee Value
+   * f = Burn Fee Value in wei
    * P = TCAP Token Price
-   * A = Amount to Burn
+   * A = TCAP Amount to Burn
    * b = Burn Fee %
    * EP = ETH Price
    */
