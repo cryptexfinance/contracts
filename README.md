@@ -1,7 +1,5 @@
 # Total Cryptocurrency Market Capitalization Token
 
-[![codecov](https://codecov.io/gh/cryptexglobal/contracts/branch/master/graph/badge.svg?token=BP6UPE7IJ6)](https://codecov.io/gh/cryptexglobal/contracts)
-
 ## What is TCAP?
 
 TCAP is the World's First Total Cryptocurrency Market Capitalization Token created by Cryptex Finance. Like a conventional index fund, TCAP gives holders a real-time price exposure to the total cryptocurrency market cap. It's a 150% fully collateralized asset that’s both audited and accurately representative of the entire cryptocurrency complex by total market capitalization.
