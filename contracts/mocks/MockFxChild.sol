@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0<0.8.0;
+pragma solidity 0.7.5;
 
 // IStateReceiver represents interface to receive state
 interface IStateReceiver {
