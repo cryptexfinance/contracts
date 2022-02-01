@@ -47,6 +47,7 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						rewardAddress,
 						timelock,
 					],
+					skipIfAlreadyDeployed: true,
 				});
 				handlerContract = await deployments.get("DAIVaultHandler");
 				if (deployResult.newlyDeployed) {

@@ -16,7 +16,6 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 			log(error.message);
 
 			const deployResult = await deployIfDifferent(
-				["data"],
 				"TCAP",
 				{ from: deployer },
 				"TCAP",
