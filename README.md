@@ -49,3 +49,17 @@ Run the build command:
 ```
 yarn build
 ```
+
+### Install Forge
+
+Run the following command:
+```
+curl -L https://foundry.paradigm.xyz | bash
+foundryup
+```
+
+### Run Forge Tests
+```
+if [ -d cache ] ; then; rm -rf cache; fi
+yarn ftest
+```
