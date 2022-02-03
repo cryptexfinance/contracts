@@ -15,8 +15,8 @@ const Oracles: DeployFunction = async function (hre: HardhatRuntimeEnvironment) 
 		const tcapAggregator = "0x15772F61e4cDC81c7C1c6c454724CE9c7065A6fF";
 		const daiOracle = await deployments.getOrNull("DAIOracle");
 		const daiAggregator = "0x8dBa75e83DA73cc766A7e5a0ee71F656BAb470d6";
-		const aaveOracle = await deployments.getOrNull("AAVEOracle");
-		const aaveAggregator = "0x338ed6787f463394D24813b297401B9F05a8C9d1";
+		// const aaveOracle = await deployments.getOrNull("AAVEOracle");
+		// const aaveAggregator = "0x338ed6787f463394D24813b297401B9F05a8C9d1";
 		const ethOracle = await deployments.getOrNull("ETHOracle");
 		const ethAggregator = "0x13e3Ee699D1909E989722E753853AE30b17e08c5";
 		const linkOracle = await deployments.getOrNull("LINKOracle");
@@ -25,8 +25,8 @@ const Oracles: DeployFunction = async function (hre: HardhatRuntimeEnvironment) 
 		const uniAggregator = "0x11429eE838cC01071402f21C219870cbAc0a59A0";
 		const snxOracle = await deployments.getOrNull("SNXOracle");
 		const snxAggregator = "0x2FCF37343e916eAEd1f1DdaaF84458a359b53877";
-		const crvOracle = await deployments.getOrNull("CRVOracle");
-		const crvAggregator = "0xbD92C6c284271c227a1e0bF1786F468b539f51D9";
+		// const crvOracle = await deployments.getOrNull("CRVOracle");
+		// const crvAggregator = "0xbD92C6c284271c227a1e0bF1786F468b539f51D9";
 
 		if (!tcapOracle) {
 			const deployResult = await deployments.deploy("TCAPOracle", {
@@ -54,18 +54,19 @@ const Oracles: DeployFunction = async function (hre: HardhatRuntimeEnvironment) 
 			log("DAIOracle already deployed");
 		}
 
-		if (!aaveOracle) {
-			const deployResult = await deployments.deploy("AAVEOracle", {
-				contract: "ChainlinkOracle",
-				from: namedAccounts.deployer,
-				skipIfAlreadyDeployed: true,
-				log: true,
-				args: [aaveAggregator, timelock],
-			});
-			log(`AAVEOracle deployed at ${deployResult.address} for ${deployResult.receipt?.gasUsed}`);
-		} else {
-			log("AAVEOracle already deployed");
-		}
+		// AAVE not on optmism
+		// if (!aaveOracle) {
+		// 	const deployResult = await deployments.deploy("AAVEOracle", {
+		// 		contract: "ChainlinkOracle",
+		// 		from: namedAccounts.deployer,
+		// 		skipIfAlreadyDeployed: true,
+		// 		log: true,
+		// 		args: [aaveAggregator, timelock],
+		// 	});
+		// 	log(`AAVEOracle deployed at ${deployResult.address} for ${deployResult.receipt?.gasUsed}`);
+		// } else {
+		// 	log("AAVEOracle already deployed");
+		// }
 
 		if (!ethOracle) {
 			const deployResult = await deployments.deploy("ETHOracle", {
@@ -118,19 +119,19 @@ const Oracles: DeployFunction = async function (hre: HardhatRuntimeEnvironment) 
 		} else {
 			log("SNXOracle already deployed");
 		}
-
-		if (!crvOracle) {
-			const deployResult = await deployments.deploy("CRVOracle", {
-				contract: "ChainlinkOracle",
-				from: namedAccounts.deployer,
-				skipIfAlreadyDeployed: true,
-				log: true,
-				args: [crvAggregator, timelock],
-			});
-			log(`CRVOracle deployed at ${deployResult.address} for ${deployResult.receipt?.gasUsed}`);
-		} else {
-			log("CRVOracle already deployed");
-		}
+		// CRV not on optimism
+		// if (!crvOracle) {
+		// 	const deployResult = await deployments.deploy("CRVOracle", {
+		// 		contract: "ChainlinkOracle",
+		// 		from: namedAccounts.deployer,
+		// 		skipIfAlreadyDeployed: true,
+		// 		log: true,
+		// 		args: [crvAggregator, timelock],
+		// 	});
+		// 	log(`CRVOracle deployed at ${deployResult.address} for ${deployResult.receipt?.gasUsed}`);
+		// } else {
+		// 	log("CRVOracle already deployed");
+		// }
 	}
 };
 
