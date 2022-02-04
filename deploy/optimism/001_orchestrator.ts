@@ -11,8 +11,8 @@ const OptimisticOrchestrator: DeployFunction = async function (hre: HardhatRunti
 		const optimisticOrchestrator = await deployments.getOrNull("OptimisticOrchestrator");
 
 		if (!optimisticOrchestrator) {
-			const guardian = ""; // TODO: Team Multisig
-			const owner = ""; // TODO: Team Multisig, after setting vaults, migrate to timelock
+			const guardian = "0xb3CBb4de87bdc56825a83498e1b65AbECC3611dC"; // Team multisig
+			const owner = namedAccounts.deployer; // TODO: deployer, after setting vaults needs to transfer ownership to timelock
 			const ovmL2CrossDomainMessenger = "0x4200000000000000000000000000000000000007";
 			const deployResult = await deployments.deploy("OptimisticOrchestrator", {
 				from: namedAccounts.deployer,
