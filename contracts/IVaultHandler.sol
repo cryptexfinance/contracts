@@ -14,7 +14,6 @@ import "@openzeppelin/contracts/introspection/IERC165.sol";
 import "./TCAP.sol";
 import "./Orchestrator.sol";
 import "./oracles/ChainlinkOracle.sol";
-import "hardhat/console.sol";
 
 interface IRewardHandler {
   function stake(address _staker, uint256 amount) external;
