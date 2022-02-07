@@ -55,4 +55,235 @@ The code for it can be found [here](https://github.com/Uniswap/v3-staker).
 	 to unstake tokens belonging to others.
  
 
-### Technical Docs (WORK IN PROGRESS)
+## Technical Docs
+
+### Create an Incentive program for liquidity mining
+
+[UniswapV3Staker](https://github.com/Uniswap/v3-staker/blob/main/contracts/UniswapV3Staker.sol) will be used for
+liquidity mining for Uniswap V3. The Contract is deployed at `0xe34139463bA50bD61336E0c446Bd8C0867c6fE65` on all networks
+This will be created by Cryptex's DAO.
+```javascript
+hre = require('hardhat');
+abi = require('./integration_docs/abi/UniswapV3Staker.json');
+namedAccounts = await hre.getNamedAccounts();
+v3StakerAddress = "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65";
+ctxAddress = "0x144d7bc79d11fd09ea2ff211ae422157a4b4e011"; // Please use correct CTX address based on network
+CTX = await hre.ethers.getContractAt("Ctx", ctxAddress);
+rewardAmount = hre.ethers.utils.parseEther("200000");
+await CTX.approve(v3StakerAddress, rewardAmount);
+accounts = await hre.ethers.getSigners();
+v3Staker =  new ethers.Contract(
+	v3StakerAddress,
+	abi,
+	accounts[0]
+);
+uniswapEthCtxPoolAddress = "0xe481b12ac5664f34c3a4a1ab01dfa3e610ed1169"; // Please use correct ETH-CTX pool address
+startTime = (await accounts[0].provider.getBlock("latest")).timestamp + 2592000;
+endTime = startTime + 180 * 24 * 60 * 60; // start time + 180 days
+times = {
+	startTime,
+	endTime
+}
+await v3Staker.createIncentive(
+	{
+		pool: uniswapEthCtxPoolAddress,
+		rewardToken: ctxAddress,
+		...times,
+		refundee: namedAccounts.deployer,
+	},
+	rewardAmount
+)
+```
+
+### Fetch all LP NFT's owned by a user
+
+Uniswap's [NonfungiblePositionManager](https://docs.uniswap.org/protocol/reference/periphery/NonfungiblePositionManager)
+can be used to query all the LP NFT tokens. The contract address is `0xC36442b4a4522E871399CD717aBDD847Ab11FE88` on all networks.
+```javascript
+ethers = require('ethers');
+abi = require('./integration_docs/abi/NonfungiblePositionManager.json'); // Please adjust path accordingly
+nft = new ethers.Contract(
+	"0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
+	abi,
+	ethers.getDefaultProvider('goerli') // Please change the network accordingly
+);
+userAddress = "0xb85f30B1bA4513D1260B229348955d5497CcB55e"; // fetch this from the Users Wallet
+noOfTokensOwnedByUser = await nft.balanceOf(userAddress);
+if (noOfTokensOwnedByUser > 0) {
+	tokenIDsOwnedByUser = await Promise.all(
+		Array.from(
+			{length:noOfTokensOwnedByUser}, 
+			async (val,ind) =>  await nft.tokenOfOwnerByIndex(userAddress, ind)
+		)
+	)
+} else {
+	tokenIDsOwnedByUser = []
+}
+```
+
+### Deposit and Stake Users token
+
+```javascript
+hre = require('hardhat');
+abi = require('./integration_docs/abi/NonfungiblePositionManager.json'); // Please adjust path accordingly
+v3StakerAddress = "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65";
+nftAddress = "0xC36442b4a4522E871399CD717aBDD847Ab11FE88";
+nft = new ethers.Contract(
+	nftAddress,
+	abi,
+	ethers.getDefaultProvider('goerli') // Please change the network accordingly
+);
+namedAccounts = await hre.getNamedAccounts();
+ctxAddress = "0x144d7bc79d11fd09ea2ff211ae422157a4b4e011"; // Please use correct CTX address based on network
+uniswapEthCtxPoolAddress = "0xe481b12ac5664f34c3a4a1ab01dfa3e610ed1169"; // Please use correct ETH-CTX pool address
+userAddress = "0xb85f30B1bA4513D1260B229348955d5497CcB55e"; // fetch this from the Users Wallet
+// startTime and endTime can be fetched from etherscan events
+// eg. https://goerli.etherscan.io/tx/0x622f7182c3c84d8ddeab5f32774e8ccb21190d96fcbaa4b8459525167e4a32a5#eventlog
+dataMap = {
+		pool: uniswapEthCtxPoolAddress,
+		rewardToken: ctxAddress,
+		startTime: 1646842445, // Please make sure that this matches the deploy startTime
+		endTime: 1662394445, // Please make sure that this matches the deploy endTime
+		refundee: namedAccounts.deployer,
+};
+abiCoder = new hre.ethers.utils.AbiCoder();
+INCENTIVE_KEY_ABI = 'tuple(address rewardToken, address pool, uint256 startTime, uint256 endTime, address refundee)';
+data = abiCoder.encode([INCENTIVE_KEY_ABI], [dataMap]);
+// Please refer to `Fetch all LP NFT's owned by a user` section to get `tokenIDsOwnedByUser`
+// USER_ACCOUNT will come from the wallet connected in UI
+// Since there can be multiple tokenIDsOwnedByUser, We might a drop down for user to select the NFT they'd like to deposit
+await nft.connect(USER_ACCOUNT).approve(v3StakerAddress, tokenIDsOwnedByUser[0]);
+
+// Please note that if data is not provided then token won't be staked. 
+// The token will have to be staked separately in such a case.
+await nft.connect(USER_ACCOUNT)['safeTransferFrom(address,address,uint256,bytes)'](
+	userAddress, v3StakerAddress, tokenIDsOwnedByUser[0], data
+);
+```
+
+### Stake User Token
+If a user deposited their tokens before the program started or if data was not provided in the previous section
+then the token needs to be staked.
+
+```javascript
+hre = require('hardhat');
+abi = require('./integration_docs/abi/UniswapV3Staker.json');
+v3StakerAddress = "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65";
+v3Staker =  new ethers.Contract(
+	v3StakerAddress,
+	abi,
+	ethers.getDefaultProvider('goerli')
+);
+key = {
+		pool: uniswapEthCtxPoolAddress,
+		rewardToken: ctxAddress,
+		startTime: 1646842445, // Please make sure that this matches the deploy startTime
+		endTime: 1662394445, // Please make sure that this matches the deploy endTime
+		refundee: namedAccounts.deployer,
+};
+await v3Staker.connect(USER_ACCOUNT).stakeToken(key, tokenIDsOwnedByUser[0]);
+```
+
+
+### UnStake Users token
+
+```javascript
+hre = require('hardhat');
+abi = require('./integration_docs/abi/UniswapV3Staker.json');
+v3StakerAddress = "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65";
+v3Staker =  new ethers.Contract(
+	v3StakerAddress,
+	abi,
+	ethers.getDefaultProvider('goerli')
+);
+key = {
+		pool: uniswapEthCtxPoolAddress,
+		rewardToken: ctxAddress,
+		startTime: 1646842445, // Please make sure that this matches the deploy startTime
+		endTime: 1662394445, // Please make sure that this matches the deploy endTime
+		refundee: namedAccounts.deployer,
+};
+await v3Staker.connect(USER_ACCOUNT).unstakeToken(key, tokenIDsOwnedByUser[0]);
+```
+
+### Get User Rewards Info
+Please note that rewards info can only be fetched for a single LP token
+
+```javascript
+hre = require('hardhat');
+abi = require('./integration_docs/abi/UniswapV3Staker.json');
+v3StakerAddress = "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65";
+v3Staker =  new ethers.Contract(
+	v3StakerAddress,
+	abi,
+	ethers.getDefaultProvider('goerli')
+);
+key = {
+		pool: uniswapEthCtxPoolAddress,
+		rewardToken: ctxAddress,
+		startTime: 1646842445, // Please make sure that this matches the deploy startTime
+		endTime: 1662394445, // Please make sure that this matches the deploy endTime
+		refundee: namedAccounts.deployer,
+};
+{rewardAmount, secondsInsideX128} = await v3Staker.getRewardInfo(key, tokenIDsOwnedByUser[0]);
+```
+
+### Claim User Rewards
+
+Please refer to the previous section to get rewards info.
+
+```javascript
+hre = require('hardhat');
+abi = require('./integration_docs/abi/UniswapV3Staker.json');
+v3StakerAddress = "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65";
+v3Staker =  new ethers.Contract(
+	v3StakerAddress,
+	abi,
+	ethers.getDefaultProvider('goerli')
+);
+ctxAddress = "0x144d7bc79d11fd09ea2ff211ae422157a4b4e011"; // Please use correct CTX address based on network
+// Unstake the token before claiming rewards
+// Also, look at the `Get Rewards Info` section for rewards amount
+await v3Staker.connect(USER_ACCOUNT).claimReward(ctxAddress, USER_ADDRESS, rewardAmount);
+```
+
+### Withdraw User Token
+
+If a user has unstaked their token, then they can exit by withdrawing their token
+
+```javascript
+hre = require('hardhat');
+abi = require('./integration_docs/abi/UniswapV3Staker.json');
+v3StakerAddress = "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65";
+v3Staker =  new ethers.Contract(
+	v3StakerAddress,
+	abi,
+	ethers.getDefaultProvider('goerli')
+);
+await v3Staker.connect(USER_ACCOUNT).withdrawToken(tokenIDsOwnedByUser[0], USER_ADDRESS, "0x");
+```
+
+### End Incentive Program
+This action will be executed by the Cryptex DAO.
+A program can be exited when:
+1. The endTime for the program has passed.
+2. All users have unstaked their tokens
+```javascript
+hre = require('hardhat');
+abi = require('./integration_docs/abi/UniswapV3Staker.json');
+v3StakerAddress = "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65";
+accounts = await hre.ethers.getSigners();
+v3Staker =  new ethers.Contract(
+	v3StakerAddress,
+	abi,
+	acounts[0]
+);
+key = {
+		pool: uniswapEthCtxPoolAddress,
+		rewardToken: ctxAddress,
+		startTime: 1646842445, // Please make sure that this matches the deploy startTime
+		endTime: 1662394445, // Please make sure that this matches the deploy endTime
+		refundee: namedAccounts.deployer,
+};
+await v3Staker.endIncentive(key);
+```
