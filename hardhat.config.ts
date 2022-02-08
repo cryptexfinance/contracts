@@ -70,6 +70,10 @@ const config: HardhatUserConfig = {
 			url: process.env.OPTIMISM_KOVAN_API_URL,
 			accounts: { mnemonic: mnemonic },
 		},
+		optimism: {
+			url: process.env.OPTIMISM_API_URL,
+			accounts: { mnemonic: mnemonic },
+		},
 		mumbai: {
 			url: process.env.MUMBAI_API_URL,
 			accounts: { mnemonic: mnemonic },

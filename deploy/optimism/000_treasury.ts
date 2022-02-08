@@ -10,11 +10,11 @@ const OptimisticTreasury: DeployFunction = async function (hre: HardhatRuntimeEn
 		const namedAccounts = await hre.getNamedAccounts();
 		const optimisticTreasury = await deployments.getOrNull("OptimisticTreasury");
 
-		if (optimisticTreasury) {
+		if (!optimisticTreasury) {
 			const owner = "0xa54074b2cc0e96a43048d4a68472F7F046aC0DA8"; // Mainnet Timelock
 			const ovmL2CrossDomainMessenger = "0x4200000000000000000000000000000000000007";
 
-			const deployResult = await deployments.deploy("TCAP", {
+			const deployResult = await deployments.deploy("OptimisticTreasury", {
 				from: namedAccounts.deployer,
 				skipIfAlreadyDeployed: true,
 				log: true,
