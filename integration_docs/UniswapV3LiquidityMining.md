@@ -78,7 +78,7 @@ v3Staker =  new ethers.Contract(
 	accounts[0]
 );
 uniswapEthCtxPoolAddress = "0xe481b12ac5664f34c3a4a1ab01dfa3e610ed1169"; // Please use correct ETH-CTX pool address
-startTime = (await accounts[0].provider.getBlock("latest")).timestamp + 2592000;
+startTime = (await accounts[0].provider.getBlock("latest")).timestamp + 30 * 60; // + 30 minutes
 endTime = startTime + 180 * 24 * 60 * 60; // start time + 180 days
 times = {
 	startTime,
@@ -142,8 +142,8 @@ userAddress = "0xb85f30B1bA4513D1260B229348955d5497CcB55e"; // fetch this from t
 dataMap = {
 		pool: uniswapEthCtxPoolAddress,
 		rewardToken: ctxAddress,
-		startTime: 1646842445, // Please make sure that this matches the deploy startTime
-		endTime: 1662394445, // Please make sure that this matches the deploy endTime
+		startTime: 1644264380, // Please make sure that this matches the deploy startTime
+		endTime: 1659816380, // Please make sure that this matches the deploy endTime
 		refundee: namedAccounts.deployer,
 };
 abiCoder = new hre.ethers.utils.AbiCoder();
@@ -177,8 +177,8 @@ v3Staker =  new ethers.Contract(
 key = {
 		pool: uniswapEthCtxPoolAddress,
 		rewardToken: ctxAddress,
-		startTime: 1646842445, // Please make sure that this matches the deploy startTime
-		endTime: 1662394445, // Please make sure that this matches the deploy endTime
+		startTime: 1644264380, // Please make sure that this matches the deploy startTime
+		endTime: 1659816380, // Please make sure that this matches the deploy endTime
 		refundee: namedAccounts.deployer,
 };
 await v3Staker.connect(USER_ACCOUNT).stakeToken(key, tokenIDsOwnedByUser[0]);
@@ -199,8 +199,8 @@ v3Staker =  new ethers.Contract(
 key = {
 		pool: uniswapEthCtxPoolAddress,
 		rewardToken: ctxAddress,
-		startTime: 1646842445, // Please make sure that this matches the deploy startTime
-		endTime: 1662394445, // Please make sure that this matches the deploy endTime
+		startTime: 1644264380, // Please make sure that this matches the deploy startTime
+		endTime: 1659816380, // Please make sure that this matches the deploy endTime
 		refundee: namedAccounts.deployer,
 };
 await v3Staker.connect(USER_ACCOUNT).unstakeToken(key, tokenIDsOwnedByUser[0]);
@@ -221,11 +221,11 @@ v3Staker =  new ethers.Contract(
 key = {
 		pool: uniswapEthCtxPoolAddress,
 		rewardToken: ctxAddress,
-		startTime: 1646842445, // Please make sure that this matches the deploy startTime
-		endTime: 1662394445, // Please make sure that this matches the deploy endTime
+		startTime: 1644264380, // Please make sure that this matches the deploy startTime
+		endTime: 1659816380, // Please make sure that this matches the deploy endTime
 		refundee: namedAccounts.deployer,
 };
-{rewardAmount, secondsInsideX128} = await v3Staker.getRewardInfo(key, tokenIDsOwnedByUser[0]);
+{reward, secondsInsideX128} = await v3Staker.getRewardInfo(key, tokenIDsOwnedByUser[0]);
 ```
 
 ### Claim User Rewards
@@ -281,8 +281,8 @@ v3Staker =  new ethers.Contract(
 key = {
 		pool: uniswapEthCtxPoolAddress,
 		rewardToken: ctxAddress,
-		startTime: 1646842445, // Please make sure that this matches the deploy startTime
-		endTime: 1662394445, // Please make sure that this matches the deploy endTime
+		startTime: 1644264380, // Please make sure that this matches the deploy startTime
+		endTime: 1659816380, // Please make sure that this matches the deploy endTime
 		refundee: namedAccounts.deployer,
 };
 await v3Staker.endIncentive(key);
