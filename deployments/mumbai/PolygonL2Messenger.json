@@ -1,0 +1,295 @@
+{
+  "address": "0xB1B50029de9deFC4ebE6ac1BAeB8fF15d1e46a02",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_fxRootSender",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_fxChild",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "previousFxChild",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newFxChild",
+          "type": "address"
+        }
+      ],
+      "name": "FxChildUpdate",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "previousFxRootSender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newFxRootSender",
+          "type": "address"
+        }
+      ],
+      "name": "FxRootSenderUpdate",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "fxChild",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "fxRootSender",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "rootMessageSender",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "name": "processMessageFromRoot",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_fxChild",
+          "type": "address"
+        }
+      ],
+      "name": "updateFxChild",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_fxRootSender",
+          "type": "address"
+        }
+      ],
+      "name": "updateFxRootSender",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "xDomainMessageSender",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "xDomainMsgSender",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x8527e61fb698da9d415d588899b7e5cdb2df253b293a8ee1150ce3f0f546c809",
+  "receipt": {
+    "to": null,
+    "from": "0x570f581D23a2AB09FD1990279D9DB6f5DcE18F4A",
+    "contractAddress": "0xB1B50029de9deFC4ebE6ac1BAeB8fF15d1e46a02",
+    "transactionIndex": 5,
+    "gasUsed": "605143",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000000000000000080040000000000000000000000000000800000000000000000000100000000004000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000080000000000000000000200000000000000000000000000000000000000000000000000000000000004000000000000000000001000000000000000000000000000000100040002000000000000000000000000000000000000000000000000000000000000000100000",
+    "blockHash": "0xc84c5f8d2f3b0bf77a05d54b6dcd33ed23053054b53b47c59e090d45767455aa",
+    "transactionHash": "0x8527e61fb698da9d415d588899b7e5cdb2df253b293a8ee1150ce3f0f546c809",
+    "logs": [
+      {
+        "transactionIndex": 5,
+        "blockNumber": 25162547,
+        "transactionHash": "0x8527e61fb698da9d415d588899b7e5cdb2df253b293a8ee1150ce3f0f546c809",
+        "address": "0x0000000000000000000000000000000000001010",
+        "topics": [
+          "0x4dfe1bbbcf077ddc3e01291eea2d5c70c2b422b415d95645b9adcfd678cb1d63",
+          "0x0000000000000000000000000000000000000000000000000000000000001010",
+          "0x000000000000000000000000570f581d23a2ab09fd1990279d9db6f5dce18f4a",
+          "0x000000000000000000000000be188d6641e8b680743a4815dfa0f6208038960f"
+        ],
+        "data": "0x0000000000000000000000000000000000000000000000000003398fc05479000000000000000000000000000000000000000000000000000dcc23ae2eaa8c1c00000000000000000000000000000000000000000000075d1839e52256d542c50000000000000000000000000000000000000000000000000dc8ea1e6e56131c00000000000000000000000000000000000000000000075d183d1eb21729bbc5",
+        "logIndex": 17,
+        "blockHash": "0xc84c5f8d2f3b0bf77a05d54b6dcd33ed23053054b53b47c59e090d45767455aa"
+      }
+    ],
+    "blockNumber": 25162547,
+    "cumulativeGasUsed": "4866616",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0x570f581D23a2AB09FD1990279D9DB6f5DcE18F4A",
+    "0xCf73231F28B7331BBe3124B907840A94851f9f11"
+  ],
+  "solcInputHash": "21d2302792d9dd0dfff5b9f691cd70b9",
+  "metadata": "{\"compiler\":{\"version\":\"0.7.5+commit.eb77ed08\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_fxRootSender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_fxChild\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"previousFxChild\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newFxChild\",\"type\":\"address\"}],\"name\":\"FxChildUpdate\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"previousFxRootSender\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newFxRootSender\",\"type\":\"address\"}],\"name\":\"FxRootSenderUpdate\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"fxChild\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"fxRootSender\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"rootMessageSender\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"processMessageFromRoot\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_fxChild\",\"type\":\"address\"}],\"name\":\"updateFxChild\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_fxRootSender\",\"type\":\"address\"}],\"name\":\"updateFxRootSender\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"xDomainMessageSender\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"xDomainMsgSender\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"updateFxChild(address)\":{\"details\":\"Update the address of the FxChild contract\",\"params\":{\"_fxChild\":\"the address of the contract used to foward cross-chain transactions on Polygon*\"}},\"updateFxRootSender(address)\":{\"details\":\"Update the expected address of contract originating from a cross-chain transaction\",\"params\":{\"_fxRootSender\":\"contract originating a cross-chain transaction- likely the cryptex timelock*\"}},\"xDomainMessageSender()\":{\"details\":\"Get the xDomainMsgSender address\",\"returns\":{\"_0\":\"xDomainMsgSender the address that sent the cross-domain transaction*\"}}},\"version\":1},\"userdoc\":{\"events\":{\"FxChildUpdate(address,address)\":{\"notice\":\"An event emitted when the fxChild is updated\"},\"FxRootSenderUpdate(address,address)\":{\"notice\":\"An event emitted when the fxRootSender is updated\"}},\"kind\":\"user\",\"methods\":{\"fxChild()\":{\"notice\":\"Address of the polygon FxChild contract.\"},\"fxRootSender()\":{\"notice\":\"Address of the contract that is allowed to make calls to this contract.\"},\"xDomainMsgSender()\":{\"notice\":\"temporarily stores the cross domain sender address when processMessageFromRoot is called\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/polygon/PolygonL2Messenger.sol\":\"PolygonL2Messenger\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/GSN/Context.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity >=0.6.0 <0.8.0;\\n\\n/*\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with GSN meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\nabstract contract Context {\\n    function _msgSender() internal view virtual returns (address payable) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view virtual returns (bytes memory) {\\n        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691\\n        return msg.data;\\n    }\\n}\\n\",\"keccak256\":\"0x8d3cb350f04ff49cfb10aef08d87f19dcbaecc8027b0bed12f3275cd12f38cf0\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/ReentrancyGuard.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity >=0.6.0 <0.8.0;\\n\\n/**\\n * @dev Contract module that helps prevent reentrant calls to a function.\\n *\\n * Inheriting from `ReentrancyGuard` will make the {nonReentrant} modifier\\n * available, which can be applied to functions to make sure there are no nested\\n * (reentrant) calls to them.\\n *\\n * Note that because there is a single `nonReentrant` guard, functions marked as\\n * `nonReentrant` may not call one another. This can be worked around by making\\n * those functions `private`, and then adding `external` `nonReentrant` entry\\n * points to them.\\n *\\n * TIP: If you would like to learn more about reentrancy and alternative ways\\n * to protect against it, check out our blog post\\n * https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].\\n */\\nabstract contract ReentrancyGuard {\\n    // Booleans are more expensive than uint256 or any type that takes up a full\\n    // word because each write operation emits an extra SLOAD to first read the\\n    // slot's contents, replace the bits taken up by the boolean, and then write\\n    // back. This is the compiler's defense against contract upgrades and\\n    // pointer aliasing, and it cannot be disabled.\\n\\n    // The values being non-zero value makes deployment a bit more expensive,\\n    // but in exchange the refund on every call to nonReentrant will be lower in\\n    // amount. Since refunds are capped to a percentage of the total\\n    // transaction's gas, it is best to keep them low in cases like this one, to\\n    // increase the likelihood of the full refund coming into effect.\\n    uint256 private constant _NOT_ENTERED = 1;\\n    uint256 private constant _ENTERED = 2;\\n\\n    uint256 private _status;\\n\\n    constructor () internal {\\n        _status = _NOT_ENTERED;\\n    }\\n\\n    /**\\n     * @dev Prevents a contract from calling itself, directly or indirectly.\\n     * Calling a `nonReentrant` function from another `nonReentrant`\\n     * function is not supported. It is possible to prevent this from happening\\n     * by making the `nonReentrant` function external, and make it call a\\n     * `private` function that does the actual work.\\n     */\\n    modifier nonReentrant() {\\n        // On the first call to nonReentrant, _notEntered will be true\\n        require(_status != _ENTERED, \\\"ReentrancyGuard: reentrant call\\\");\\n\\n        // Any calls to nonReentrant after this point will fail\\n        _status = _ENTERED;\\n\\n        _;\\n\\n        // By storing the original value once again, a refund is triggered (see\\n        // https://eips.ethereum.org/EIPS/eip-2200)\\n        _status = _NOT_ENTERED;\\n    }\\n}\\n\",\"keccak256\":\"0x8bbbc2f5c10065ee272592ae0a7a6ceb23de2fbd81564ee0bb015ecf404d5f61\",\"license\":\"MIT\"},\"contracts/polygon/PolygonL2Messenger.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.7.5;\\n\\nimport { Context } from \\\"@openzeppelin/contracts/GSN/Context.sol\\\";\\nimport { ReentrancyGuard } from \\\"@openzeppelin/contracts/utils/ReentrancyGuard.sol\\\";\\n\\n// IFxMessageProcessor represents interface to process message\\ninterface IFxMessageProcessor {\\n    function processMessageFromRoot(\\n\\t\\t\\tuint256 stateId,\\n\\t\\t\\taddress rootMessageSender,\\n\\t\\t\\tbytes calldata data\\n\\t\\t) external;\\n}\\n\\ncontract PolygonL2Messenger is\\n\\tIFxMessageProcessor,\\n\\tReentrancyGuard {\\n\\t/// @notice Address of the contract that is allowed to make calls to this contract.\\n\\taddress public fxRootSender;\\n\\n\\t/// @notice Address of the polygon FxChild contract.\\n\\taddress public fxChild;\\n\\n\\t/// @notice An event emitted when the fxRootSender is updated\\n\\tevent FxRootSenderUpdate(address previousFxRootSender, address newFxRootSender);\\n\\n\\t/// @notice An event emitted when the fxChild is updated\\n  event FxChildUpdate(address previousFxChild, address newFxChild);\\n\\n\\t// The default x-domain message sender being set to a non-zero value makes\\n\\t// deployment a bit more expensive, but in exchange the refund on every call to\\n\\t// `processMessageFromRoot` by the L1 and L2 messengers will be higher.\\n\\taddress internal constant DEFAULT_XDOMAIN_SENDER = 0x000000000000000000000000000000000000dEaD;\\n\\n\\t/// @notice temporarily stores the cross domain sender address when processMessageFromRoot is called\\n\\taddress public xDomainMsgSender = DEFAULT_XDOMAIN_SENDER;\\n\\n\\t/**\\n\\t * @notice Throws if called by any account other than this contract.\\n\\t**/\\n\\tmodifier onlyThis() {\\n    require(msg.sender == address(this), 'UNAUTHORIZED_ORIGIN_ONLY_THIS');\\n    _;\\n  }\\n\\n\\t/**\\n   * @notice Throws if called by any account other than the fxChild.\\n  **/\\n\\tmodifier onlyFxChild() {\\n    require(msg.sender == fxChild, 'UNAUTHORIZED_CHILD_ORIGIN');\\n    _;\\n  }\\n\\n\\tconstructor(address _fxRootSender, address _fxChild) {\\n\\t\\tfxRootSender = _fxRootSender;\\n\\t\\tfxChild = _fxChild;\\n\\t}\\n\\n\\t/// @inheritdoc IFxMessageProcessor\\n\\tfunction processMessageFromRoot(\\n\\t\\tuint256, /* stateId */\\n\\t\\taddress rootMessageSender,\\n\\t\\tbytes calldata data\\n\\t) override\\n\\t\\tnonReentrant\\n\\t\\tonlyFxChild\\n\\t\\texternal {\\n\\t\\trequire(\\n\\t\\t\\trootMessageSender == fxRootSender,\\n\\t\\t\\t\\\"PolygonL2Messenger::processMessageFromRoot:UNAUTHORIZED_ROOT_ORIGIN\\\"\\n\\t\\t);\\n\\n\\t\\t(address target,  bytes memory callData) = abi.decode(data, (address, bytes));\\n\\n\\t\\txDomainMsgSender = rootMessageSender;\\n\\t\\t(bool success, ) = target.call(callData);\\n\\t\\txDomainMsgSender = DEFAULT_XDOMAIN_SENDER;\\n\\n\\t\\trequire(\\n      success,\\n      \\\"PolygonL2Messenger::processMessageFromRoot: Message execution reverted.\\\"\\n    );\\n\\t}\\n\\n\\t/**\\n   * @dev Get the xDomainMsgSender address\\n   * @return xDomainMsgSender the address that sent the cross-domain transaction\\n  **/\\n\\tfunction xDomainMessageSender()\\n\\t\\tpublic\\n\\t\\tview\\n\\t\\treturns (\\n\\t\\t\\t\\taddress\\n\\t\\t) {\\n\\t\\t\\trequire(xDomainMsgSender != DEFAULT_XDOMAIN_SENDER, \\\"xDomainMessageSender is not set\\\");\\n\\t\\t\\treturn xDomainMsgSender;\\n\\t}\\n\\n\\t/**\\n   * @dev Update the expected address of contract originating from a cross-chain transaction\\n   * @param _fxRootSender contract originating a cross-chain transaction- likely the cryptex timelock\\n  **/\\n  function updateFxRootSender(address _fxRootSender) external onlyThis {\\n\\t\\trequire(_fxRootSender != address(0), \\\"PolygonL2Messenger: _fxRootSender is the zero address\\\");\\n\\t\\temit FxRootSenderUpdate(fxRootSender, _fxRootSender);\\n\\t\\tfxRootSender = _fxRootSender;\\n  }\\n\\n  /**\\n   * @dev Update the address of the FxChild contract\\n   * @param _fxChild the address of the contract used to foward cross-chain transactions on Polygon\\n  **/\\n  function updateFxChild(address _fxChild) external onlyThis {\\n\\t\\trequire(_fxChild != address(0), \\\"PolygonL2Messenger: _fxChild is the zero address\\\");\\n\\t\\temit FxChildUpdate(fxChild, _fxChild);\\n\\t\\tfxChild = _fxChild;\\n  }\\n}\\n\",\"keccak256\":\"0xad912a15ca4941ddfc02e80a8830d707efc976a4e19370344640efb8435337e9\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x6080604052600380546001600160a01b03191661dead17905534801561002457600080fd5b506040516108e93803806108e98339818101604052604081101561004757600080fd5b5080516020909101516001600081905580546001600160a01b039384166001600160a01b03199182161790915560028054939092169216919091179055610856806100936000396000f3fe608060405234801561001057600080fd5b506004361061007d5760003560e01c80636e296e451161005b5780636e296e45146100b65780639a7c4b71146100be578063dc7571a114610145578063f5635d201461016b5761007d565b806304c59ec1146100825780631543a2b3146100a6578063450d11f0146100ae575b600080fd5b61008a610191565b604080516001600160a01b039092168252519081900360200190f35b61008a6101a0565b61008a6101af565b61008a6101be565b610143600480360360608110156100d457600080fd5b8135916001600160a01b036020820135169181019060608101604082013564010000000081111561010457600080fd5b82018360208201111561011657600080fd5b8035906020019184600183028401116401000000008311171561013857600080fd5b509092509050610233565b005b6101436004803603602081101561015b57600080fd5b50356001600160a01b031661052b565b6101436004803603602081101561018157600080fd5b50356001600160a01b031661062e565b6001546001600160a01b031681565b6003546001600160a01b031681565b6002546001600160a01b031681565b6003546000906001600160a01b031661dead1415610223576040805162461bcd60e51b815260206004820152601f60248201527f78446f6d61696e4d65737361676553656e646572206973206e6f742073657400604482015290519081900360640190fd5b506003546001600160a01b031690565b6002600054141561028b576040805162461bcd60e51b815260206004820152601f60248201527f5265656e7472616e637947756172643a207265656e7472616e742063616c6c00604482015290519081900360640190fd5b60026000819055546001600160a01b031633146102ef576040805162461bcd60e51b815260206004820152601960248201527f554e415554484f52495a45445f4348494c445f4f524947494e00000000000000604482015290519081900360640190fd5b6001546001600160a01b0384811691161461033b5760405162461bcd60e51b81526004018080602001828103825260438152602001806107de6043913960600191505060405180910390fd5b600060608383604081101561034f57600080fd5b6001600160a01b03823516919081019060408101602082013564010000000081111561037a57600080fd5b82018360208201111561038c57600080fd5b803590602001918460018302840111640100000000831117156103ae57600080fd5b91908080601f016020809104026020016040519081016040528093929190818152602001838380828437600081840152601f19601f8201169050808301925050505050505091929192905050509150915084600360006101000a8154816001600160a01b0302191690836001600160a01b031602179055506000826001600160a01b0316826040518082805190602001908083835b602083106104625780518252601f199092019160209182019101610443565b6001836020036101000a0380198251168184511680821785525050505050509050019150506000604051808303816000865af19150503d80600081146104c4576040519150601f19603f3d011682016040523d82523d6000602084013e6104c9565b606091505b5050600380546001600160a01b03191661dead17905590508061051d5760405162461bcd60e51b81526004018080602001828103825260478152602001806107676047913960600191505060405180910390fd5b505060016000555050505050565b33301461057f576040805162461bcd60e51b815260206004820152601d60248201527f554e415554484f52495a45445f4f524947494e5f4f4e4c595f54484953000000604482015290519081900360640190fd5b6001600160a01b0381166105c45760405162461bcd60e51b81526004018080602001828103825260358152602001806107326035913960400191505060405180910390fd5b600154604080516001600160a01b039283168152918316602083015280517fc2614f76a98d7d78c7f43ee7d2a00d2e27d46ac1182930019fba7fa81d5071ed9281900390910190a1600180546001600160a01b0319166001600160a01b0392909216919091179055565b333014610682576040805162461bcd60e51b815260206004820152601d60248201527f554e415554484f52495a45445f4f524947494e5f4f4e4c595f54484953000000604482015290519081900360640190fd5b6001600160a01b0381166106c75760405162461bcd60e51b81526004018080602001828103825260308152602001806107ae6030913960400191505060405180910390fd5b600254604080516001600160a01b039283168152918316602083015280517f5f351a861f38c63b3d6a956408ed6a02bd6976bf9ed7fbabdb9dd0c55603162a9281900390910190a1600280546001600160a01b0319166001600160a01b039290921691909117905556fe506f6c79676f6e4c324d657373656e6765723a205f6678526f6f7453656e64657220697320746865207a65726f2061646472657373506f6c79676f6e4c324d657373656e6765723a3a70726f636573734d65737361676546726f6d526f6f743a204d65737361676520657865637574696f6e2072657665727465642e506f6c79676f6e4c324d657373656e6765723a205f66784368696c6420697320746865207a65726f2061646472657373506f6c79676f6e4c324d657373656e6765723a3a70726f636573734d65737361676546726f6d526f6f743a554e415554484f52495a45445f524f4f545f4f524947494ea2646970667358221220d06eb933c1f7d4a986307773a08c2c95ae11eed74b5e50c54ad0a0163532d78f64736f6c63430007050033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b506004361061007d5760003560e01c80636e296e451161005b5780636e296e45146100b65780639a7c4b71146100be578063dc7571a114610145578063f5635d201461016b5761007d565b806304c59ec1146100825780631543a2b3146100a6578063450d11f0146100ae575b600080fd5b61008a610191565b604080516001600160a01b039092168252519081900360200190f35b61008a6101a0565b61008a6101af565b61008a6101be565b610143600480360360608110156100d457600080fd5b8135916001600160a01b036020820135169181019060608101604082013564010000000081111561010457600080fd5b82018360208201111561011657600080fd5b8035906020019184600183028401116401000000008311171561013857600080fd5b509092509050610233565b005b6101436004803603602081101561015b57600080fd5b50356001600160a01b031661052b565b6101436004803603602081101561018157600080fd5b50356001600160a01b031661062e565b6001546001600160a01b031681565b6003546001600160a01b031681565b6002546001600160a01b031681565b6003546000906001600160a01b031661dead1415610223576040805162461bcd60e51b815260206004820152601f60248201527f78446f6d61696e4d65737361676553656e646572206973206e6f742073657400604482015290519081900360640190fd5b506003546001600160a01b031690565b6002600054141561028b576040805162461bcd60e51b815260206004820152601f60248201527f5265656e7472616e637947756172643a207265656e7472616e742063616c6c00604482015290519081900360640190fd5b60026000819055546001600160a01b031633146102ef576040805162461bcd60e51b815260206004820152601960248201527f554e415554484f52495a45445f4348494c445f4f524947494e00000000000000604482015290519081900360640190fd5b6001546001600160a01b0384811691161461033b5760405162461bcd60e51b81526004018080602001828103825260438152602001806107de6043913960600191505060405180910390fd5b600060608383604081101561034f57600080fd5b6001600160a01b03823516919081019060408101602082013564010000000081111561037a57600080fd5b82018360208201111561038c57600080fd5b803590602001918460018302840111640100000000831117156103ae57600080fd5b91908080601f016020809104026020016040519081016040528093929190818152602001838380828437600081840152601f19601f8201169050808301925050505050505091929192905050509150915084600360006101000a8154816001600160a01b0302191690836001600160a01b031602179055506000826001600160a01b0316826040518082805190602001908083835b602083106104625780518252601f199092019160209182019101610443565b6001836020036101000a0380198251168184511680821785525050505050509050019150506000604051808303816000865af19150503d80600081146104c4576040519150601f19603f3d011682016040523d82523d6000602084013e6104c9565b606091505b5050600380546001600160a01b03191661dead17905590508061051d5760405162461bcd60e51b81526004018080602001828103825260478152602001806107676047913960600191505060405180910390fd5b505060016000555050505050565b33301461057f576040805162461bcd60e51b815260206004820152601d60248201527f554e415554484f52495a45445f4f524947494e5f4f4e4c595f54484953000000604482015290519081900360640190fd5b6001600160a01b0381166105c45760405162461bcd60e51b81526004018080602001828103825260358152602001806107326035913960400191505060405180910390fd5b600154604080516001600160a01b039283168152918316602083015280517fc2614f76a98d7d78c7f43ee7d2a00d2e27d46ac1182930019fba7fa81d5071ed9281900390910190a1600180546001600160a01b0319166001600160a01b0392909216919091179055565b333014610682576040805162461bcd60e51b815260206004820152601d60248201527f554e415554484f52495a45445f4f524947494e5f4f4e4c595f54484953000000604482015290519081900360640190fd5b6001600160a01b0381166106c75760405162461bcd60e51b81526004018080602001828103825260308152602001806107ae6030913960400191505060405180910390fd5b600254604080516001600160a01b039283168152918316602083015280517f5f351a861f38c63b3d6a956408ed6a02bd6976bf9ed7fbabdb9dd0c55603162a9281900390910190a1600280546001600160a01b0319166001600160a01b039290921691909117905556fe506f6c79676f6e4c324d657373656e6765723a205f6678526f6f7453656e64657220697320746865207a65726f2061646472657373506f6c79676f6e4c324d657373656e6765723a3a70726f636573734d65737361676546726f6d526f6f743a204d65737361676520657865637574696f6e2072657665727465642e506f6c79676f6e4c324d657373656e6765723a205f66784368696c6420697320746865207a65726f2061646472657373506f6c79676f6e4c324d657373656e6765723a3a70726f636573734d65737361676546726f6d526f6f743a554e415554484f52495a45445f524f4f545f4f524947494ea2646970667358221220d06eb933c1f7d4a986307773a08c2c95ae11eed74b5e50c54ad0a0163532d78f64736f6c63430007050033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "updateFxChild(address)": {
+        "details": "Update the address of the FxChild contract",
+        "params": {
+          "_fxChild": "the address of the contract used to foward cross-chain transactions on Polygon*"
+        }
+      },
+      "updateFxRootSender(address)": {
+        "details": "Update the expected address of contract originating from a cross-chain transaction",
+        "params": {
+          "_fxRootSender": "contract originating a cross-chain transaction- likely the cryptex timelock*"
+        }
+      },
+      "xDomainMessageSender()": {
+        "details": "Get the xDomainMsgSender address",
+        "returns": {
+          "_0": "xDomainMsgSender the address that sent the cross-domain transaction*"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "events": {
+      "FxChildUpdate(address,address)": {
+        "notice": "An event emitted when the fxChild is updated"
+      },
+      "FxRootSenderUpdate(address,address)": {
+        "notice": "An event emitted when the fxRootSender is updated"
+      }
+    },
+    "kind": "user",
+    "methods": {
+      "fxChild()": {
+        "notice": "Address of the polygon FxChild contract."
+      },
+      "fxRootSender()": {
+        "notice": "Address of the contract that is allowed to make calls to this contract."
+      },
+      "xDomainMsgSender()": {
+        "notice": "temporarily stores the cross domain sender address when processMessageFromRoot is called"
+      }
+    },
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 2509,
+        "contract": "contracts/polygon/PolygonL2Messenger.sol:PolygonL2Messenger",
+        "label": "_status",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 11230,
+        "contract": "contracts/polygon/PolygonL2Messenger.sol:PolygonL2Messenger",
+        "label": "fxRootSender",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 11233,
+        "contract": "contracts/polygon/PolygonL2Messenger.sol:PolygonL2Messenger",
+        "label": "fxChild",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_address"
+      },
+      {
+        "astId": 11254,
+        "contract": "contracts/polygon/PolygonL2Messenger.sol:PolygonL2Messenger",
+        "label": "xDomainMsgSender",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_address"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

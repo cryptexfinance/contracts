@@ -11,24 +11,12 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 	let nonce = await owner.getTransactionCount();
 	const polygonOrchestratorAddress = hre.ethers.utils.getContractAddress({
 			from: deployer,
-			nonce: nonce + 2,
+			nonce: nonce + 1,
 	});
 	const polygonTreasuryAddress = hre.ethers.utils.getContractAddress({
 			from: deployer,
-			nonce: nonce + 3,
+			nonce: nonce + 2,
 	});
-	const deploymentMessengerDeployResult = await deployments.deploy("deploymentPolygonMessenger", {
-		from: deployer,
-		contract: "PolygonL2Messenger",
-		skipIfAlreadyDeployed: true,
-		log: true,
-		args: [
-			deployer, deployer
-		]
-	});
-	log(
-		`deploymentPolygonMessenger deployed at ${deploymentMessengerDeployResult.address} for ${deploymentMessengerDeployResult.receipt?.gasUsed}`
-	);
 
 	const messengerDeployResult = await deployments.deploy("PolygonL2Messenger", {
 		from: deployer,

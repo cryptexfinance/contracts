@@ -5,7 +5,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
         const { deployIfDifferent, log } = deployments;
         const { deployer } = await getNamedAccounts();
 
-        let TCAPOracle, WMATICOracle, DAIOracle;
+        let TCAPOracle, WMATICOracle, DAIOracle, wBTCOracle;
 
         const timelock = process.env.GOERLI_TIMELOCK_ADDRESS as string;
         const tcapAggregator = await deployments.getOrNull(
@@ -23,8 +23,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
                 { from: deployer },
                 "ChainlinkOracle",
                 oracleAddress,
-                // 	TODO: deployer should timelock address
-                deployer
+                timelock
             );
             TCAPOracle = await deployments.get("TCAPOracle");
             if (deployResult.newlyDeployed) {
@@ -44,8 +43,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
                     { from: deployer },
                     "ChainlinkOracle",
                     oracleAddress,
-                    // 	TODO: deployer should timelock address
-                    deployer
+                    timelock
                 );
                 WMATICOracle = await deployments.get("WMATICOracle");
                 if (deployResult.newlyDeployed) {
@@ -65,8 +63,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
                         { from: deployer },
                         "ChainlinkOracle",
                         oracleAddress,
-                        // 	TODO: deployer should timelock address
-                    		deployer
+                    		timelock
                     );
                     DAIOracle = await deployments.get("DAIOracle");
                     if (deployResult.newlyDeployed) {
@@ -77,6 +74,27 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
                 }
             }
         }
+        try {
+						let wBTCOracle = await deployments.get("WBTCOracle");
+				} catch (error) {
+						log(error.message);
+						let oracleAddress =
+								"0x007A22900a3B98143368Bd5906f8E17e9867581b";
+						const deployResult = await deployIfDifferent(
+								["data"],
+								"WBTCOracle",
+								{ from: deployer },
+								"ChainlinkOracle",
+								oracleAddress,
+								timelock
+						);
+						wBTCOracle = await deployments.get("WBTCOracle");
+						if (deployResult.newlyDeployed) {
+								log(
+										`Price Feed Oracle deployed at ${wBTCOracle.address} for ${deployResult.receipt.gasUsed}`
+								);
+						}
+				}
     }
 };
 module.exports.tags = ["Oracle", "ChainlinkOracle"];

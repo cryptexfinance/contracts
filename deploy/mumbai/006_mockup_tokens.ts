@@ -29,6 +29,25 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
                 );
             }
         }
+        let wBTC
+        try {
+            wBTC = await deployments.get("WBTC");
+        } catch (error) {
+            log(error.message);
+
+            const _deployResult = await deployIfDifferent(
+                ["data"],
+                "WBTC",
+                { from: deployer },
+                "WBTC"
+            );
+            wBTC = await deployments.get("WBTC");
+            if (_deployResult.newlyDeployed) {
+                log(
+                    `WBTC deployed at ${wBTC.address} for ${_deployResult.receipt.gasUsed}`
+                );
+            }
+        }
     }
 };
-module.exports.tags = ["DAI"];
+module.exports.tags = ["DAI", "WBTC"];

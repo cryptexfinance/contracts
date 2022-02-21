@@ -28,6 +28,10 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 	const { deployer } = await getNamedAccounts();
 	const timelockDeployResult = await deployments.get("Timelock");
 	const polygonOrchestratorAddress = process.env.MUMBAI_ORCHESTRATOR_ADDRESS as string;
+	const TCAPAddress = process.env.MUMBAI_TCAP_ADDRESS as string;
+	const WMATICVaultAddress = process.env.MUMBAI_WMATIC_VAULT_ADDRESS as string;
+	const WBTCVaultAddress = process.env.MUMBAI_WBTC_VAULT_ADDRESS as string;
+	const DAIVaultAddress = process.env.MUMBAI_DAI_VAULT_ADDRESS as string;
 
 	const polygonMessengerAddress = process.env.MUMBAI_MESSENGER_ADDRESS as string;
 	if(polygonMessengerAddress === "") {
@@ -47,8 +51,42 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		"FxRoot",
 		fxRootAddress
 	);
-	// Transfer Orchestrator OwnerShip
+
+	// add WETH vault to TCAP
 	let tx = await makePolygonMessageCallViaFxRoot(
+		fxRoot,
+		polygonMessenger.address,
+		polygonOrchestratorAddress,
+		"addTCAPVault",
+		["address", "address"],
+		[TCAPAddress, WMATICVaultAddress]
+	);
+	await tx.wait();
+
+	// add WBTC vault to TCAP
+	tx = await makePolygonMessageCallViaFxRoot(
+		fxRoot,
+		polygonMessenger.address,
+		polygonOrchestratorAddress,
+		"addTCAPVault",
+		["address", "address"],
+		[TCAPAddress, WBTCVaultAddress]
+	);
+	await tx.wait();
+
+	// add DAI vault to TCAP
+	tx = await makePolygonMessageCallViaFxRoot(
+		fxRoot,
+		polygonMessenger.address,
+		polygonOrchestratorAddress,
+		"addTCAPVault",
+		["address", "address"],
+		[TCAPAddress, DAIVaultAddress]
+	);
+	await tx.wait();
+
+	// Transfer polygonOrchestrator OwnerShip to timelock
+	tx = await makePolygonMessageCallViaFxRoot(
 		fxRoot,
 		polygonMessenger.address,
 		polygonOrchestratorAddress,
@@ -71,4 +109,4 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 	log("Transferred onwership to DAO");
 };
 
-module.exports.tags = ["TransferOwnershipDAO"]
+module.exports.tags = ["InitialiseTCAP"]
