@@ -67,9 +67,9 @@ hre = require('hardhat');
 abi = require('./integration_docs/abi/UniswapV3Staker.json');
 namedAccounts = await hre.getNamedAccounts();
 v3StakerAddress = "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65";
-ctxAddress = "0x144d7bc79d11fd09ea2ff211ae422157a4b4e011"; // Please use correct CTX address based on network
+ctxAddress = "0xAa715DbD2ED909B7B7727dC864F3B78276D14A19"; // Please use correct CTX address based on network
 CTX = await hre.ethers.getContractAt("Ctx", ctxAddress);
-rewardAmount = hre.ethers.utils.parseEther("200000");
+rewardAmount = hre.ethers.utils.parseEther("9000");
 await CTX.approve(v3StakerAddress, rewardAmount);
 accounts = await hre.ethers.getSigners();
 v3Staker =  new ethers.Contract(
@@ -77,22 +77,21 @@ v3Staker =  new ethers.Contract(
 	abi,
 	accounts[0]
 );
-uniswapEthCtxPoolAddress = "0xe481b12ac5664f34c3a4a1ab01dfa3e610ed1169"; // Please use correct ETH-CTX pool address
-startTime = (await accounts[0].provider.getBlock("latest")).timestamp + 30 * 60; // + 30 minutes
+uniswapEthCtxPoolAddress = "0xfb7BDD5B703f57BC7807b9D731503050EdC8c722"; // Please use correct ETH-TCAP pool address. This is currently the address of the pool on rinkenby 
+
+startTime = (await accounts[0].provider.getBlock("latest")).timestamp + 15 * 60; // + 15 minutes
 endTime = startTime + 180 * 24 * 60 * 60; // start time + 180 days
 times = {
 	startTime,
 	endTime
 }
-await v3Staker.createIncentive(
-	{
+key = {
 		pool: uniswapEthCtxPoolAddress,
 		rewardToken: ctxAddress,
 		...times,
 		refundee: namedAccounts.deployer,
-	},
-	rewardAmount
-)
+}
+await v3Staker.createIncentive(key, rewardAmount)
 ```
 
 ### Fetch all LP NFT's owned by a user
