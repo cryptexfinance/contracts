@@ -31,10 +31,10 @@ contract ChainlinkOracle is Ownable, IERC165 {
    * @notice Called once the contract is deployed.
    * Set the Chainlink Oracle as an aggregator.
    */
-  constructor(address _aggregator, address _timelock) {
-		require(_aggregator != address(0) && _timelock != address(0), "address can't be 0");
+  constructor(address _aggregator, address _owner) {
+		require(_aggregator != address(0) && _owner != address(0), "address can't be 0");
     aggregatorContract = AggregatorV3Interface(_aggregator);
-	  transferOwnership(_timelock);
+	  transferOwnership(_owner);
   }
 
   /**

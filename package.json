@@ -14,7 +14,9 @@
 		"typechain": "npx hardhat compile && typechain --outDir typechain --target ethers 'artifacts/*.json'",
 		"deploy": "npx hardhat deploy",
 		"verify": "npx hardhat sourcify",
-		"docgen": "yarn run solidity-docgen --solc-module solc-0.7"
+		"docgen": "yarn run solidity-docgen --solc-module solc-0.7",
+		"fbuild": "$HOME/.foundry/bin/forge build --contracts contracts",
+		"ftest": "./test.sh"
 	},
 	"dependencies": {
 		"@chainlink/contracts": "^0.0.12",
@@ -26,7 +28,7 @@
 	},
 	"devDependencies": {
 		"@nomiclabs/hardhat-ethers": "^2.0.1",
-		"@nomiclabs/hardhat-etherscan": "^2.1.0",
+		"@nomiclabs/hardhat-etherscan": "^2.1.4",
 		"@nomiclabs/hardhat-waffle": "^2.0.1",
 		"@types/ethereumjs-util": "^6.1.0",
 		"@types/mocha": "^8.0.3",

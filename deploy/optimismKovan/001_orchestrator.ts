@@ -12,7 +12,6 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 				const crossDomain = "0x4200000000000000000000000000000000000007";
 				const timelock = "0x71cEA4383F7FadDD1F17c960DE7b6A32bFDAf139"; // Testing address for now
 				const deployResult = await deployIfDifferent(
-					["data"],
 					"OptimisticOrchestrator",
 					{ from: deployer, gas: 8000000 },
 					"OptimisticOrchestrator",

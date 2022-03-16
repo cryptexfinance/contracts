@@ -48,6 +48,7 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						rewardAddress,
 						timelock,
 					],
+					skipIfAlreadyDeployed: true,
 				});
 				handlerContract = await deployments.get("WETHVaultHandler");
 				if (deployResult.newlyDeployed) {

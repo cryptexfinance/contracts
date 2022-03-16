@@ -1,4 +1,4 @@
-import { Contract, Signer } from "ethers";
+import { BigNumber, Contract, Signer } from "ethers";
 import hre, { deployments, network, hardhatArguments } from "hardhat";
 import { Deployment } from "hardhat-deploy/dist/types";
 
@@ -39,7 +39,7 @@ export async function fundMultisign(amount: string) {
 
 export async function createProposal(
 	targets: string[],
-	values: number[],
+	values: BigNumber[],
 	signatures: string[],
 	calldatas: string[],
 	description: string
