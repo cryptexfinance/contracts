@@ -1,0 +1,10 @@
+[default]
+optimizer = true
+optimizer_runs = 20000
+fuzz_runs = 100
+verbosity= 3
+gas_reports = ["*"]
+
+[ci]
+verbosity = 4
+fuzz_runs = 50000

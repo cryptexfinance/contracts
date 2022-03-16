@@ -9,6 +9,7 @@ coverage.json
 
 node_modules/
 cache/
+out/
 typechain/
 
 .idea/
