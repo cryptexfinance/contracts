@@ -1,0 +1,40 @@
+name: Test Cryptex Contracts
+
+on:
+  push:
+   branches: [ master, develop ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      ALCHEMY_KEY: ${{ secrets.ALCHEMY_KEY }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - uses: borales/actions-yarn@v2.3.0
+      - name: Setup | Rust
+        uses: ATiltedTree/setup-rust@v1
+        with:
+          rust-version: stable
+      - name: Install Foundry
+        run: |
+          curl -L https://foundry.paradigm.xyz | bash
+          $HOME/.foundry/bin/foundryup
+      - name: Install Dependencies
+        run: yarn
+      - name: Create .env File
+        run: cp .env.sample .env
+      - name: Set Alchemy Key
+        run: sed -i~ "s/<alchemy_key>/${ALCHEMY_KEY}/g" .env
+      - name: Build Contracts
+        run: yarn build
+      - name: Run Hardhat Tests
+        run: yarn test
+      - name: Remove Cache
+        run: rm -rf cache
+      - name: Run Forge tests
+        run: yarn ftest
