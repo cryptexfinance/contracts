@@ -104,7 +104,7 @@ abi = require('./integration_docs/abi/NonfungiblePositionManager.json'); // Plea
 nft = new ethers.Contract(
 	"0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
 	abi,
-	ethers.getDefaultProvider('goerli') // Please change the network accordingly
+	ethers.getDefaultProvider('rinkeby') // Please change the network accordingly
 );
 userAddress = "0xb85f30B1bA4513D1260B229348955d5497CcB55e"; // fetch this from the Users Wallet
 noOfTokensOwnedByUser = await nft.balanceOf(userAddress);
@@ -130,10 +130,10 @@ nftAddress = "0xC36442b4a4522E871399CD717aBDD847Ab11FE88";
 nft = new ethers.Contract(
 	nftAddress,
 	abi,
-	ethers.getDefaultProvider('goerli') // Please change the network accordingly
+	ethers.getDefaultProvider('rinkeby') // Please change the network accordingly
 );
 namedAccounts = await hre.getNamedAccounts();
-ctxAddress = "0x144d7bc79d11fd09ea2ff211ae422157a4b4e011"; // Please use correct CTX address based on network
+ctxAddress = "0xAa715DbD2ED909B7B7727dC864F3B78276D14A19"; // Please use correct CTX address based on network
 uniswapEthCtxPoolAddress = "0xe481b12ac5664f34c3a4a1ab01dfa3e610ed1169"; // Please use correct ETH-CTX pool address
 userAddress = "0xb85f30B1bA4513D1260B229348955d5497CcB55e"; // fetch this from the Users Wallet
 // startTime and endTime can be fetched from etherscan events
@@ -145,6 +145,14 @@ dataMap = {
 		endTime: 1659816380, // Please make sure that this matches the deploy endTime
 		refundee: namedAccounts.deployer,
 };
+// Below are the exact values for rinkeby
+//dataMap = {
+//  pool: '0xfb7BDD5B703f57BC7807b9D731503050EdC8c722',
+//  rewardToken: '0xAa715DbD2ED909B7B7727dC864F3B78276D14A19',
+//  startTime: 1647347412,
+//  endTime: 1662899412,
+//  refundee: '0x570f581D23a2AB09FD1990279D9DB6f5DcE18F4A'
+//}
 abiCoder = new hre.ethers.utils.AbiCoder();
 INCENTIVE_KEY_ABI = 'tuple(address rewardToken, address pool, uint256 startTime, uint256 endTime, address refundee)';
 data = abiCoder.encode([INCENTIVE_KEY_ABI], [dataMap]);
@@ -171,7 +179,7 @@ v3StakerAddress = "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65";
 v3Staker =  new ethers.Contract(
 	v3StakerAddress,
 	abi,
-	ethers.getDefaultProvider('goerli')
+	ethers.getDefaultProvider('rinkeby')
 );
 key = {
 		pool: uniswapEthCtxPoolAddress,
@@ -180,6 +188,14 @@ key = {
 		endTime: 1659816380, // Please make sure that this matches the deploy endTime
 		refundee: namedAccounts.deployer,
 };
+// key for rinkeby
+//key = {
+//  pool: '0xfb7BDD5B703f57BC7807b9D731503050EdC8c722',
+//  rewardToken: '0xAa715DbD2ED909B7B7727dC864F3B78276D14A19',
+//  startTime: 1647347412,
+//  endTime: 1662899412,
+//  refundee: '0x570f581D23a2AB09FD1990279D9DB6f5DcE18F4A'
+//}
 await v3Staker.connect(USER_ACCOUNT).stakeToken(key, tokenIDsOwnedByUser[0]);
 ```
 
@@ -193,7 +209,7 @@ v3StakerAddress = "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65";
 v3Staker =  new ethers.Contract(
 	v3StakerAddress,
 	abi,
-	ethers.getDefaultProvider('goerli')
+	ethers.getDefaultProvider('rinkeby')
 );
 key = {
 		pool: uniswapEthCtxPoolAddress,
@@ -202,6 +218,14 @@ key = {
 		endTime: 1659816380, // Please make sure that this matches the deploy endTime
 		refundee: namedAccounts.deployer,
 };
+// key for rinkeby
+//key = {
+//  pool: '0xfb7BDD5B703f57BC7807b9D731503050EdC8c722',
+//  rewardToken: '0xAa715DbD2ED909B7B7727dC864F3B78276D14A19',
+//  startTime: 1647347412,
+//  endTime: 1662899412,
+//  refundee: '0x570f581D23a2AB09FD1990279D9DB6f5DcE18F4A'
+//}
 await v3Staker.connect(USER_ACCOUNT).unstakeToken(key, tokenIDsOwnedByUser[0]);
 ```
 
@@ -215,7 +239,7 @@ v3StakerAddress = "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65";
 v3Staker =  new ethers.Contract(
 	v3StakerAddress,
 	abi,
-	ethers.getDefaultProvider('goerli')
+	ethers.getDefaultProvider('rinkeby')
 );
 key = {
 		pool: uniswapEthCtxPoolAddress,
@@ -224,6 +248,14 @@ key = {
 		endTime: 1659816380, // Please make sure that this matches the deploy endTime
 		refundee: namedAccounts.deployer,
 };
+// key for rinkeby
+//key = {
+//  pool: '0xfb7BDD5B703f57BC7807b9D731503050EdC8c722',
+//  rewardToken: '0xAa715DbD2ED909B7B7727dC864F3B78276D14A19',
+//  startTime: 1647347412,
+//  endTime: 1662899412,
+//  refundee: '0x570f581D23a2AB09FD1990279D9DB6f5DcE18F4A'
+//}
 {reward, secondsInsideX128} = await v3Staker.getRewardInfo(key, tokenIDsOwnedByUser[0]);
 ```
 
@@ -238,7 +270,7 @@ v3StakerAddress = "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65";
 v3Staker =  new ethers.Contract(
 	v3StakerAddress,
 	abi,
-	ethers.getDefaultProvider('goerli')
+	ethers.getDefaultProvider('rinkeby')
 );
 ctxAddress = "0x144d7bc79d11fd09ea2ff211ae422157a4b4e011"; // Please use correct CTX address based on network
 // Unstake the token before claiming rewards
@@ -257,7 +289,7 @@ v3StakerAddress = "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65";
 v3Staker =  new ethers.Contract(
 	v3StakerAddress,
 	abi,
-	ethers.getDefaultProvider('goerli')
+	ethers.getDefaultProvider('rinkeby')
 );
 await v3Staker.connect(USER_ACCOUNT).withdrawToken(tokenIDsOwnedByUser[0], USER_ADDRESS, "0x");
 ```
@@ -277,6 +309,7 @@ v3Staker =  new ethers.Contract(
 	abi,
 	acounts[0]
 );
+
 key = {
 		pool: uniswapEthCtxPoolAddress,
 		rewardToken: ctxAddress,
@@ -284,5 +317,13 @@ key = {
 		endTime: 1659816380, // Please make sure that this matches the deploy endTime
 		refundee: namedAccounts.deployer,
 };
+// key for rinkeby
+//key = {
+//  pool: '0xfb7BDD5B703f57BC7807b9D731503050EdC8c722',
+//  rewardToken: '0xAa715DbD2ED909B7B7727dC864F3B78276D14A19',
+//  startTime: 1647347412,
+//  endTime: 1662899412,
+//  refundee: '0x570f581D23a2AB09FD1990279D9DB6f5DcE18F4A'
+//}
 await v3Staker.endIncentive(key);
 ```
