@@ -3,6 +3,7 @@ pragma solidity 0.7.5;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/SafeCast.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -706,7 +707,7 @@ abstract contract IVaultHandler is
     uint256 reqDividend =
       (((vault.Debt.mul(ratio)).div(100)).sub(collateralTcap)).mul(100);
     uint256 reqDivisor = ratio.sub(liquidationPenalty.add(100));
-    amount = reqDividend.div(reqDivisor);
+    amount = Math.min(vault.Debt, reqDividend.div(reqDivisor));
   }
 
   /**
@@ -729,15 +730,17 @@ abstract contract IVaultHandler is
     virtual
     returns (uint256 rewardCollateral)
   {
+		Vault memory vault = vaults[_vaultId];
     uint256 req = requiredLiquidationTCAP(_vaultId);
     uint256 tcapPrice = TCAPPrice();
     uint256 collateralPrice = getOraclePrice(collateralPriceOracle);
     uint256 reward = (req.mul(liquidationPenalty.add(100)));
-    rewardCollateral = (
+    uint256 _rewardCollateral = (
 			reward.mul(tcapPrice)
 		).div(
 				collateralPrice.mul(100)
 		).div(collateralDecimalsAdjustmentFactor);
+		rewardCollateral = Math.min(vault.Collateral, _rewardCollateral);
   }
 
   /**
@@ -758,7 +761,7 @@ abstract contract IVaultHandler is
     virtual
     returns (uint256 currentRatio)
   {
-    Vault memory vault = vaults[_vaultId];
+		Vault memory vault = vaults[_vaultId];
     if (vault.Id == 0 || vault.Debt == 0) {
       currentRatio = 0;
     } else {
