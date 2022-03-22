@@ -656,4 +656,92 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 
 	});
 
+	it("...should be able to liquidate when vault ratio falls below 100", async () => {
+		const USDAmountCollateralToDeposit = BigNumber.from(1000);
+		// equivalent in decimals places supported by WBTC
+		const btcCollateralAmountDeposit = USDAmountCollateralToDeposit.mul(
+			10 ** 8 // wBTC supports 8 decimals
+		).div(
+			wBTCOracleValue.div(10 ** 8) // oracle has 8 decimals
+		)
+		// TCAP amount to be minted
+		let tcapAmount = BigNumber.from("2418604651162790553");
+
+		await wBTCVaultHandler.createVault();
+		await wBTC.approve(wBTCVaultHandler.address, btcCollateralAmountDeposit);
+		await wBTCVaultHandler.addCollateral(btcCollateralAmountDeposit);
+		// Mint a small amount of TCAP
+		await wBTCVaultHandler.mint(tcapAmount);
+		const oldBTCVaultRatio = await wBTCVaultHandler.getVaultRatio(1);
+		expect(oldBTCVaultRatio).to.be.above(150);
+
+		// Simulate Oracle price change
+		// reduce price by 30%, mul(10).div(100) -> 10%
+		const newWBTCOracleValue = wBTCOracleValue.mul(10).div(100);
+		aggregatorInterfaceWBTC.latestRoundData.returns([
+			BigNumber.from("55340232221128679816"),
+			newWBTCOracleValue,
+			1616543796,
+			1616543819,
+			BigNumber.from("55340232221128679816")
+		]);
+		expect(await wBTCOracle.getLatestAnswer()).to.be.eq(newWBTCOracleValue);
+
+		const newBTCVaultRatio = await wBTCVaultHandler.getVaultRatio(1);
+		expect(newBTCVaultRatio).to.be.below(100);
+
+		const BTCTcapLiquidationAmount = await wBTCVaultHandler.requiredLiquidationTCAP(1);
+
+		const BTCBurnFee = await wBTCVaultHandler.getFee(BTCTcapLiquidationAmount);
+		await wBTCVaultHandler.liquidateVault(1, BTCTcapLiquidationAmount, {value: BTCBurnFee});
+
+		const BTCVaultRatioAfterLiquidation = await wBTCVaultHandler.getVaultRatio(1);
+		expect(BTCVaultRatioAfterLiquidation).to.be.eq(0);
+		const BTCVault = await wBTCVaultHandler.vaults(1);
+		expect(BTCVault.Collateral).to.be.eq(0);
+		expect(BTCVault.Debt).to.be.eq(0);
+	});
+
+	it("...should be able to burn TCAP when vault ratio falls below 100", async () => {
+		const USDAmountCollateralToDeposit = BigNumber.from(1000);
+		// equivalent in decimals places supported by WBTC
+		const btcCollateralAmountDeposit = USDAmountCollateralToDeposit.mul(
+			10 ** 8 // wBTC supports 8 decimals
+		).div(
+			wBTCOracleValue.div(10 ** 8) // oracle has 8 decimals
+		)
+		// TCAP amount to be minted
+		let tcapAmount = BigNumber.from("2418604651162790553");
+
+		await wBTCVaultHandler.createVault();
+		await wBTC.approve(wBTCVaultHandler.address, btcCollateralAmountDeposit);
+		await wBTCVaultHandler.addCollateral(btcCollateralAmountDeposit);
+		// Mint a small amount of TCAP
+		await wBTCVaultHandler.mint(tcapAmount);
+		const oldBTCVaultRatio = await wBTCVaultHandler.getVaultRatio(1);
+		expect(oldBTCVaultRatio).to.be.above(150);
+
+		// Simulate Oracle price change
+		// reduce price by 30%, mul(10).div(100) -> 10%
+		const newWBTCOracleValue = wBTCOracleValue.mul(10).div(100);
+		aggregatorInterfaceWBTC.latestRoundData.returns([
+			BigNumber.from("55340232221128679816"),
+			newWBTCOracleValue,
+			1616543796,
+			1616543819,
+			BigNumber.from("55340232221128679816")
+		]);
+		expect(await wBTCOracle.getLatestAnswer()).to.be.eq(newWBTCOracleValue);
+
+		const newBTCVaultRatio = await wBTCVaultHandler.getVaultRatio(1);
+		expect(newBTCVaultRatio).to.be.below(100);
+
+		const BTCTcapBurnAmount = BigNumber.from("1000000000000000000"); // 1 TCAP
+		const BTCBurnFee = await wBTCVaultHandler.getFee(BTCTcapBurnAmount);
+		const vaultRatioBeforeBurning = await wBTCVaultHandler.getVaultRatio(1);
+		await wBTCVaultHandler.burn(BTCTcapBurnAmount, {value: BTCBurnFee});
+		const vaultRatioAfterBurning = await wBTCVaultHandler.getVaultRatio(1);
+		expect(vaultRatioAfterBurning).to.be.above(vaultRatioBeforeBurning);
+	})
+
 });
