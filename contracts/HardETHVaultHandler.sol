@@ -86,7 +86,7 @@ contract HardETHVaultHandler is IVaultHandler {
 			msg.value > 0,
 			"ETHVaultHandler::addCollateralETH: value can't be 0"
 		);
-		IWETH(address(collateralContract)).deposit{value: msg.value}();
+		IWETH(address(collateralContract)).deposit{value : msg.value}();
 		Vault storage vault = vaults[userToVault[msg.sender]];
 		vault.Collateral = vault.Collateral.add(msg.value);
 		emit CollateralAdded(msg.sender, vault.Id, msg.value);

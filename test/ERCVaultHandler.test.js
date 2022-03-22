@@ -61,8 +61,10 @@ describe("ERC20 Vault", async function () {
 		tcapOracleInstance = await oracle.deploy(aggregatorTCAPInstance.address, accounts[0]);
 		await priceOracleInstance.deployed();
 
-		const wbtc = await ethers.getContractFactory("WBTC");
-		ercTokenInstance = await wbtc.deploy();
+		// Tests here are correct only for ERC20 tokens with 18 decimal places
+		// Using DAI as it has 18 decimals
+		const DAI = await ethers.getContractFactory("DAI");
+		ercTokenInstance = await DAI.deploy();
 
 		// Initialize Vault
 

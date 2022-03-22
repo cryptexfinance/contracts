@@ -30,15 +30,15 @@ interface IWMATIC {
 	event  Deposit(address indexed dst, uint wad);
 	event  Withdrawal(address indexed src, uint wad);
 
-	function deposit() external payable ;
+	function deposit() external payable;
 
-	function withdraw(uint wad) external ;
+	function withdraw(uint wad) external;
 
-	function totalSupply() external view returns (uint) ;
+	function totalSupply() external view returns (uint);
 
-	function approve(address guy, uint wad) external returns (bool) ;
+	function approve(address guy, uint wad) external returns (bool);
 
-	function transfer(address dst, uint wad) external returns (bool) ;
+	function transfer(address dst, uint wad) external returns (bool);
 
 	function transferFrom(address src, address dst, uint wad)
 	external
