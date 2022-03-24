@@ -59,7 +59,7 @@ contract OptimisticTreasuryTest is DSTest {
 		oTreasury.transferOwnership(_newOwner);
 
 		if (_newOwner == address(0)) {
-			vm.expectRevert("OptimisticTreasury: new owner is the zero address");
+			vm.expectRevert("Proprietor: new owner is the zero address");
 			ol2.transferOwnership(oTreasury, _newOwner);
 		} else {
 			ol2.transferOwnership(oTreasury, _newOwner);

@@ -26,7 +26,6 @@ contract MATICVaultHandler is IVaultHandler {
 	 * @param _tcapAddress address
 	 * @param _collateralAddress address
 	 * @param _collateralOracle address
-	 * @param _rewardHandler address
 	 * @param _treasury address
 	 */
 	constructor(
@@ -40,7 +39,6 @@ contract MATICVaultHandler is IVaultHandler {
 		address _collateralAddress,
 		address _collateralOracle,
 		address _maticOracle,
-		address _rewardHandler,
 		address _treasury
 	)
 	IVaultHandler(
@@ -54,7 +52,6 @@ contract MATICVaultHandler is IVaultHandler {
 		_collateralAddress,
 		_collateralOracle,
 		_maticOracle,
-		_rewardHandler,
 		_treasury
 	)
 	{}
