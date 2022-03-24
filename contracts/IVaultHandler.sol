@@ -263,6 +263,11 @@ IERC165
 			_ratio >= MIN_RATIO,
 			"VaultHandler::setRatio: ratio lower than MIN_RATIO"
 		);
+		require(
+			liquidationPenalty.add(100) < _ratio,
+			"VaultHandler::setRatio: liquidation penalty too high"
+		);
+
 		ratio = _ratio;
 		emit NewRatio(msg.sender, _ratio);
 	}
@@ -679,7 +684,6 @@ IERC165
 		uint256 reqDividend =
 		(((vault.Debt.mul(ratio)).div(100)).sub(collateralTcap)).mul(100);
 		uint256 reqDivisor = ratio.sub(liquidationPenalty.add(100));
-		// TODO: this can be 0
 		amount = Math.min(vault.Debt, reqDividend.div(reqDivisor));
 	}
 

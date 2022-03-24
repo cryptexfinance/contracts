@@ -27,7 +27,7 @@ contract ETHVaultHandlerTest is DSTest {
 	////Params
 	address _orchestrator = address(orchestrator);
 	uint256 _divisor = 10000000000;
-	uint256 _ratio = 200;
+	uint256 _ratio = 150;
 	uint256 _burnFee = 1;
 	uint256 _liquidationPenalty = 10;
 	address _tcapOracle = address(tcapOracle);
@@ -66,5 +66,71 @@ contract ETHVaultHandlerTest is DSTest {
 		assertEq(_collateralOracle, address(ethVault.collateralPriceOracle()));
 		assertEq(_ethOracle, address(ethVault.ETHPriceOracle()));
 		assertEq(_treasury, ethVault.treasury());
+	}
+
+	function testValidateConstructorBurnFee(uint256 b) public {
+		if (b > 10) {
+			vm.expectRevert("VaultHandler::constructor: burn fee higher than MAX_FEE");
+		}
+
+		ETHVaultHandler testVault = new ETHVaultHandler(
+			orchestrator,
+			_divisor,
+			_ratio,
+			b,
+			_liquidationPenalty,
+			_tcapOracle,
+			tcap,
+			_collateralAddress,
+			_collateralOracle,
+			_ethOracle,
+			_treasury);
+
+	}
+
+	function testValidateConstructorRatioAndPenalty(uint256 lp, uint256 r) public {
+		if (lp + 100 < lp) {
+			return;
+		}
+		if ((lp + 100) >= r) {
+			vm.expectRevert("VaultHandler::constructor: liquidation penalty too high");
+		}
+
+		ETHVaultHandler testVault = new ETHVaultHandler(
+			orchestrator,
+			_divisor,
+			r,
+			_burnFee,
+			lp,
+			_tcapOracle,
+			tcap,
+			_collateralAddress,
+			_collateralOracle,
+			_ethOracle,
+			_treasury);
+	}
+
+
+	function testShouldUpdateLiquidationPenalty(uint256 lp) public {
+		if (lp + 100 < lp) {
+			return;
+		}
+
+		if ((lp + 100) >= _ratio) {
+			vm.expectRevert("VaultHandler::setLiquidationPenalty: liquidation penalty too high");
+		}
+
+		orchestrator.setLiquidationPenalty(ethVault, lp);
+	}
+
+	function testShouldUpdateRatio(uint256 r) public {
+		if (r < 100) {
+			vm.expectRevert("VaultHandler::setRatio: ratio lower than MIN_RATIO");
+		}else{
+			if (ethVault.liquidationPenalty() + 100 >= r) {
+				vm.expectRevert("VaultHandler::setRatio: liquidation penalty too high");
+			}
+		}
+		orchestrator.setRatio(ethVault, r);
 	}
 }
