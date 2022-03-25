@@ -82,7 +82,7 @@ contract ETHVaultHandlerTest is DSTest {
 			vm.expectRevert("VaultHandler::constructor: burn fee higher than MAX_FEE");
 		}
 
-		ETHVaultHandler testVault = new ETHVaultHandler(
+		new ETHVaultHandler(
 			orchestrator,
 			_divisor,
 			_ratio,
@@ -105,7 +105,7 @@ contract ETHVaultHandlerTest is DSTest {
 			vm.expectRevert("VaultHandler::constructor: liquidation penalty too high");
 		}
 
-		ETHVaultHandler testVault = new ETHVaultHandler(
+		new ETHVaultHandler(
 			orchestrator,
 			_divisor,
 			r,
