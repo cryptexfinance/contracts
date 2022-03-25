@@ -80,7 +80,6 @@ describe("ERC20 Vault", async function () {
 			ercTokenInstance.address,
 			priceOracleInstance.address,
 			priceOracleInstance.address,
-			ethers.constants.AddressZero,
 			timelockInstance.address
 		);
 		await ercTokenHandler.deployed();

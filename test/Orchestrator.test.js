@@ -14,11 +14,8 @@ describe("Orchestrator Contract", async function () {
 	let ratio = "150";
 	let burnFee = "1";
 	let liquidationPenalty = "10";
-	let tcapOracle =
-		(collateralAddress =
-		collateralOracle =
-		ethOracle =
-			ethersProvider.constants.AddressZero);
+	let tcapOracle = (collateralAddress = collateralOracle = ethOracle =
+		ethersProvider.constants.AddressZero);
 
 	before("Set Accounts", async () => {
 		let [acc0, acc1, acc3, acc4, acc5, acc6] = await ethers.getSigners();
@@ -94,7 +91,6 @@ describe("Orchestrator Contract", async function () {
 			collateralAddress,
 			collateralOracle,
 			ethOracle,
-			ethers.constants.AddressZero,
 			timelockInstance.address
 		);
 		await ethVaultInstance.deployed();
@@ -111,7 +107,6 @@ describe("Orchestrator Contract", async function () {
 			collateralAddress,
 			collateralOracle,
 			ethOracle,
-			ethers.constants.AddressZero,
 			timelockInstance.address
 		);
 		await btcVaultInstance.deployed();

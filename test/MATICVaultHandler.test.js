@@ -71,7 +71,6 @@ describe("MATIC Vault", async function () {
 			wmaticTokenInstance.address,
 			priceOracleInstance.address,
 			priceOracleInstance.address,
-			ethers.constants.AddressZero,
 			await guardian.getAddress()
 		);
 		await maticTokenHandler.deployed();
