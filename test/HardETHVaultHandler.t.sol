@@ -172,7 +172,7 @@ contract ETHVaultHandlerTest is DSTest {
 		ethVault.createVault();
 		ethVault.addCollateralETH{value : 10 ether}();
 		(, uint256 collateral,,) = ethVault.vaults(1);
-		assertEq(collateral, 20 ether);
+		assertEq(collateral, 10 ether);
 
 		vm.expectRevert("VaultHandler::mint: mint amount less than required");
 		ethVault.mint(1 ether);
