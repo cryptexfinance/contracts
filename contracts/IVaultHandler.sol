@@ -51,6 +51,9 @@ IERC165
 	/// @notice Vault Id counter
 	Counters.Counter public counter;
 
+	/// @notice value used to divide collateral to adjust the decimal places
+	uint256 public immutable collateralDecimalsAdjustmentFactor;
+
 	/// @notice TCAP Token Address
 	TCAP public immutable TCAPToken;
 
@@ -95,9 +98,6 @@ IERC165
 
 	/// @notice Maximum decimal places that are supported by the collateral
 	uint8 public constant MAX_DECIMAL_PLACES = 18;
-
-	/// @notice value used to divide collateral to adjust the decimal places
-	uint256 public collateralDecimalsAdjustmentFactor;
 
 	/// @notice Minimum value that the ratio can be set to
 	uint256 public constant MIN_RATIO = 100;
