@@ -453,7 +453,7 @@ IERC165
 			"VaultHandler::mint: collateral below min required ratio"
 		);
 
-		require(vault.Debt >= minimumTCAP, "VaultHandler::mint: mint amount less than required");
+		require(vault.Debt >= minimumTCAP, "VaultHandler::mint: mint amount less than minimum");
 
 		TCAPToken.mint(msg.sender, _amount);
 		emit TokensMinted(msg.sender, vault.Id, _amount);
