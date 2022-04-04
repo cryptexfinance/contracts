@@ -12,9 +12,15 @@ import "../contracts/mocks/WETH.sol";
 
 
 contract ETHVaultHandlerTest is DSTest {
-	Vm vm;
 
-	//Setup
+	// events
+	event NewMinimumTCAP(
+		address indexed _owner,
+		uint256 _minimumTCAP
+	);
+
+	// Setup
+	Vm vm;
 	ETHVaultHandler ethVault;
 	Orchestrator orchestrator = new Orchestrator(address(this));
 	TCAP tcap = new TCAP("Total Crypto Market Cap Token", "TCAP", 0, (orchestrator));
@@ -25,7 +31,7 @@ contract ETHVaultHandlerTest is DSTest {
 	WETH weth = new WETH();
 	address user = address(0x1);
 
-	////Params
+	//// Params
 	address _orchestrator = address(orchestrator);
 	uint256 _divisor = 10000000000;
 	uint256 _ratio = 150;
@@ -37,12 +43,6 @@ contract ETHVaultHandlerTest is DSTest {
 	address _collateralOracle = address(ethOracle);
 	address _ethOracle = address(ethOracle);
 	address _treasury = address(0x2);
-
-	// events
-	event NewMinimumTCAP(
-		address indexed _owner,
-		uint256 _minimumTCAP
-	);
 
 	function setUp() public {
 		vm = Vm(HEVM_ADDRESS);
