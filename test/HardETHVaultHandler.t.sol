@@ -77,7 +77,7 @@ contract ETHVaultHandlerTest is DSTest {
 		assertEq(0, ethVault.minimumTCAP());
 	}
 
-	function testValidateConstructorBurnFee(uint256 b) public {
+	function testValidateConstructorBurnFee(uint256 _burnFee) public {
 		if (b > 10) {
 			vm.expectRevert("VaultHandler::constructor: burn fee higher than MAX_FEE");
 		}
