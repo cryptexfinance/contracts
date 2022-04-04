@@ -453,14 +453,14 @@ IERC165
 			"VaultHandler::mint: collateral below min required ratio"
 		);
 
-		require(vault.Debt >= minimumTCAP, "VaultHandler::mint: mint amount less than required");
+		require(vault.Debt >= minimumTCAP, "VaultHandler::mint: mint amount less than minimum");
 
 		TCAPToken.mint(msg.sender, _amount);
 		emit TokensMinted(msg.sender, vault.Id, _amount);
 	}
 
 	/**
-	 * @notice Pays the debt of TCAP tokens resulting them on burn, this releases collateral up to minimun vault ratio
+	 * @notice Pays the debt of TCAP tokens resulting them on burn, this releases collateral up to minimum vault ratio
    * @param _amount of tokens to burn
    * @dev _amount should be higher than 0
    * @dev A fee of exactly burnFee must be sent as value on ETH
@@ -493,10 +493,10 @@ IERC165
 	}
 
 	/**
-	 * @notice Allow users to burn TCAP tokens to liquidate vaults with vault collateral ratio under the minium ratio, the liquidator receives the staked collateral of the liquidated vault at a premium
+	 * @notice Allow users to burn TCAP tokens to liquidate vaults with vault collateral ratio under the minimum ratio, the liquidator receives the staked collateral of the liquidated vault at a premium
    * @param _vaultId to liquidate
    * @param _maxTCAP max amount of TCAP the liquidator is willing to pay to liquidate vault
-   * @dev Resulting ratio must be above or equal minimun ratio
+   * @dev Resulting ratio must be above or equal minimum ratio
    * @dev A fee of exactly burnFee must be sent as value on ETH
    * @dev The fee goes to the treasury contract
    */
