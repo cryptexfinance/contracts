@@ -424,7 +424,7 @@ IERC165
 	}
 
 	/**
-	 * @notice Uses collateral to generate debt on TCAP Tokens which are minted and assigend to caller
+	 * @notice Uses collateral to generate debt on TCAP Tokens which are minted and assigned to caller
    * @param _amount of tokens to mint
    * @dev _amount should be higher than 0
    * @dev requires to have a vault ratio above the minimum ratio
@@ -453,7 +453,7 @@ IERC165
 			"VaultHandler::mint: collateral below min required ratio"
 		);
 
-		require(vault.Debt >= minimumTCAP, "VaultHandler::mint: mint amount less than minimum");
+		require(vault.Debt >= minimumTCAP, "VaultHandler::mint: mint amount less than required");
 
 		TCAPToken.mint(msg.sender, _amount);
 		emit TokensMinted(msg.sender, vault.Id, _amount);

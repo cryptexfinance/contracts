@@ -1,8 +1,8 @@
 [default]
-# optimizer = true
-# optimizer_runs = 20000
+optimizer = true
+optimizer_runs = 20000
 fuzz_runs = 100
-verbosity= 3
+verbosity= 2
 gas_reports = ["*"]
 
 [ci]
