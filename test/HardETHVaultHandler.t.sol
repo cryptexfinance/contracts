@@ -76,7 +76,7 @@ contract ETHVaultHandlerTest is DSTest {
 			vm.expectRevert("VaultHandler::constructor: burn fee higher than MAX_FEE");
 		}
 
-		new ETHVaultHandler(
+		ETHVaultHandler vault = new ETHVaultHandler(
 			orchestrator,
 			divisor,
 			ratio,
@@ -90,6 +90,9 @@ contract ETHVaultHandlerTest is DSTest {
 			treasury
 		);
 
+		if (!(_burnFee > 10)) {
+			assertEq(_burnFee, vault.burnFee());
+		}
 	}
 
 	function testValidateConstructorRatioAndPenalty(uint256 _liquidationPenalty, uint256 _ratio) public {
@@ -101,7 +104,7 @@ contract ETHVaultHandlerTest is DSTest {
 			vm.expectRevert("VaultHandler::constructor: liquidation penalty too high");
 		}
 
-		new ETHVaultHandler(
+		ETHVaultHandler vault = new ETHVaultHandler(
 			orchestrator,
 			divisor,
 			_ratio,
@@ -114,6 +117,10 @@ contract ETHVaultHandlerTest is DSTest {
 			address(ethOracle),
 			treasury
 		);
+
+		if (!((_liquidationPenalty + 100) >= _ratio)) {
+			assertEq(_liquidationPenalty, vault.liquidationPenalty());
+		}
 	}
 
 
@@ -169,7 +176,6 @@ contract ETHVaultHandlerTest is DSTest {
 		vm.deal(user, 100 ether);
 		ethVault.createVault();
 		ethVault.addCollateralETH{value : 10 ether}();
-		(, uint256 collateral,,) = ethVault.vaults(1);
 
 		// execution
 		vm.expectRevert("VaultHandler::mint: mint amount less than required");
@@ -194,7 +200,76 @@ contract ETHVaultHandlerTest is DSTest {
 		ethVault.mint(9 ether);
 
 		// asserts
-		(,,debt,) = ethVault.vaults(1);
+		(,, debt,) = ethVault.vaults(1);
 		assertEq(debt, 30 ether);
+	}
+
+	function testBurnTCAP_ShouldRevert_WhenFeeIsNotPaid(uint96 _tcapAmount) public {
+		// checks
+		if (_tcapAmount < 1 ether) {
+			return;
+		}
+
+		// setUp
+		uint256 t = 1 wei;
+		orchestrator.executeTransaction(address(ethVault), 0, "setMinimumTCAP(uint256)", abi.encode(1 ether));
+		vm.startPrank(user);
+		uint256 requiredCollateral = ethVault.requiredCollateral(_tcapAmount);
+		uint256 fee = ethVault.getFee(_tcapAmount);
+		vm.deal(user, requiredCollateral + t + fee);
+		ethVault.createVault();
+		ethVault.addCollateralETH{value : requiredCollateral + t}();
+		emit log_named_uint("Required Collateral", requiredCollateral);
+		emit log_named_uint("Vault Ratio", ethVault.getVaultRatio(1));
+		ethVault.mint(_tcapAmount);
+		
+		// execution
+		ethVault.burn{value : fee}(_tcapAmount);
+
+		// assert
+		(uint256 id, uint256 collateral, uint256 debt, address owner) = ethVault.vaults(1);
+		assertEq(id, 1);
+		assertEq(collateral, requiredCollateral + t);
+		assertEq(debt, 0);
+		assertEq(owner, user);
+	}
+
+	function testBurnTCAP_ShouldBurn_WhenFeeIsPaid(uint96 _tcapAmount) public {
+		// checks
+		if (_tcapAmount < 1 ether) {
+			return;
+		}
+
+		// setUp
+		uint256 t = 1 wei;
+		orchestrator.executeTransaction(address(ethVault), 0, "setMinimumTCAP(uint256)", abi.encode(1 ether));
+		vm.startPrank(user);
+		uint256 requiredCollateral = ethVault.requiredCollateral(_tcapAmount);
+		vm.deal(user, requiredCollateral + t);
+		ethVault.createVault();
+		ethVault.addCollateralETH{value : requiredCollateral + t}();
+		emit log_named_uint("Required Collateral", requiredCollateral);
+		emit log_named_uint("Vault Ratio", ethVault.getVaultRatio(1));
+		ethVault.mint(_tcapAmount);
+
+		// execution
+		vm.expectRevert("VaultHandler::burn: burn fee less than required");
+		ethVault.burn(_tcapAmount);
+
+		// assert
+		(uint256 id, uint256 collateral, uint256 debt, address owner) = ethVault.vaults(1);
+		assertEq(id, 1);
+		assertEq(collateral, requiredCollateral + t);
+		assertEq(debt, _tcapAmount);
+		assertEq(owner, user);
+	}
+
+
+	function testShouldLiquidateVault() public {
+		// setUp
+
+		// execution
+
+		// assert
 	}
 }

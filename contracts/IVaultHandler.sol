@@ -389,7 +389,7 @@ IERC165
 	/**
 	 * @notice Allows users to remove collateral currently not being used to generate TCAP tokens from their vaults
    * @param _amount of collateral to remove
-   * @dev reverts if the resulting ratio is less than the minimun ratio
+   * @dev reverts if the resulting ratio is less than the minimum ratio
    * @dev _amount should be higher than 0
    * @dev transfers the collateral back to the user
    */
