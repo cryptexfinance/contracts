@@ -264,7 +264,7 @@ contract ETHVaultHandlerTest is DSTest {
 	}
 
 
-	function testLiquidateVault_ShouldLiquidateVault(uint96 _priceIncrease) public {
+	function testLiquidateVault_ShouldLiquidateVault_WhenRatioAbove100(uint96 _priceIncrease) public {
 		if (_priceIncrease == 0) return;
 		// setUp
 		uint96 _tcapAmount = 1 ether;
@@ -292,6 +292,52 @@ contract ETHVaultHandlerTest is DSTest {
 		if (!(ethVault.getVaultRatio(1) < ratio && ethVault.getVaultRatio(1) >= 100)) {
 			return;
 		}
+		if (ethVault.getVaultRatio(1) > ratio || ethVault.getVaultRatio(1) < 100) {
+			return;
+		}
+
+		uint256 requiredLiquidation = ethVault.requiredLiquidationTCAP(1);
+		reward = ethVault.liquidationReward(1);
+		uint256 fee = ethVault.getFee(_tcapAmount);
+		vm.deal(user2, fee);
+		ethVault.liquidateVault{value : fee}(1, requiredLiquidation);
+
+		// assert
+		(uint256 id, uint256 collateral, uint256 debt, address owner) = ethVault.vaults(1);
+		assertEq(id, 1);
+		assertEq(collateral, collateralOld - reward);
+		assertEq(debt, debtOld - requiredLiquidation);
+		assertEq(owner, user);
+	}
+
+	function testLiquidateVault_ShouldLiquidateVault_WhenRatioBelow100(uint96 _priceIncrease) public {
+		if (_priceIncrease == 0) return;
+		// setUp
+		uint96 _tcapAmount = 1 ether;
+		uint256 t = 1 wei;
+		orchestrator.executeTransaction(address(ethVault), 0, "setMinimumTCAP(uint256)", abi.encode(1 ether));
+		vm.startPrank(user);
+		uint256 requiredCollateral = ethVault.requiredCollateral(_tcapAmount);
+		vm.deal(user, requiredCollateral + t);
+		ethVault.createVault();
+		ethVault.addCollateralETH{value : requiredCollateral + t}();
+		ethVault.mint(_tcapAmount);
+		(, uint256 collateralOld, uint256 debtOld,) = ethVault.vaults(1);
+
+		vm.stopPrank();
+		vm.startPrank(user2);
+		vm.deal(user2, requiredCollateral + t);
+		ethVault.createVault();
+		ethVault.addCollateralETH{value : requiredCollateral + t}();
+		ethVault.mint(_tcapAmount);
+
+		// execution
+		// change price of TCAP
+		tcapAggregator.setLatestAnswer(int256(_priceIncrease));
+		uint256 reward = 0;
+		if (ethVault.getVaultRatio(1) >= 100) {
+			return;
+		}
 
 		uint256 requiredLiquidation = ethVault.requiredLiquidationTCAP(1);
 		reward = ethVault.liquidationReward(1);
@@ -303,8 +349,8 @@ contract ETHVaultHandlerTest is DSTest {
 		// assert
 		(uint256 id, uint256 collateral, uint256 debt, address owner) = ethVault.vaults(1);
 		assertEq(id, 1);
-		assertEq(collateral, collateralOld - reward);
-		assertEq(debt, debtOld - requiredLiquidation);
+		assertEq(collateral,0);
+		assertEq(debt, 0);
 		assertEq(owner, user);
 	}
 }
