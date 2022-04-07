@@ -30,13 +30,14 @@ contract ETHVaultHandlerTest is DSTest {
 	ChainlinkOracle ethOracle = new ChainlinkOracle(address(ethAggregator), address(this));
 	WETH weth = new WETH();
 	address user = address(0x1);
+	address user2 = address(0x2);
 
 	//// Params
 	uint256 divisor = 10000000000;
-	uint256 ratio = 150;
+	uint256 ratio = 110;
 	uint256 burnFee = 1;
-	uint256 liquidationPenalty = 10;
-	address treasury = address(0x2);
+	uint256 liquidationPenalty = 5;
+	address treasury = address(0x3);
 
 	function setUp() public {
 		vm = Vm(HEVM_ADDRESS);
@@ -222,7 +223,7 @@ contract ETHVaultHandlerTest is DSTest {
 		emit log_named_uint("Required Collateral", requiredCollateral);
 		emit log_named_uint("Vault Ratio", ethVault.getVaultRatio(1));
 		ethVault.mint(_tcapAmount);
-		
+
 		// execution
 		ethVault.burn{value : fee}(_tcapAmount);
 
@@ -248,8 +249,6 @@ contract ETHVaultHandlerTest is DSTest {
 		vm.deal(user, requiredCollateral + t);
 		ethVault.createVault();
 		ethVault.addCollateralETH{value : requiredCollateral + t}();
-		emit log_named_uint("Required Collateral", requiredCollateral);
-		emit log_named_uint("Vault Ratio", ethVault.getVaultRatio(1));
 		ethVault.mint(_tcapAmount);
 
 		// execution
@@ -265,11 +264,47 @@ contract ETHVaultHandlerTest is DSTest {
 	}
 
 
-	function testShouldLiquidateVault() public {
+	function testLiquidateVault_ShouldLiquidateVault(uint96 _priceIncrease) public {
+		if (_priceIncrease == 0) return;
 		// setUp
+		uint96 _tcapAmount = 1 ether;
+		uint256 t = 1 wei;
+		orchestrator.executeTransaction(address(ethVault), 0, "setMinimumTCAP(uint256)", abi.encode(1 ether));
+		vm.startPrank(user);
+		uint256 requiredCollateral = ethVault.requiredCollateral(_tcapAmount);
+		vm.deal(user, requiredCollateral + t);
+		ethVault.createVault();
+		ethVault.addCollateralETH{value : requiredCollateral + t}();
+		ethVault.mint(_tcapAmount);
+		(, uint256 collateralOld, uint256 debtOld,) = ethVault.vaults(1);
+
+		vm.stopPrank();
+		vm.startPrank(user2);
+		vm.deal(user2, requiredCollateral + t);
+		ethVault.createVault();
+		ethVault.addCollateralETH{value : requiredCollateral + t}();
+		ethVault.mint(_tcapAmount);
 
 		// execution
+		// change price of TCAP
+		tcapAggregator.setLatestAnswer(int256(_priceIncrease));
+		uint256 reward = 0;
+		if (!(ethVault.getVaultRatio(1) < ratio && ethVault.getVaultRatio(1) >= 100)) {
+			return;
+		}
+
+		uint256 requiredLiquidation = ethVault.requiredLiquidationTCAP(1);
+		reward = ethVault.liquidationReward(1);
+		uint256 fee = ethVault.getFee(_tcapAmount);
+		vm.deal(user2, fee);
+		ethVault.liquidateVault{value : fee}(1, requiredLiquidation);
+
 
 		// assert
+		(uint256 id, uint256 collateral, uint256 debt, address owner) = ethVault.vaults(1);
+		assertEq(id, 1);
+		assertEq(collateral, collateralOld - reward);
+		assertEq(debt, debtOld - requiredLiquidation);
+		assertEq(owner, user);
 	}
 }
