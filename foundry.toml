@@ -6,5 +6,4 @@ verbosity= 2
 gas_reports = ["*"]
 
 [ci]
-verbosity = 4
-fuzz_runs = 50000
+fuzz_runs = 10000

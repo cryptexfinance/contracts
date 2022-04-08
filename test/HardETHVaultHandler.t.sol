@@ -57,7 +57,7 @@ contract ETHVaultHandlerTest is DSTest {
 		orchestrator.addTCAPVault(tcap, ethVault);
 	}
 
-	function testSetParams() public {
+	function testConstructor_ShouldSetParams_WhenInitialized() public {
 		assertEq(address(orchestrator), ethVault.owner());
 		assertEq(divisor, ethVault.divisor());
 		assertEq(ratio, ethVault.ratio());
@@ -72,7 +72,7 @@ contract ETHVaultHandlerTest is DSTest {
 		assertEq(0, ethVault.minimumTCAP());
 	}
 
-	function testValidateConstructorBurnFee(uint256 _burnFee) public {
+	function testConstructor_ShouldRevert_WhenBurnFeeIsHigh(uint256 _burnFee) public {
 		if (_burnFee > 10) {
 			vm.expectRevert("VaultHandler::constructor: burn fee higher than MAX_FEE");
 		}
@@ -96,7 +96,7 @@ contract ETHVaultHandlerTest is DSTest {
 		}
 	}
 
-	function testValidateConstructorRatioAndPenalty(uint256 _liquidationPenalty, uint256 _ratio) public {
+	function testConstructor_ShouldRevert_WhenLiquidationPenaltyIsHigh(uint256 _liquidationPenalty, uint256 _ratio) public {
 		if (_liquidationPenalty + 100 < _liquidationPenalty) {
 			return;
 		}
@@ -125,7 +125,7 @@ contract ETHVaultHandlerTest is DSTest {
 	}
 
 
-	function testShouldUpdateLiquidationPenalty(uint256 _liquidationPenalty) public {
+	function testSetLiquidationPenalty_ShouldUpdateValue(uint256 _liquidationPenalty) public {
 		if (_liquidationPenalty + 100 < _liquidationPenalty) {
 			return;
 		}
@@ -148,7 +148,7 @@ contract ETHVaultHandlerTest is DSTest {
 		orchestrator.setRatio(ethVault, _ratio);
 	}
 
-	function testShouldUpdateMinimumTCAP(uint256 _minimumTCAP) public {
+	function testSetMinimumTCAP_ShouldUpdateValue(uint256 _minimumTCAP) public {
 		vm.expectRevert("Ownable: caller is not the owner");
 		ethVault.setMinimumTCAP(_minimumTCAP);
 
@@ -159,18 +159,21 @@ contract ETHVaultHandlerTest is DSTest {
 	}
 
 
-	function testShouldAllowMintTCAP() public {
+	function testMint_ShouldCreateTCAP() public {
 		vm.startPrank(user);
 		vm.deal(user, 100 ether);
 		ethVault.createVault();
 		ethVault.addCollateralETH{value : 10 ether}();
-		(, uint256 collateral,,) = ethVault.vaults(1);
-		assertEq(collateral, 10 ether);
-
 		ethVault.mint(1 ether);
+
+		(uint256 id, uint256 collateral, uint256 debt, address owner) = ethVault.vaults(1);
+		assertEq(id, 1);
+		assertEq(collateral, 10 ether);
+		assertEq(debt, 1 ether);
+		assertEq(owner, user);
 	}
 
-	function testShouldAllowMintWithMinimumTCAP() public {
+	function testMint_ShouldMint_WhenEnoughTCAP() public {
 		// setup
 		orchestrator.executeTransaction(address(ethVault), 0, "setMinimumTCAP(uint256)", abi.encode(20 ether));
 		vm.startPrank(user);
