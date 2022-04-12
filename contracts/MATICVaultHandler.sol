@@ -27,6 +27,7 @@ contract MATICVaultHandler is IVaultHandler {
 	 * @param _collateralAddress address
 	 * @param _collateralOracle address
 	 * @param _treasury address
+	 * @param _minimumTCAP uint256
 	 */
 	constructor(
 		Orchestrator _orchestrator,
@@ -39,7 +40,8 @@ contract MATICVaultHandler is IVaultHandler {
 		address _collateralAddress,
 		address _collateralOracle,
 		address _maticOracle,
-		address _treasury
+		address _treasury,
+		uint256 _minimumTCAP
 	)
 	IVaultHandler(
 		_orchestrator,
@@ -52,7 +54,9 @@ contract MATICVaultHandler is IVaultHandler {
 		_collateralAddress,
 		_collateralOracle,
 		_maticOracle,
-		_treasury
+		_treasury,
+		_minimumTCAP
+
 	)
 	{}
 

@@ -194,6 +194,7 @@ IERC165
    * @param _collateralOracle address
    * @param _ethOracle address
    * @param _treasury address
+   * @param _minimumTCAP uint256
    */
 	constructor(
 		Orchestrator _orchestrator,
@@ -206,7 +207,8 @@ IERC165
 		address _collateralAddress,
 		address _collateralOracle,
 		address _ethOracle,
-		address _treasury
+		address _treasury,
+		uint256 _minimumTCAP
 	) {
 		require(
 			_liquidationPenalty.add(100) < _ratio,
@@ -232,6 +234,7 @@ IERC165
 		ETHPriceOracle = ChainlinkOracle(_ethOracle);
 		TCAPToken = _tcapAddress;
 		treasury = _treasury;
+		minimumTCAP = _minimumTCAP;
 		uint8 _collateralDecimals = ERC20(_collateralAddress).decimals();
 		require(
 			_collateralDecimals <= MAX_DECIMAL_PLACES,

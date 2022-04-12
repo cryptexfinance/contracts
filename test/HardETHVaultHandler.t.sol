@@ -52,7 +52,9 @@ contract ETHVaultHandlerTest is DSTest {
 			address(weth),
 			address(ethOracle),
 			address(ethOracle),
-			treasury);
+			treasury,
+			1 ether
+		);
 
 		orchestrator.addTCAPVault(tcap, ethVault);
 	}
@@ -69,7 +71,7 @@ contract ETHVaultHandlerTest is DSTest {
 		assertEq(address(ethOracle), address(ethVault.collateralPriceOracle()));
 		assertEq(address(ethOracle), address(ethVault.ETHPriceOracle()));
 		assertEq(treasury, ethVault.treasury());
-		assertEq(0, ethVault.minimumTCAP());
+		assertEq(1 ether, ethVault.minimumTCAP());
 	}
 
 	function testConstructor_ShouldRevert_WhenBurnFeeIsHigh(uint256 _burnFee) public {
@@ -88,7 +90,8 @@ contract ETHVaultHandlerTest is DSTest {
 			address(weth),
 			address(ethOracle),
 			address(ethOracle),
-			treasury
+			treasury,
+			0
 		);
 
 		if (!(_burnFee > 10)) {
@@ -116,7 +119,8 @@ contract ETHVaultHandlerTest is DSTest {
 			address(weth),
 			address(ethOracle),
 			address(ethOracle),
-			treasury
+			treasury,
+			0
 		);
 
 		if (!((_liquidationPenalty + 100) >= _ratio)) {
@@ -352,7 +356,7 @@ contract ETHVaultHandlerTest is DSTest {
 		// assert
 		(uint256 id, uint256 collateral, uint256 debt, address owner) = ethVault.vaults(1);
 		assertEq(id, 1);
-		assertEq(collateral,0);
+		assertEq(collateral, 0);
 		assertEq(debt, 0);
 		assertEq(owner, user);
 	}

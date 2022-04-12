@@ -1,3 +1,8 @@
 {
-    "solidity.compileUsingRemoteVersion": "v0.7.5+commit.eb77ed08"
+	"solidity.compileUsingRemoteVersion": "v0.7.5+commit.eb77ed08",
+	"search.exclude": { "lib": true },
+	"files.associations": {
+		".dapprc": "shellscript",
+		".gas-snapshot": "julia"
+	},
 }
