@@ -2,11 +2,10 @@ import { ethers as ethershardhat, hardhatArguments } from "hardhat";
 require("dotenv").config();
 
 module.exports = async ({ deployments }: any) => {
-	let initial_run = process.env.INITIAL_RUN == "true" ? true : false;
-	if (hardhatArguments.network === "rinkeby" && initial_run) {
-		let DAIHandler = await deployments.get("DAIVaultHandler");
-		let BTCHandler = await deployments.get("BTCVaultHandler");
-		let WETHHandler = await deployments.get("WETHVaultHandler");
+	if (hardhatArguments.network === "rinkeby") {
+		let hardDAIHandler = await deployments.get("HardDAIVaultHandler");
+		let hardUSDCHandler = await deployments.get("HardUSDCVaultHandler");
+		let hardETHHandler = await deployments.get("HardETHVaultHandler");
 		let OrchestratorDeployment = await deployments.get("Orchestrator");
 		let tcap = await deployments.get("TCAP");
 
@@ -16,9 +15,9 @@ module.exports = async ({ deployments }: any) => {
 		);
 
 		console.log("Adding vault Handlers");
-		await orchestrator.addTCAPVault(tcap.address, DAIHandler.address);
-		await orchestrator.addTCAPVault(tcap.address, BTCHandler.address);
-		await orchestrator.addTCAPVault(tcap.address, WETHHandler.address);
+		await orchestrator.addTCAPVault(tcap.address,hardDAIHandler.address);
+		await orchestrator.addTCAPVault(tcap.address,hardUSDCHandler.address);
+		await orchestrator.addTCAPVault(tcap.address,hardETHHandler.address);
 	}
 };
 module.exports.tags = ["Initialize"];

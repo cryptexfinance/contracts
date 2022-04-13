@@ -10,7 +10,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		log(`${hardhatArguments.network} found, deploying mockup DAI contracts`);
 
 		//Deploy Mock DAIs
-		let DAI, WBTC, WETH;
+		let DAI, WBTC, WETH, USDC;
 		try {
 			DAI = await deployments.get("DAI");
 		} catch (error) {
@@ -52,6 +52,18 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 				log(`WETH deployed at ${WETH.address} for ${deployResult.receipt.gasUsed}`);
 			}
 		}
+
+		try {
+			USDC = await deployments.get("USDC");
+		} catch (error) {
+			log(error.message);
+
+			const deployResult = await deployIfDifferent(["data"], "USDC", { from: deployer }, "USDC");
+			USDC = await deployments.get("USDC");
+			if (deployResult.newlyDeployed) {
+				log(`USDC deployed at ${USDC.address} for ${deployResult.receipt.gasUsed}`);
+			}
+		}
 	}
 };
-module.exports.tags = ["DAI", "WBTC", "WETH"];
+module.exports.tags = ["DAI", "WBTC", "WETH", "USDC"];

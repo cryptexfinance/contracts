@@ -5,7 +5,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		const { deployIfDifferent, log } = deployments;
 		const { deployer } = await getNamedAccounts();
 
-		let TCAPOracle, BTCOracle, WETHOracle, DAIOracle;
+		let TCAPOracle, BTCOracle, WETHOracle, DAIOracle, USDCOracle;
 		let oracleAddress = process.env.TCAP_ORACLE as string;
 		try {
 			TCAPOracle = await deployments.get("TCAPOracle");
@@ -81,6 +81,27 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 			if (deployResult.newlyDeployed) {
 				log(
 					`Price Feed Oracle deployed at ${DAIOracle.address} for ${deployResult.receipt.gasUsed}`
+				);
+			}
+		}
+
+		try {
+			USDCOracle = await deployments.get("USDCOracle");
+		} catch (error) {
+			log(error.message);
+			let oracleAddress = "0xa24de01df22b63d23Ebc1882a5E3d4ec0d907bFB";
+			const deployResult = await deployIfDifferent(
+				["data"],
+				"USDCOracle",
+				{ from: deployer },
+				"ChainlinkOracle",
+				oracleAddress,
+				deployer
+			);
+			USDCOracle = await deployments.get("USDCOracle");
+			if (deployResult.newlyDeployed) {
+				log(
+					`Price Feed Oracle deployed at ${USDCOracle.address} for ${deployResult.receipt.gasUsed}`
 				);
 			}
 		}
