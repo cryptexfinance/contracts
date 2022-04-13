@@ -91,7 +91,8 @@ describe("Orchestrator Contract", async function () {
 			collateralAddress,
 			collateralOracle,
 			ethOracle,
-			timelockInstance.address
+			timelockInstance.address,
+			0
 		);
 		await ethVaultInstance.deployed();
 		expect(ethVaultInstance.address).properAddress;
@@ -107,7 +108,8 @@ describe("Orchestrator Contract", async function () {
 			collateralAddress,
 			collateralOracle,
 			ethOracle,
-			timelockInstance.address
+			timelockInstance.address,
+			0
 		);
 		await btcVaultInstance.deployed();
 		expect(btcVaultInstance.address).properAddress;

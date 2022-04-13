@@ -79,7 +79,8 @@ describe("ETH Vault", async function () {
 			wethTokenInstance.address,
 			priceOracleInstance.address,
 			priceOracleInstance.address,
-			timelockInstance.address
+			timelockInstance.address,
+			0
 		);
 		await ethTokenHandler.deployed();
 		expect(ethTokenHandler.address).properAddress;

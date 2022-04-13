@@ -1,8 +1,8 @@
-import { expect } from "chai";
-import { BigNumber, Contract, constants, utils, Signer } from "ethers";
-import hre, { waffle } from "hardhat";
-import { deployContract } from "./utils";
-import { MockContract, smock } from "@defi-wonderland/smock";
+import {expect} from "chai";
+import {BigNumber, Contract, constants, utils, Signer} from "ethers";
+import hre, {waffle} from "hardhat";
+import {deployContract} from "./utils";
+import {MockContract, smock} from "@defi-wonderland/smock";
 
 // ************************************************************************************************
 // NOTE
@@ -43,7 +43,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 	const [wallet, acc1, acc2, acc3, acc4] = waffle.provider.getWallets();
 
 	beforeEach(async () => {
-		const { timestamp: now } = await waffle.provider.getBlock("latest");
+		const {timestamp: now} = await waffle.provider.getBlock("latest");
 		CTX = await deployContract("Ctx", wallet, [wallet.address, wallet.address, now + 60 * 60]);
 		orchestrator = await deployContract("Orchestrator", wallet, [wallet.address]);
 		treasury = await deployContract("ITreasury", wallet, [wallet.address]);
@@ -83,6 +83,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 			wBTCOracle.address,
 			ETHOracle.address,
 			treasury.address,
+			0
 		]);
 		rewardHandlerWBTC = await deployContract("RewardHandler", wallet, [
 			orchestrator.address,
@@ -103,6 +104,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 			DAIOracle.address,
 			ETHOracle.address,
 			treasury.address,
+			0
 		]);
 		// add Vaults
 		await orchestrator.addTCAPVault(tCAP.address, wBTCVaultHandler.address);
@@ -259,11 +261,11 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		// Make sure burn fee is same for both vaults
 		expect(burnFee).to.be.eq(await wBTCVaultHandler.getFee(tcapToBurn));
 
-		await wBTCVaultHandler.burn(tcapToBurn, { value: burnFee });
+		await wBTCVaultHandler.burn(tcapToBurn, {value: burnFee});
 		const newBTCVaultRatio = await wBTCVaultHandler.getVaultRatio(1);
 		expect(newBTCVaultRatio).to.be.above(oldBTCVaultRatio);
 
-		await DAIVaultHandler.burn(tcapToBurn, { value: burnFee });
+		await DAIVaultHandler.burn(tcapToBurn, {value: burnFee});
 		const newDAIVaultRatio = await DAIVaultHandler.getVaultRatio(1);
 		expect(newDAIVaultRatio).to.be.above(oldDAIVaultRatio);
 
@@ -615,8 +617,8 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 
 		const BTCBurnFee = await wBTCVaultHandler.getFee(BTCTcapLiquidationAmount);
 		const DAIBurnFee = await DAIVaultHandler.getFee(DAITcapLiquidationAmount);
-		await wBTCVaultHandler.liquidateVault(1, BTCTcapLiquidationAmount, { value: BTCBurnFee });
-		await DAIVaultHandler.liquidateVault(1, DAITcapLiquidationAmount, { value: DAIBurnFee });
+		await wBTCVaultHandler.liquidateVault(1, BTCTcapLiquidationAmount, {value: BTCBurnFee});
+		await DAIVaultHandler.liquidateVault(1, DAITcapLiquidationAmount, {value: DAIBurnFee});
 		expect(await wBTCVaultHandler.getVaultRatio(1)).to.be.eq(
 			await DAIVaultHandler.getVaultRatio(1)
 		);
@@ -659,7 +661,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		const BTCTcapLiquidationAmount = await wBTCVaultHandler.requiredLiquidationTCAP(1);
 
 		const BTCBurnFee = await wBTCVaultHandler.getFee(BTCTcapLiquidationAmount);
-		await wBTCVaultHandler.liquidateVault(1, BTCTcapLiquidationAmount, { value: BTCBurnFee });
+		await wBTCVaultHandler.liquidateVault(1, BTCTcapLiquidationAmount, {value: BTCBurnFee});
 
 		const BTCVaultRatioAfterLiquidation = await wBTCVaultHandler.getVaultRatio(1);
 		expect(BTCVaultRatioAfterLiquidation).to.be.eq(0);
@@ -705,7 +707,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		const BTCTcapBurnAmount = BigNumber.from("1000000000000000000"); // 1 TCAP
 		const BTCBurnFee = await wBTCVaultHandler.getFee(BTCTcapBurnAmount);
 		const vaultRatioBeforeBurning = await wBTCVaultHandler.getVaultRatio(1);
-		await wBTCVaultHandler.burn(BTCTcapBurnAmount, { value: BTCBurnFee });
+		await wBTCVaultHandler.burn(BTCTcapBurnAmount, {value: BTCBurnFee});
 		const vaultRatioAfterBurning = await wBTCVaultHandler.getVaultRatio(1);
 		expect(vaultRatioAfterBurning).to.be.above(vaultRatioBeforeBurning);
 	});
