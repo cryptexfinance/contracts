@@ -12,6 +12,7 @@ const hardVaults: DeployFunction = async function (hre: HardhatRuntimeEnvironmen
 		const hardETHVaultHandler = await deployments.getOrNull("HardETHVaultHandler");
 		const hardDAIVaultHandler = await deployments.getOrNull("HardDAIVaultHandler");
 		const hardUSDCVaultHandler = await deployments.getOrNull("HardUSDCVaultHandler");
+		const hardWBTCVaultHandler = await deployments.getOrNull("HardWBTCVaultHandler");
 
 		const namedAccounts = await hre.getNamedAccounts();
 		const orchestrator = "0x373c74bce7893097ab26d22f05691907d4f2c18e";
@@ -23,13 +24,17 @@ const hardVaults: DeployFunction = async function (hre: HardhatRuntimeEnvironmen
 		const tcapAddress = "0x16c52ceece2ed57dad87319d91b5e3637d50afa4";
 		const ethOracle = "0x2cFeaf282FE9ae050b210e7BDa65D288C40c6104";
 		const daiOracle = "0x6b5a75f38BeA1Ef59Bc43A5d9602e77Bcbe65e46";
+		const wbtcOracle =  "0x07Ef20895ceF20855D29ACeDCa35E6f96AF4fF49"
 		let USDCOracleDeployment = await deployments.get("UsdcOracle");
 		const usdcOracle = USDCOracleDeployment.address;
 		const treasury = "0xa54074b2cc0e96a43048d4a68472F7F046aC0DA8"; // Timelock
 
 		let WETHContract = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
+		let WBTCContract = "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599";
 		let DAIContract = "0x6b175474e89094c44da98b954eedeac495271d0f";
 		let USDCContract = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
+
+		let minimumTCAP = 20000000000000000000; // 20 TCAP
 
 
 		if (!hardETHVaultHandler) {
@@ -48,7 +53,7 @@ const hardVaults: DeployFunction = async function (hre: HardhatRuntimeEnvironmen
 					ethOracle,
 					ethOracle,
 					treasury,
-					0
+					minimumTCAP
 				],
 				skipIfAlreadyDeployed: true,
 				log: true,
@@ -77,7 +82,7 @@ const hardVaults: DeployFunction = async function (hre: HardhatRuntimeEnvironmen
 					daiOracle,
 					ethOracle,
 					treasury,
-					0
+					minimumTCAP
 				],
 				skipIfAlreadyDeployed: true,
 				log: true,
@@ -105,7 +110,7 @@ const hardVaults: DeployFunction = async function (hre: HardhatRuntimeEnvironmen
 					usdcOracle,
 					ethOracle,
 					treasury,
-					0
+					minimumTCAP
 				],
 				skipIfAlreadyDeployed: true,
 				log: true,
@@ -115,6 +120,35 @@ const hardVaults: DeployFunction = async function (hre: HardhatRuntimeEnvironmen
 			);
 		} else {
 			log("hardUSDCVaultHandler already deployed");
+		}
+
+
+		if (!hardWBTCVaultHandler) {
+			const hardWBTCVaultHandlerDeployment = await deployments.deploy("HardWBTCVaultHandler", {
+				contract: "ERC20VaultHandler",
+				from: namedAccounts.deployer,
+				args: [
+					orchestrator,
+					divisor,
+					ratio,
+					burnFee,
+					liquidationPenalty,
+					tcapOracle,
+					tcapAddress,
+					WBTCContract,
+					wbtcOracle,
+					ethOracle,
+					treasury,
+					minimumTCAP
+				],
+				skipIfAlreadyDeployed: true,
+				log: true,
+			});
+			log(
+				`hardWBTCVaultHandler deployed at ${hardWBTCVaultHandlerDeployment.address} for ${hardWBTCVaultHandlerDeployment.receipt?.gasUsed}`
+			);
+		} else {
+			log("hardWBTCVaultHandler already deployed");
 		}
 
 	}
