@@ -102,8 +102,8 @@ IERC165
 	/// @notice Minimum value that the ratio can be set to
 	uint256 public constant MIN_RATIO = 100;
 
-	/// @notice Maximum value that the burn fee can be set to
-	uint256 public constant MAX_FEE = 10;
+	/// @notice Maximum value that the burn fee can be set to, the fee have two decimals so it's multiplied by 100
+	uint256 public constant MAX_FEE = 1000; /// max fee 10%
 
 	/**
 	 * @dev the computed interface ID according to ERC-165. The interface ID is a XOR of interface method selectors.
@@ -786,16 +786,17 @@ IERC165
    * @param _amount to burn
    * @return fee
    * @dev The returned value is returned in wei
-   * @dev f = (((P * A * b)/ 100))/ EP
+   * @dev f = (((P * A * b)/ 10000))/ EP
    * f = Burn Fee Value in wei
    * P = TCAP Token Price
    * A = TCAP Amount to Burn
    * b = Burn Fee %
    * EP = ETH Price
+   * 10000 = the value is 100 multiplied by 100 to support two decimals on the burn fee
    */
 	function getFee(uint256 _amount) public view virtual returns (uint256 fee) {
 		uint256 ethPrice = getOraclePrice(ETHPriceOracle);
-		fee = (TCAPPrice().mul(_amount).mul(burnFee)).div(100).div(ethPrice);
+		fee = (TCAPPrice().mul(_amount).mul(burnFee)).div(10000).div(ethPrice);
 	}
 
 	/**
