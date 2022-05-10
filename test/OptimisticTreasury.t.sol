@@ -4,6 +4,7 @@ pragma solidity 0.7.5;
 import "ds-test/test.sol";
 import "../contracts/optimism/OptimisticTreasury.sol";
 import "../contracts/mocks/DAI.sol";
+import "./Vm.sol";
 
 contract OVMl2CrossDomainMessenger {
 	address public immutable xDomainMessageSender;
@@ -27,31 +28,6 @@ contract OVMl2CrossDomainMessenger {
 	function executeTransaction(OptimisticTreasury ot, address target, uint256 value, string memory signature, bytes memory data) public {
 		ot.executeTransaction(target, value, signature, data);
 	}
-}
-
-interface Vm {
-	// Set block.timestamp (newTimestamp)
-	function warp(uint256) external;
-	// Set block.height (newHeight)
-	function roll(uint256) external;
-	// Loads a storage slot from an address (who, slot)
-	function load(address, bytes32) external returns (bytes32);
-	// Stores a value to an address' storage slot, (who, slot, value)
-	function store(address, bytes32, bytes32) external;
-	// Signs data, (privateKey, digest) => (r, v, s)
-	function sign(uint256, bytes32) external returns (uint8, bytes32, bytes32);
-	// Gets address for a given private key, (privateKey) => (address)
-	function addr(uint256) external returns (address);
-	// Performs a foreign function call via terminal, (stringInputs) => (result)
-	//	function ffi(string[] calldata) external returns (bytes memory);
-	// Calls another contract with a specified `msg.sender`
-	function prank(address) external;
-	// Sets an address' balance, (who, newBalance)
-	function deal(address, uint256) external;
-	// Sets an address' code, (who, newCode)
-	function etch(address, bytes calldata) external;
-	// Expects an error on next call
-	function expectRevert(bytes calldata) external;
 }
 
 contract OptimisticTreasuryTest is DSTest {
@@ -83,7 +59,7 @@ contract OptimisticTreasuryTest is DSTest {
 		oTreasury.transferOwnership(_newOwner);
 
 		if (_newOwner == address(0)) {
-			vm.expectRevert("OptimisticTreasury: new owner is the zero address");
+			vm.expectRevert("Proprietor: new owner is the zero address");
 			ol2.transferOwnership(oTreasury, _newOwner);
 		} else {
 			ol2.transferOwnership(oTreasury, _newOwner);
@@ -92,6 +68,7 @@ contract OptimisticTreasuryTest is DSTest {
 	}
 
 	function testRetrieveEth(address _to) public {
+		if (address(this) == _to) return;
 		vm.deal(address(oTreasury), 1 ether);
 		assertEq(address(oTreasury).balance, 1 ether);
 		vm.expectRevert("OptimisticTreasury: caller is not the owner");
@@ -120,10 +97,10 @@ contract OptimisticTreasuryTest is DSTest {
 
 		// Empty address
 		vm.expectRevert("ITreasury::executeTransaction: target can't be zero");
-		ol2.executeTransaction(oTreasury, address(0),value, signature,data);
+		ol2.executeTransaction(oTreasury, address(0), value, signature, data);
 
-		ol2.executeTransaction(oTreasury, address(dai),value, signature,data);
-		assertEq(dai.balanceOf(address(this)),100 ether);
+		ol2.executeTransaction(oTreasury, address(dai), value, signature, data);
+		assertEq(dai.balanceOf(address(this)), 100 ether);
 		assertEq(dai.balanceOf(address(oTreasury)), 0 ether);
 	}
 }

@@ -61,8 +61,10 @@ describe("ERC20 Vault", async function () {
 		tcapOracleInstance = await oracle.deploy(aggregatorTCAPInstance.address, accounts[0]);
 		await priceOracleInstance.deployed();
 
-		const wbtc = await ethers.getContractFactory("WBTC");
-		ercTokenInstance = await wbtc.deploy();
+		// Tests here are correct only for ERC20 tokens with 18 decimal places
+		// Using DAI as it has 18 decimals
+		const DAI = await ethers.getContractFactory("DAI");
+		ercTokenInstance = await DAI.deploy();
 
 		// Initialize Vault
 
@@ -78,8 +80,8 @@ describe("ERC20 Vault", async function () {
 			ercTokenInstance.address,
 			priceOracleInstance.address,
 			priceOracleInstance.address,
-			ethers.constants.AddressZero,
-			timelockInstance.address
+			timelockInstance.address,
+			0
 		);
 		await ercTokenHandler.deployed();
 		expect(ercTokenHandler.address).properAddress;
@@ -328,7 +330,7 @@ describe("ERC20 Vault", async function () {
 
 	it("...should calculate the burn fee", async () => {
 		let amount = ethersProvider.utils.parseEther("10");
-		let divisor = 100;
+		let divisor = 10000;
 		let tcapPrice = await ercTokenHandler.TCAPPrice();
 		let ethPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
 		let result = tcapPrice.mul(amount).div(divisor).div(ethPrice);
@@ -359,13 +361,13 @@ describe("ERC20 Vault", async function () {
 			"VaultHandler::burn: burn fee less than required"
 		);
 		await expect(
-			ercTokenHandler.connect(addr1).burn(bigAmount, { value: ethAmount2 })
+			ercTokenHandler.connect(addr1).burn(bigAmount, {value: ethAmount2})
 		).to.be.revertedWith("VaultHandler::burn: amount greater than debt");
 
 		await expect(ercTokenHandler.connect(addr1).burn(0)).to.be.revertedWith(
 			"VaultHandler::notZero: value can't be 0"
 		);
-		await expect(ercTokenHandler.connect(addr1).burn(amount, { value: ethHighAmount }))
+		await expect(ercTokenHandler.connect(addr1).burn(amount, {value: ethHighAmount}))
 			.to.emit(ercTokenHandler, "TokensBurned")
 			.withArgs(accounts[1], 1, amount);
 		let tcapBalance = await tcapInstance.balanceOf(accounts[1]);
@@ -491,14 +493,14 @@ describe("ERC20 Vault", async function () {
 			ercTokenHandler.connect(addr3).liquidateVault(2, reqLiquidation)
 		).to.be.revertedWith("VaultHandler::liquidateVault: burn fee less than required");
 		await expect(
-			ercTokenHandler.connect(addr3).liquidateVault(2, 1, { value: fakeBurn })
+			ercTokenHandler.connect(addr3).liquidateVault(2, 1, {value: fakeBurn})
 		).to.be.revertedWith(
 			"VaultHandler::liquidateVault: liquidation amount different than required"
 		);
 		await expect(
 			ercTokenHandler
 				.connect(addr3)
-				.liquidateVault(2, aboveReqLiquidation, { value: aboveBurnAmount })
+				.liquidateVault(2, aboveReqLiquidation, {value: aboveBurnAmount})
 		)
 			.to.emit(ercTokenHandler, "VaultLiquidated")
 			.withArgs(2, accounts[3], reqLiquidation, liquidationReward);

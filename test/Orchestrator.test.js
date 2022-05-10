@@ -14,11 +14,8 @@ describe("Orchestrator Contract", async function () {
 	let ratio = "150";
 	let burnFee = "1";
 	let liquidationPenalty = "10";
-	let tcapOracle =
-		(collateralAddress =
-		collateralOracle =
-		ethOracle =
-			ethersProvider.constants.AddressZero);
+	let tcapOracle = (collateralAddress = collateralOracle = ethOracle =
+		ethersProvider.constants.AddressZero);
 
 	before("Set Accounts", async () => {
 		let [acc0, acc1, acc3, acc4, acc5, acc6] = await ethers.getSigners();
@@ -94,8 +91,8 @@ describe("Orchestrator Contract", async function () {
 			collateralAddress,
 			collateralOracle,
 			ethOracle,
-			ethers.constants.AddressZero,
-			timelockInstance.address
+			timelockInstance.address,
+			0
 		);
 		await ethVaultInstance.deployed();
 		expect(ethVaultInstance.address).properAddress;
@@ -111,8 +108,8 @@ describe("Orchestrator Contract", async function () {
 			collateralAddress,
 			collateralOracle,
 			ethOracle,
-			ethers.constants.AddressZero,
-			timelockInstance.address
+			timelockInstance.address,
+			0
 		);
 		await btcVaultInstance.deployed();
 		expect(btcVaultInstance.address).properAddress;
@@ -175,7 +172,7 @@ describe("Orchestrator Contract", async function () {
 		await orchestratorInstance.setBurnFee(ethVaultInstance.address, burnFee);
 		expect(burnFee).to.eq(await ethVaultInstance.burnFee());
 
-		await expect(orchestratorInstance.setBurnFee(ethVaultInstance.address, 100)).to.be.revertedWith(
+		await expect(orchestratorInstance.setBurnFee(ethVaultInstance.address, 1001)).to.be.revertedWith(
 			"VaultHandler::setBurnFee: burn fee higher than MAX_FEE"
 		);
 	});
