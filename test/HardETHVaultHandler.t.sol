@@ -417,4 +417,20 @@ contract ETHVaultHandlerTest is DSTest {
 		//assert
 		assertEq(calculatedFee, currentFee);
 	}
+
+	function testGetFee_ShouldCalculateCorrectValue_withNewDecimalFormat(uint8 _burnFeePercentage, uint96 _amount) public {
+		// We always think about fee as a percentage first.
+		// We multiply by 100 later so that the code works
+		if ((_burnFeePercentage * 100) > 1000) {
+			return;
+		}
+		orchestrator.setBurnFee(ethVault, _burnFeePercentage * 100);
+		// By dividing by 100 in the formula below, we can ensure that fee calculated
+		// is the same as the previous version
+		uint256 calculatedFee = (ethVault.TCAPPrice() * (_amount) * (_burnFeePercentage)) / (100) / (ethVault.getOraclePrice(ethOracle));
+
+		uint256 currentFee = ethVault.getFee(_amount);
+
+		// We assert that the old fee calculation is the same as the new one.
+	}
 }
