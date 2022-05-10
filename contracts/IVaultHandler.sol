@@ -102,7 +102,7 @@ IERC165
 	/// @notice Minimum value that the ratio can be set to
 	uint256 public constant MIN_RATIO = 100;
 
-	/// @notice Maximum value that the burn fee can be set to, the fee have two decimals so it's multiplied by 100
+	/// @notice Maximum value that the burn fee can be set to, the fee has two decimals, so it's multiplied by 100
 	uint256 public constant MAX_FEE = 1000; /// max fee 10%
 
 	/**
