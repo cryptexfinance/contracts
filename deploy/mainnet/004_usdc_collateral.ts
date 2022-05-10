@@ -11,7 +11,7 @@ const usdcVaultHandler: DeployFunction = async function (hre: HardhatRuntimeEnvi
 
 		const namedAccounts = await hre.getNamedAccounts();
 		let usdcOracle = await deployments.getOrNull("UsdcOracle");
-		const usdcAggregator = "\t0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6";
+		const usdcAggregator = "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6";
 		const treasury = "0xa54074b2cc0e96a43048d4a68472F7F046aC0DA8"; // Timelock
 
 		if (!usdcOracle) {
