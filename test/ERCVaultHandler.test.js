@@ -330,7 +330,7 @@ describe("ERC20 Vault", async function () {
 
 	it("...should calculate the burn fee", async () => {
 		let amount = ethersProvider.utils.parseEther("10");
-		let divisor = 100;
+		let divisor = 10000;
 		let tcapPrice = await ercTokenHandler.TCAPPrice();
 		let ethPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
 		let result = tcapPrice.mul(amount).div(divisor).div(ethPrice);

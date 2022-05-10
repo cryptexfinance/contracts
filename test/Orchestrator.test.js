@@ -172,7 +172,7 @@ describe("Orchestrator Contract", async function () {
 		await orchestratorInstance.setBurnFee(ethVaultInstance.address, burnFee);
 		expect(burnFee).to.eq(await ethVaultInstance.burnFee());
 
-		await expect(orchestratorInstance.setBurnFee(ethVaultInstance.address, 100)).to.be.revertedWith(
+		await expect(orchestratorInstance.setBurnFee(ethVaultInstance.address, 1001)).to.be.revertedWith(
 			"VaultHandler::setBurnFee: burn fee higher than MAX_FEE"
 		);
 	});

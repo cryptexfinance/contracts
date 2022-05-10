@@ -19,6 +19,8 @@ contract ETHVaultHandlerTest is DSTest {
 		uint256 _minimumTCAP
 	);
 
+	event NewBurnFee(address indexed _owner, uint256 _burnFee);
+
 	// Setup
 	Vm vm;
 	ETHVaultHandler ethVault;
@@ -35,7 +37,7 @@ contract ETHVaultHandlerTest is DSTest {
 	//// Params
 	uint256 divisor = 10000000000;
 	uint256 ratio = 110;
-	uint256 burnFee = 1;
+	uint256 burnFee = 50;
 	uint256 liquidationPenalty = 5;
 	address treasury = address(0x3);
 
@@ -75,7 +77,7 @@ contract ETHVaultHandlerTest is DSTest {
 	}
 
 	function testConstructor_ShouldRevert_WhenBurnFeeIsHigh(uint256 _burnFee) public {
-		if (_burnFee > 10) {
+		if (_burnFee > 1000) {
 			vm.expectRevert("VaultHandler::constructor: burn fee higher than MAX_FEE");
 		}
 
@@ -94,7 +96,7 @@ contract ETHVaultHandlerTest is DSTest {
 			0
 		);
 
-		if (!(_burnFee > 10)) {
+		if (!(_burnFee > 1000)) {
 			assertEq(_burnFee, vault.burnFee());
 		}
 	}
@@ -212,7 +214,7 @@ contract ETHVaultHandlerTest is DSTest {
 		assertEq(debt, 30 ether);
 	}
 
-	function testBurnTCAP_ShouldRevert_WhenFeeIsNotPaid(uint96 _tcapAmount) public {
+	function testBurnTCAP_ShouldBurn_WhenFeeIsPaid(uint96 _tcapAmount) public {
 		// checks
 		if (_tcapAmount < 1 ether) {
 			return;
@@ -227,8 +229,6 @@ contract ETHVaultHandlerTest is DSTest {
 		vm.deal(user, requiredCollateral + t + fee);
 		ethVault.createVault();
 		ethVault.addCollateralETH{value : requiredCollateral + t}();
-		emit log_named_uint("Required Collateral", requiredCollateral);
-		emit log_named_uint("Vault Ratio", ethVault.getVaultRatio(1));
 		ethVault.mint(_tcapAmount);
 
 		// execution
@@ -242,7 +242,7 @@ contract ETHVaultHandlerTest is DSTest {
 		assertEq(owner, user);
 	}
 
-	function testBurnTCAP_ShouldBurn_WhenFeeIsPaid(uint96 _tcapAmount) public {
+	function testBurnTCAP_ShouldRevert_WhenFeeIsNotPaid(uint96 _tcapAmount) public {
 		// checks
 		if (_tcapAmount < 1 ether) {
 			return;
@@ -359,5 +359,62 @@ contract ETHVaultHandlerTest is DSTest {
 		assertEq(collateral, 0);
 		assertEq(debt, 0);
 		assertEq(owner, user);
+	}
+
+	function testSetBurnFee_ShouldRevert_WhenNotCalledByOwner() public {
+		//setUp
+		uint256 oldFee = ethVault.burnFee();
+		vm.expectRevert("Ownable: caller is not the owner");
+
+		//execution
+		ethVault.setBurnFee(2);
+
+		//assert
+		assertEq(oldFee, ethVault.burnFee());
+	}
+
+	function testSetBurnFee_ShouldRevert_WhenValueAboveMax(uint256 _newFee) public {
+		//setUp
+		if (_newFee <= 1000) {
+			return;
+		}
+		uint256 oldFee = ethVault.burnFee();
+		vm.expectRevert("VaultHandler::setBurnFee: burn fee higher than MAX_FEE");
+
+		//execution
+		orchestrator.setBurnFee(ethVault, _newFee);
+
+		//assert
+		assertEq(oldFee, ethVault.burnFee());
+	}
+
+	function testSetBurnFee_ShouldAllowDecimals_WhenValueBelowMax(uint256 _newFee) public {
+		//setUp
+		if (_newFee > 1000) {
+			return;
+		}
+
+		//execution
+		vm.expectEmit(true, true, true, true);
+		emit NewBurnFee(address(orchestrator), _newFee);
+		orchestrator.setBurnFee(ethVault, _newFee);
+
+		//assert
+		assertEq(ethVault.burnFee(), _newFee);
+	}
+
+	function testGetFee_ShouldCalculateCorrectValue(uint8 _burnFee, uint96 _amount) public {
+		//setUp
+		if (_burnFee > 1000) {
+			return;
+		}
+		orchestrator.setBurnFee(ethVault, _burnFee);
+		uint256 calculatedFee = (ethVault.TCAPPrice() * (_amount) * (_burnFee)) / (10000) / (ethVault.getOraclePrice(ethOracle));
+
+		//execution
+		uint256 currentFee = ethVault.getFee(_amount);
+
+		//assert
+		assertEq(calculatedFee, currentFee);
 	}
 }

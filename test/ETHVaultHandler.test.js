@@ -365,7 +365,7 @@ describe("ETH Vault", async function () {
 
 	it("...should calculate the burn fee", async () => {
 		let amount = ethers.utils.parseEther("10");
-		let divisor = 100;
+		let divisor = 10000;
 		let tcapPrice = await ethTokenHandler.TCAPPrice();
 		let ethPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
 		let result = tcapPrice.mul(amount).div(divisor).div(ethPrice);
