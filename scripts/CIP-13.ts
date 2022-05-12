@@ -9,7 +9,7 @@ async function main() {
 
 	let orchestratorAddress = "0x373C74BcE7893097ab26d22f05691907D4f2c18e";
 	let tcap = await deployments.get("TCAP");
-	//TODO: waiting for real deployment
+
 	let tcapContract = await ethers.getContractAt("TCAP", tcap.address);
 	let usdcHardVault = "0xa8CcA36A624215a39D5af6854ac24868559424d3";
 	let daiHardVault = "0xA5b3Bb6e1f206624B3B8CE0c6A0f7614fd35Fa03";
