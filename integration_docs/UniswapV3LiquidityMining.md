@@ -338,7 +338,9 @@ v3StakerAddress = "0xe34139463bA50bD61336E0c446Bd8C0867c6fE65";
 ctxAddress = "0x321C2fE4446C7c963dc41Dd58879AF648838f98D";
 CTX = await hre.ethers.getContractAt("Ctx", ctxAddress);
 rewardAmount = hre.ethers.utils.parseEther("50000"); // 50K CTX rewards
-await CTX.approve(v3StakerAddress, rewardAmount);
+data = await CTX.populateTransaction.approve(v3StakerAddress, rewardAmount);
+delete data["from"];
+console.log("data to approve CTX", data);
 accounts = await hre.ethers.getSigners(); // Assuming hardhat has the signer private key.
 v3Staker =  new ethers.Contract(
 	v3StakerAddress,
@@ -347,7 +349,7 @@ v3Staker =  new ethers.Contract(
 );
 uniswapEthTCAPPoolAddress = "0x11456b3750E991383bB8943118ed79C1afdEE192";  
 
-startTime = (await accounts[0].provider.getBlock("latest")).timestamp + 15 * 60; // + 15 minutes
+startTime = (await accounts[0].provider.getBlock("latest")).timestamp+ 15 * 60; // + 15 minutes
 endTime = startTime + 92 * 24 * 60 * 60; // start time + 92 days days
 times = {
 	startTime,
@@ -360,5 +362,7 @@ key = {
 		refundee: namedAccounts.deployer,
 }
 console.log(key);
-await v3Staker.createIncentive(key, rewardAmount);
+data = await v3Staker.populateTransaction.createIncentive(key, rewardAmount);
+delete data["from"];
+console.log("data to createIncentive", data);
 ```
