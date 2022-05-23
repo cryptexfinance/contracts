@@ -349,7 +349,7 @@ v3Staker =  new ethers.Contract(
 );
 uniswapEthTCAPPoolAddress = "0x11456b3750E991383bB8943118ed79C1afdEE192";  
 
-startTime = (await accounts[0].provider.getBlock("latest")).timestamp+ 15 * 60; // + 15 minutes
+startTime = (await accounts[0].provider.getBlock("latest")).timestamp+ 15 * 60 * 60; // + 15 minutes
 endTime = startTime + 92 * 24 * 60 * 60; // start time + 92 days days
 times = {
 	startTime,
@@ -365,4 +365,86 @@ console.log(key);
 data = await v3Staker.populateTransaction.createIncentive(key, rewardAmount);
 delete data["from"];
 console.log("data to createIncentive", data);
+```
+
+### Uniswap APR calculation strategy
+
+```graphql
+type StakedPosition {
+	tokenId: ID!
+	active: Bool!
+	liquidity: BigInt!
+	tickLower: BigInt!
+	tickUpper: BigInt!
+}
+
+APRInfo {
+	APR: Float
+}
+```
+
+On event [DepositTransferred](https://github.com/Uniswap/v3-staker/blob/4328b957701de8bed83689aa22c32eda7928d5ab/contracts/UniswapV3Staker.sol#L163) do the following:
+```javascript
+\\ We might need to check if the position already exists.
+\\ We check this byt querying the graph using tokenID
+\\ If it doesn't exits then
+nftInfo = await nft.positions(event.tokenId)
+let stakedPosition = new StakedPosition()
+stakedPosition.tokenID = event.tokenId
+stakedPosition.active = false
+stakedPosition.liquidity = nftInfo.liquidity
+stakedPosition.tickLower = nftInfo.tickLower
+stakedPosition.tickUpper = nftInfo.tickUpper
+stakedPosition.save()
+```
+
+On event [TokenStaked](https://github.com/Uniswap/v3-staker/blob/4328b957701de8bed83689aa22c32eda7928d5ab/contracts/UniswapV3Staker.sol#L348)
+```javascript
+\\ query StakedPosition by event.tokenID
+stakedPosition.active = true
+stakedPosition.save()
+\\ Trigger the job below
+```
+
+On event [TokenUnStaked](https://github.com/Uniswap/v3-staker/blob/4328b957701de8bed83689aa22c32eda7928d5ab/contracts/UniswapV3Staker.sol#L259)
+```javascript
+\\ query StakedPosition by event.tokenID
+stakedPosition.active = false
+stakedPosition.save()
+\\ Trigger the job below
+```
+
+On event [Swap](https://github.com/Uniswap/v3-core/blob/8f3e4645a08850d2335ead3d1a8d0c64fa44f222/contracts/UniswapV3Pool.sol#L786)
+```javascript
+function tick_to_price(tick) {
+	return 1.0001 ** tick;
+}
+// pool address 0x11456b3750E991383bB8943118ed79C1afdEE192
+slot0 = await pool.slot0();
+currentTick = slot0.tick;
+current_sqrt_price = tick_to_price(currentTick/2);
+
+\\ query all the active StakedPosition
+
+total_amount0 = 0
+total_amount1 = 0
+for stakedPositon in Active Staked positons:
+	sa = tick_to_price(stakedPositon.tick_lower / 2)
+	sb = tick_to_price(stakedPositon.tick_upper / 2)
+	liquidity = stakedPositon.liquidity
+	if (tick_lower < currentTick) &&  (currentTick < tick_upper):
+		amount0 = liquidity * (sb - current_sqrt_price) / (current_sqrt_price * sb)
+		amount1 = liquidity * (current_sqrt_price - sa)
+		adjusted_amount0 = amount0 / (10 ** 18)
+		adjusted_amount1 = amount1 / (10 ** 18)
+		total_amount0 += adjusted_amount0
+		total_amount1 += adjusted_amount1
+
+// Fetch TCAP price and ETH price from the oracles and normalize the zeroes
+TVL_USD = total_amount0 * tcap_price + total_amount1 * eth_price
+CTX_REWARD = 50000
+reward_rate = CTX_REWARD / 92 // 92 days duration
+APR = (reward_rate * CTX_PRICE_USD * 365 * 100)/ (TVL_USD)
+APRInfo.APR = APR
+APRInfo.save()
 ```
