@@ -1,8 +1,8 @@
 // run with
 // npx hardhat run ./scripts/CIP-14.ts --network hardhat
-import hre, {deployments, network, hardhatArguments} from "hardhat";
-import {castVote, createProposal, executeProposal, fundMultisign, queueProposal} from "./utils";
-import {BigNumber} from "ethers";
+import hre, { deployments, network, hardhatArguments } from "hardhat";
+import { castVote, createProposal, executeProposal, fundMultisign, queueProposal } from "./utils";
+import { BigNumber } from "ethers";
 
 async function main() {
 	const ethers = hre.ethers;
@@ -14,23 +14,54 @@ async function main() {
 	let ethHardVault = "0xc2Ba6B8E0EE3cf48B045D966F1dCda767df74833";
 	let wbtcHardVault = "0x2364536F4891Ed560A6728f4B36871de8176eE5c";
 
-    const ethVault = await ethers.getContractAt("ETHVaultHandler",ethHardVault);
-    const daiVault = await ethers.getContractAt("ERC20VaultHandler",daiHardVault);
-    const usdcVault = await ethers.getContractAt("ERC20VaultHandler",usdcHardVault);
-    const wbtcVault = await ethers.getContractAt("ERC20VaultHandler",wbtcHardVault);
-
+	const ethVault = await ethers.getContractAt("ETHVaultHandler", ethHardVault);
+	const daiVault = await ethers.getContractAt("ERC20VaultHandler", daiHardVault);
+	const usdcVault = await ethers.getContractAt("ERC20VaultHandler", usdcHardVault);
+	const wbtcVault = await ethers.getContractAt("ERC20VaultHandler", wbtcHardVault);
 
 	const abi = new ethers.utils.AbiCoder();
-	const targets = [orchestratorAddress, orchestratorAddress, orchestratorAddress, orchestratorAddress];
-	const values = [BigNumber.from(0), BigNumber.from(0), BigNumber.from(0), BigNumber.from(0)];
-	const signatures = ["setRatio(address,uint256)", "setRatio(address,uint256)", "setRatio(address,uint256)", "setRatio(address,uint256)"];
+	const targets = [
+		orchestratorAddress,
+		orchestratorAddress,
+		orchestratorAddress,
+		orchestratorAddress,
+		orchestratorAddress,
+		orchestratorAddress,
+		orchestratorAddress,
+		orchestratorAddress,
+	];
+	const values = [
+		BigNumber.from(0),
+		BigNumber.from(0),
+		BigNumber.from(0),
+		BigNumber.from(0),
+		BigNumber.from(0),
+		BigNumber.from(0),
+		BigNumber.from(0),
+		BigNumber.from(0),
+	];
+	const signatures = [
+		"setRatio(address,uint256)",
+		"setRatio(address,uint256)",
+		"setRatio(address,uint256)",
+		"setRatio(address,uint256)",
+		"setLiquidationPenalty(address,uint256)",
+		"setLiquidationPenalty(address,uint256)",
+		"setLiquidationPenalty(address,uint256)",
+		"setLiquidationPenalty(address,uint256)",
+	];
 	const calldatas = [
 		abi.encode(["address", "uint256"], [ethHardVault, 125]),
 		abi.encode(["address", "uint256"], [usdcHardVault, 125]),
 		abi.encode(["address", "uint256"], [daiHardVault, 125]),
 		abi.encode(["address", "uint256"], [wbtcHardVault, 125]),
+		abi.encode(["address", "uint256"], [ethHardVault, 19]),
+		abi.encode(["address", "uint256"], [usdcHardVault, 19]),
+		abi.encode(["address", "uint256"], [daiHardVault, 19]),
+		abi.encode(["address", "uint256"], [wbtcHardVault, 19]),
 	];
-	const description = "CIP-14: Increase Hard Mode Vault Liquidation Ratio to 125%";
+
+	const description = "CIP-14: Increase Hard Mode Vault Liquidation Ratio to 125% & Penalty to 19%";
 	console.log(targets);
 	console.log(values);
 	console.log(signatures);
@@ -49,6 +80,17 @@ async function main() {
 	let wbtcRatio = await wbtcVault.ratio();
 	console.log(wbtcRatio.toString());
 
+	let usdcLiquidationPenalty = await usdcVault.liquidationPenalty();
+	console.log(usdcLiquidationPenalty.toString());
+
+	let ethLiquidationPenalty = await ethVault.liquidationPenalty();
+	console.log(ethLiquidationPenalty.toString());
+
+	let daiLiquidationPenalty = await daiVault.liquidationPenalty();
+	console.log(daiLiquidationPenalty.toString());
+
+	let wbtcLiquidationPenalty = await wbtcVault.liquidationPenalty();
+	console.log(wbtcLiquidationPenalty.toString());
 
 	if (hardhatArguments.network === "hardhat") {
 		//Fund Multisign with ETH
@@ -70,16 +112,28 @@ async function main() {
 		console.log("==================Check Results==================");
 
 		usdcRatio = await usdcVault.ratio();
-	    console.log(usdcRatio.toString());
+		console.log(usdcRatio.toString());
 
-        ethRatio = await ethVault.ratio();
-        console.log(ethRatio.toString());
+		ethRatio = await ethVault.ratio();
+		console.log(ethRatio.toString());
 
-        daiRatio = await daiVault.ratio();
-        console.log(daiRatio.toString());
+		daiRatio = await daiVault.ratio();
+		console.log(daiRatio.toString());
 
-        wbtcRatio = await wbtcVault.ratio();
-        console.log(wbtcRatio.toString());
+		wbtcRatio = await wbtcVault.ratio();
+		console.log(wbtcRatio.toString());
+
+		usdcLiquidationPenalty = await usdcVault.liquidationPenalty();
+		console.log(usdcLiquidationPenalty.toString());
+
+		ethLiquidationPenalty = await ethVault.liquidationPenalty();
+		console.log(ethLiquidationPenalty.toString());
+
+		daiLiquidationPenalty = await daiVault.liquidationPenalty();
+		console.log(daiLiquidationPenalty.toString());
+
+		wbtcLiquidationPenalty = await wbtcVault.liquidationPenalty();
+		console.log(wbtcLiquidationPenalty.toString());
 	}
 }
 
