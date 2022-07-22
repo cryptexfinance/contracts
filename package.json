@@ -21,7 +21,7 @@
 	"dependencies": {
 		"@chainlink/contracts": "^0.0.12",
 		"@defi-wonderland/smock": "^2.0.7",
-		"@openzeppelin/contracts": "^3.0.1",
+		"@openzeppelin/contracts": "^4.7.1",
 		"@typechain/ethers-v5": "^5.0.0",
 		"@types/chai": "^4.2.11",
 		"hardhat-tracer": "^1.0.0-alpha.6",
