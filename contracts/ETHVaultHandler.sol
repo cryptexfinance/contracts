@@ -77,7 +77,7 @@ contract ETHVaultHandler is IVaultHandler {
 	payable
 	nonReentrant
 	vaultExists
-    whenNotPaused
+	whenNotPaused
 	{
         require(isPaused[2] == false,"VaultHandler::addCollateralETH: function is paused");
 		require(
@@ -100,7 +100,7 @@ contract ETHVaultHandler is IVaultHandler {
 	external
 	nonReentrant
 	vaultExists
-    whenNotPaused
+	whenNotPaused
 	{
         require(isPaused[3] == false,"VaultHandler::removeCollateralETH: function is paused");
 		require(

@@ -95,8 +95,8 @@ IERC165
 
 
     /// @notice mapping of function to is Paused
-    /// @dev 1 = , 2 = , 3 = , 4;
-    mapping(uint256 => bool) public isPaused;
+    /// @dev 1 = CreateVault, 2 = AddCollateral, 3 = RemoveCollateral, 4 = Mint, 5 = Burn, 6 = LiquidateVault
+    mapping(uint8 => bool) public isPaused;
 
     /// @notice value used to multiply chainlink oracle for handling decimals
 	uint256 public constant oracleDigits = 10000000000;
@@ -359,7 +359,7 @@ IERC165
 		emit NewTreasury(msg.sender, _treasury);
 	}
 
-    function togglePauseFunction(uint256 _function, bool _isPaused) external virtual onlyOwner {
+    function togglePauseFunction(uint8 _function, bool _isPaused) external virtual onlyOwner {
         isPaused[_function] = _isPaused;
         emit FunctionIsPaused(msg.sender, _function,_isPaused);
     }
@@ -394,7 +394,7 @@ IERC165
 	virtual
 	nonReentrant
 	vaultExists
-    whenNotPaused
+	whenNotPaused
 	notZero(_amount)
 	{
        	require(isPaused[2] == false,"VaultHandler::addCollateral: function is paused");
@@ -458,7 +458,7 @@ IERC165
 	virtual
 	nonReentrant
 	vaultExists
-    whenNotPaused
+	whenNotPaused
 	notZero(_amount)
 	{
 		require(isPaused[4] == false,"VaultHandler::mint: function is paused");
