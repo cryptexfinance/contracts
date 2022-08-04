@@ -58,13 +58,6 @@ contract VaultPausingTest is Test {
     orchestrator.addTCAPVault(tcap, ethVault);
   }
 
-  // Only Owner
-  //Should be able to pause function
-
-  //Should be able to unpause function
-
-  //Other functions should be able to keep functioning after one is paused
-
   function testTogglePauseFunction_ShouldRevert_WhenNotOwner() public {
     //setUp
     vm.expectRevert("Ownable: caller is not the owner");
