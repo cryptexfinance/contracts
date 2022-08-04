@@ -93,7 +93,12 @@ IERC165
 	/// @notice Id To Vault
 	mapping(uint256 => Vault) public vaults;
 
-	/// @notice value used to multiply chainlink oracle for handling decimals
+
+    /// @notice mapping of function to is Paused
+    /// @dev 1 = , 2 = , 3 = , 4;
+    mapping(uint256 => bool) public isPaused;
+
+    /// @notice value used to multiply chainlink oracle for handling decimals
 	uint256 public constant oracleDigits = 10000000000;
 
 	/// @notice Maximum decimal places that are supported by the collateral
@@ -180,6 +185,13 @@ IERC165
 
 	/// @notice An event emitted when a erc20 token is recovered
 	event Recovered(address _token, uint256 _amount);
+
+	/// @notice An event emitted when a function is paused
+    event FunctionIsPaused(
+        address indexed _owner,
+        uint256 _function,
+        bool _isPaused
+    );
 
 	/**
 	 * @notice Constructor
@@ -347,12 +359,18 @@ IERC165
 		emit NewTreasury(msg.sender, _treasury);
 	}
 
+    function togglePauseFunction(uint256 _function, bool _isPaused) external virtual onlyOwner {
+        isPaused[_function] = _isPaused;
+        emit FunctionIsPaused(msg.sender, _function,_isPaused);
+    }
+
 	/**
 	 * @notice Allows an user to create an unique Vault
    * @dev Only one vault per address can be created
    */
 	function createVault() external virtual whenNotPaused {
-		require(
+		require(isPaused[1] == false,"VaultHandler::createVault: function is paused");
+        require(
 			userToVault[msg.sender] == 0,
 			"VaultHandler::createVault: vault already created"
 		);
@@ -376,10 +394,11 @@ IERC165
 	virtual
 	nonReentrant
 	vaultExists
-	whenNotPaused
+    whenNotPaused
 	notZero(_amount)
 	{
-		require(
+       	require(isPaused[2] == false,"VaultHandler::addCollateral: function is paused");
+        require(
 			collateralContract.transferFrom(msg.sender, address(this), _amount),
 			"VaultHandler::addCollateral: ERC20 transfer did not succeed"
 		);
@@ -404,6 +423,7 @@ IERC165
 	whenNotPaused
 	notZero(_amount)
 	{
+        require(isPaused[3] == false,"VaultHandler::removeCollateral: function is paused");
 		Vault storage vault = vaults[userToVault[msg.sender]];
 		uint256 currentRatio = getVaultRatio(vault.Id);
 
@@ -438,10 +458,11 @@ IERC165
 	virtual
 	nonReentrant
 	vaultExists
-	whenNotPaused
+    whenNotPaused
 	notZero(_amount)
 	{
-		Vault storage vault = vaults[userToVault[msg.sender]];
+		require(isPaused[4] == false,"VaultHandler::mint: function is paused");
+        Vault storage vault = vaults[userToVault[msg.sender]];
 		uint256 collateral = requiredCollateral(_amount);
 
 		require(
@@ -479,6 +500,7 @@ IERC165
 	whenNotPaused
 	notZero(_amount)
 	{
+        require(isPaused[5] == false,"VaultHandler::burn: function is paused");
 		uint256 fee = getFee(_amount);
 		require(
 			msg.value >= fee,
@@ -509,6 +531,7 @@ IERC165
 	nonReentrant
 	whenNotPaused
 	{
+        require(isPaused[6] == false,"VaultHandler::liquidateVault: function is paused");
 		Vault storage vault = vaults[_vaultId];
 		require(vault.Id != 0, "VaultHandler::liquidateVault: no vault created");
 
