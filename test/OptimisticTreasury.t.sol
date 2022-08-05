@@ -68,7 +68,7 @@ contract OptimisticTreasuryTest is DSTest {
 	}
 
 	function testRetrieveEth(address _to) public {
-		address _to = address(0x11);
+		if(_to == address(0x01) || address(this) == _to) return;
 		vm.deal(address(oTreasury), 1 ether);
 		assertEq(address(oTreasury).balance, 1 ether);
 		vm.expectRevert("OptimisticTreasury: caller is not the owner");
