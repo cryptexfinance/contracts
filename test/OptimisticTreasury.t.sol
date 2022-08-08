@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.5;
 
-import "ds-test/test.sol";
+import "forge-std/Test.sol";
 import "../contracts/optimism/OptimisticTreasury.sol";
 import "../contracts/mocks/DAI.sol";
-import "./Vm.sol";
 
 contract OVMl2CrossDomainMessenger {
 	address public immutable xDomainMessageSender;
@@ -30,16 +29,14 @@ contract OVMl2CrossDomainMessenger {
 	}
 }
 
-contract OptimisticTreasuryTest is DSTest {
+contract OptimisticTreasuryTest is Test {
 	OptimisticTreasury oTreasury;
-	Vm vm;
 	OVMl2CrossDomainMessenger ol2;
 
 
 	function setUp() public {
 		ol2 = new OVMl2CrossDomainMessenger(address(this));
 		oTreasury = new OptimisticTreasury(address(this), address(ol2));
-		vm = Vm(HEVM_ADDRESS);
 	}
 
 	function testSetParams() public {
@@ -69,6 +66,7 @@ contract OptimisticTreasuryTest is DSTest {
 
 	function testRetrieveEth() public {
         address _to = address(0x11);
+        if(_to == address(this)) return;
 		vm.deal(address(oTreasury), 1 ether);
 		assertEq(address(oTreasury).balance, 1 ether);
 		vm.expectRevert("OptimisticTreasury: caller is not the owner");
