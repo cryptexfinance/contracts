@@ -9,12 +9,12 @@ import "../contracts/mocks/AggregatorInterfaceTCAP.sol";
 import "../contracts/mocks/AggregatorInterface.sol";
 import "../contracts/mocks/WETH.sol";
 
-contract VaultPausingTest is Test {
+contract VaultDisablingTest is Test {
   // events
-  event FunctionIsPaused(
+  event FunctionIsDisabled(
     address indexed _owner,
     uint256 _function,
-    bool _isPaused
+    bool _isDisabled
   );
 
   // Setup
@@ -58,36 +58,36 @@ contract VaultPausingTest is Test {
     orchestrator.addTCAPVault(tcap, ethVault);
   }
 
-  function testTogglePauseFunction_ShouldRevert_WhenNotOwner() public {
+  function testToggleDisableFunction_ShouldRevert_WhenNotOwner() public {
     //setUp
     vm.expectRevert("Ownable: caller is not the owner");
 
     //execution
-    ethVault.togglePauseFunction(1, true);
+    ethVault.toggleDisableFunction(1, true);
 
     //assert
-    assertEq(ethVault.isPaused(1), false);
+    assertEq(ethVault.isDisabled(1), false);
   }
 
-  function testTogglePauseFunction_ShouldPauseFunction() public {
+  function testToggleDisableFunction_ShouldDisableFunction() public {
     //setUp
     vm.startPrank(address(orchestrator));
     vm.expectEmit(true, true, true, true);
-    emit FunctionIsPaused(address(orchestrator), 1, true);
+    emit FunctionIsDisabled(address(orchestrator), 1, true);
 
     //execution
-    ethVault.togglePauseFunction(1, true);
+    ethVault.toggleDisableFunction(1, true);
 
     //assert
-    assertEq(ethVault.isPaused(1), true);
+    assertEq(ethVault.isDisabled(1), true);
   }
 
-  function testCreateVault_ShouldRevert_WhenIsPaused() public {
+  function testCreateVault_ShouldRevert_WhenIsDisabled() public {
     //setUp
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(1, true);
+    ethVault.toggleDisableFunction(1, true);
     vm.startPrank(user);
-    vm.expectRevert("VaultHandler::createVault: function is paused");
+    vm.expectRevert("VaultHandler::createVault: function is disabled");
 
     //execution
     ethVault.createVault();
@@ -96,15 +96,15 @@ contract VaultPausingTest is Test {
     assertEq(ethVault.userToVault(user), 0);
   }
 
-  function testCreateVault_ShouldWork_WhenTooglePausedFalse() public {
+  function testCreateVault_ShouldWork_WhenToogleDisabledFalse() public {
     //setUp
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(1, true);
+    ethVault.toggleDisableFunction(1, true);
     vm.prank(user);
-    vm.expectRevert("VaultHandler::createVault: function is paused");
+    vm.expectRevert("VaultHandler::createVault: function is disabled");
     ethVault.createVault();
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(1, false);
+    ethVault.toggleDisableFunction(1, false);
     //execution
     vm.prank(user);
     ethVault.createVault();
@@ -113,17 +113,17 @@ contract VaultPausingTest is Test {
     assertEq(ethVault.userToVault(user), 1);
   }
 
-  function testAddCollateral_ShouldRevert_WhenIsPaused() public {
+  function testAddCollateral_ShouldRevert_WhenIsDisabled() public {
     //setUp
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(2, true);
+    ethVault.toggleDisableFunction(2, true);
     vm.startPrank(user);
     vm.deal(user, amount);
     weth.deposit{value: amount}();
     weth.approve(address(ethVault), amount);
     ethVault.createVault();
-    vm.expectRevert("VaultHandler::addCollateral: function is paused");
+    vm.expectRevert("VaultHandler::addCollateral: function is disabled");
 
     //execution
     ethVault.addCollateral(amount);
@@ -138,15 +138,15 @@ contract VaultPausingTest is Test {
     assertEq(owner, user);
   }
 
-  function testAddCollateralETH_ShouldRevert_WhenIsPaused() public {
+  function testAddCollateralETH_ShouldRevert_WhenIsDisabled() public {
     //setup
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(2, true);
+    ethVault.toggleDisableFunction(2, true);
     vm.startPrank(user);
     vm.deal(user, amount);
     ethVault.createVault();
-    vm.expectRevert("VaultHandler::addCollateralETH: function is paused");
+    vm.expectRevert("VaultHandler::addCollateralETH: function is disabled");
     //execution
     ethVault.addCollateralETH{value: amount}();
 
@@ -160,21 +160,21 @@ contract VaultPausingTest is Test {
     assertEq(owner, user);
   }
 
-  function testAddCollateral_ShouldWork_WhenTooglePausedFalse() public {
+  function testAddCollateral_ShouldWork_WhenToogleDisabledFalse() public {
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(2, true);
+    ethVault.toggleDisableFunction(2, true);
     vm.startPrank(user);
     vm.deal(user, amount);
     weth.deposit{value: amount}();
     weth.approve(address(ethVault), amount);
     ethVault.createVault();
-    vm.expectRevert("VaultHandler::addCollateral: function is paused");
+    vm.expectRevert("VaultHandler::addCollateral: function is disabled");
     //execution
     ethVault.addCollateral(amount);
     vm.stopPrank();
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(2, false);
+    ethVault.toggleDisableFunction(2, false);
     vm.prank(user);
     ethVault.addCollateral(amount);
     //assert
@@ -187,21 +187,21 @@ contract VaultPausingTest is Test {
     assertEq(owner, user);
   }
 
-  function testAddCollateralETH_ShouldWork_WhenTooglePausedFalse() public {
+  function testAddCollateralETH_ShouldWork_WhenToogleDisabledFalse() public {
     //setUp
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(2, true);
+    ethVault.toggleDisableFunction(2, true);
     vm.startPrank(user);
     vm.deal(user, amount);
     ethVault.createVault();
 
     //execution
-    vm.expectRevert("VaultHandler::addCollateralETH: function is paused");
+    vm.expectRevert("VaultHandler::addCollateralETH: function is disabled");
     ethVault.addCollateralETH{value: amount}();
     vm.stopPrank();
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(2, false);
+    ethVault.toggleDisableFunction(2, false);
     vm.prank(user);
     ethVault.addCollateralETH{value: amount}();
     //assert
@@ -214,16 +214,16 @@ contract VaultPausingTest is Test {
     assertEq(owner, user);
   }
 
-  function testRemoveCollateral_ShouldRevert_WhenIsPaused() public {
+  function testRemoveCollateral_ShouldRevert_WhenIsDisabled() public {
     //setup
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(3, true);
+    ethVault.toggleDisableFunction(3, true);
     vm.startPrank(user);
     vm.deal(user, amount);
     ethVault.createVault();
     ethVault.addCollateralETH{value: amount}();
-    vm.expectRevert("VaultHandler::removeCollateral: function is paused");
+    vm.expectRevert("VaultHandler::removeCollateral: function is disabled");
 
     //execution
     ethVault.removeCollateral(amount);
@@ -238,16 +238,16 @@ contract VaultPausingTest is Test {
     assertEq(owner, user);
   }
 
-  function testRemoveCollateralETH_ShouldRevert_WhenIsPaused() public {
+  function testRemoveCollateralETH_ShouldRevert_WhenIsDisabled() public {
     //setup
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(3, true);
+    ethVault.toggleDisableFunction(3, true);
     vm.startPrank(user);
     vm.deal(user, amount);
     ethVault.createVault();
     ethVault.addCollateralETH{value: amount}();
-    vm.expectRevert("VaultHandler::removeCollateralETH: function is paused");
+    vm.expectRevert("VaultHandler::removeCollateralETH: function is disabled");
 
     //execution
     ethVault.removeCollateralETH(amount);
@@ -262,20 +262,20 @@ contract VaultPausingTest is Test {
     assertEq(owner, user);
   }
 
-  function testRemoveCollateral_ShouldWork_WhenTooglePausedFalse() public {
+  function testRemoveCollateral_ShouldWork_WhenToogleDisabledFalse() public {
     //setup
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(3, true);
+    ethVault.toggleDisableFunction(3, true);
     vm.startPrank(user);
     vm.deal(user, amount);
     ethVault.createVault();
     ethVault.addCollateralETH{value: amount}();
-    vm.expectRevert("VaultHandler::removeCollateral: function is paused");
+    vm.expectRevert("VaultHandler::removeCollateral: function is disabled");
     ethVault.removeCollateral(amount);
     vm.stopPrank();
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(3, false);
+    ethVault.toggleDisableFunction(3, false);
 
     //execution
     vm.prank(user);
@@ -291,20 +291,20 @@ contract VaultPausingTest is Test {
     assertEq(owner, user);
   }
 
-  function testRemoveCollateralETH_ShouldWork_WhenTooglePausedFalse() public {
+  function testRemoveCollateralETH_ShouldWork_WhenToogleDisabledFalse() public {
     //setup
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(3, true);
+    ethVault.toggleDisableFunction(3, true);
     vm.startPrank(user);
     vm.deal(user, amount);
     ethVault.createVault();
     ethVault.addCollateralETH{value: amount}();
-    vm.expectRevert("VaultHandler::removeCollateralETH: function is paused");
+    vm.expectRevert("VaultHandler::removeCollateralETH: function is disabled");
     ethVault.removeCollateralETH(amount);
     vm.stopPrank();
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(3, false);
+    ethVault.toggleDisableFunction(3, false);
 
     //execution
     vm.prank(user);
@@ -320,16 +320,16 @@ contract VaultPausingTest is Test {
     assertEq(owner, user);
   }
 
-  function testMint_ShouldRevert_WhenIsPaused() public {
+  function testMint_ShouldRevert_WhenIsDisabled() public {
     //setup
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(4, true);
+    ethVault.toggleDisableFunction(4, true);
     vm.startPrank(user);
     vm.deal(user, amount);
     ethVault.createVault();
     ethVault.addCollateralETH{value: amount}();
-    vm.expectRevert("VaultHandler::mint: function is paused");
+    vm.expectRevert("VaultHandler::mint: function is disabled");
 
     //execution
     ethVault.mint(1 ether);
@@ -344,20 +344,20 @@ contract VaultPausingTest is Test {
     assertEq(owner, user);
   }
 
-  function testMint_ShouldWork_WhenTooglePausedFalse() public {
+  function testMint_ShouldWork_WhenToogleDisabledFalse() public {
     //setup
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(4, true);
+    ethVault.toggleDisableFunction(4, true);
     vm.startPrank(user);
     vm.deal(user, amount);
     ethVault.createVault();
     ethVault.addCollateralETH{value: amount}();
-    vm.expectRevert("VaultHandler::mint: function is paused");
+    vm.expectRevert("VaultHandler::mint: function is disabled");
     ethVault.mint(1 ether);
     vm.stopPrank();
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(4, false);
+    ethVault.toggleDisableFunction(4, false);
 
     //execution
     vm.prank(user);
@@ -373,11 +373,11 @@ contract VaultPausingTest is Test {
     assertEq(owner, user);
   }
 
-  function testBurn_ShouldNotBurn_WhenIsPaused() public {
+  function testBurn_ShouldNotBurn_WhenIsDisabled() public {
     //setup
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(5, true);
+    ethVault.toggleDisableFunction(5, true);
     vm.startPrank(user);
     vm.deal(user, amount * 2);
     ethVault.createVault();
@@ -386,7 +386,7 @@ contract VaultPausingTest is Test {
     uint256 fee = ethVault.getFee(amount);
 
     //execution
-    vm.expectRevert("VaultHandler::burn: function is paused");
+    vm.expectRevert("VaultHandler::burn: function is disabled");
     ethVault.burn{value: fee}(1 ether);
 
     //assert
@@ -399,22 +399,22 @@ contract VaultPausingTest is Test {
     assertEq(owner, user);
   }
 
-  function testBurn_ShouldWork_WhenTooglePausedFalse() public {
+  function testBurn_ShouldWork_WhenToogleDisabledFalse() public {
     //setup
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(5, true);
+    ethVault.toggleDisableFunction(5, true);
     vm.startPrank(user);
     vm.deal(user, amount * 2);
     ethVault.createVault();
     ethVault.addCollateralETH{value: amount}();
     ethVault.mint(1 ether);
     uint256 fee = ethVault.getFee(amount);
-    vm.expectRevert("VaultHandler::burn: function is paused");
+    vm.expectRevert("VaultHandler::burn: function is disabled");
     ethVault.burn{value: fee}(1 ether);
     vm.stopPrank();
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(5, false);
+    ethVault.toggleDisableFunction(5, false);
 
     //execution
     vm.prank(user);
@@ -430,11 +430,11 @@ contract VaultPausingTest is Test {
     assertEq(owner, user);
   }
 
-  function testLiquidateVault_ShouldNotLiquidate_WhenIsPaused() public {
+  function testLiquidateVault_ShouldNotLiquidate_WhenIsDisabled() public {
     //setup
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(6, true);
+    ethVault.toggleDisableFunction(6, true);
     vm.startPrank(user);
     vm.deal(user, amount);
     vm.deal(user2, amount * 2);
@@ -445,7 +445,7 @@ contract VaultPausingTest is Test {
     vm.stopPrank();
 
     //execution
-    vm.expectRevert("VaultHandler::liquidateVault: function is paused");
+    vm.expectRevert("VaultHandler::liquidateVault: function is disabled");
     vm.startPrank(user2);
     ethVault.liquidateVault{value: fee}(1, 1 ether);
 
@@ -459,11 +459,11 @@ contract VaultPausingTest is Test {
     assertEq(owner, user);
   }
 
-  function testLiquidateVault_ShouldWork_WhenTooglePausedFalse() public {
+  function testLiquidateVault_ShouldWork_WhenToogleDisabledFalse() public {
     //setup
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(6, true);
+    ethVault.toggleDisableFunction(6, true);
     vm.startPrank(user);
     vm.deal(user, amount);
     vm.deal(user2, amount * 2);
@@ -473,11 +473,11 @@ contract VaultPausingTest is Test {
     tcap.transfer(user2, 9 ether);
     uint256 fee = ethVault.getFee(amount);
     vm.stopPrank();
-    vm.expectRevert("VaultHandler::liquidateVault: function is paused");
+    vm.expectRevert("VaultHandler::liquidateVault: function is disabled");
     vm.prank(user2);
     ethVault.liquidateVault{value: fee}(1, 1 ether);
     vm.prank(address(orchestrator));
-    ethVault.togglePauseFunction(6, false);
+    ethVault.toggleDisableFunction(6, false);
     tcapAggregator.setLatestAnswer(50129732288636297500);
     emit log_uint(ethVault.getVaultRatio(1));
     fee = ethVault.getFee(9 ether);
