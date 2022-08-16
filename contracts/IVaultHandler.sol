@@ -102,8 +102,7 @@ IERC165
 	/// @notice Id To Vault
 	mapping(uint256 => Vault) public vaults;
 
-    /// @notice mapping of function to is Paused
-    /// @dev 1 = CreateVault, 2 = AddCollateral, 3 = RemoveCollateral, 4 = Mint, 5 = Burn, 6 = LiquidateVault
+    /// @notice @notice map that holds information about a function being enabled/disabled.
     mapping(FunctionChoices => bool) public isDisabled;
 
     /// @notice value used to multiply chainlink oracle for handling decimals
@@ -194,7 +193,7 @@ IERC165
 	/// @notice An event emitted when a erc20 token is recovered
 	event Recovered(address _token, uint256 _amount);
 
-	/// @notice An event emitted when a function is disabled
+	/// @notice An event emitted when a function is enabled / disabled
     event FunctionToggled(
         address indexed _owner,
         FunctionChoices _function,

@@ -66,7 +66,10 @@ contract VaultDisablingTest is Test {
     ethVault.toggleFunction(IVaultHandler.FunctionChoices.CreateVault, true);
 
     //assert
-    assertEq(ethVault.isDisabled(IVaultHandler.FunctionChoices.CreateVault), false);
+    assertEq(
+      ethVault.isDisabled(IVaultHandler.FunctionChoices.CreateVault),
+      false
+    );
   }
 
   function testToggleFunction_ShouldDisableFunction() public {
@@ -79,7 +82,10 @@ contract VaultDisablingTest is Test {
     ethVault.toggleFunction(IVaultHandler.FunctionChoices.CreateVault, true);
 
     //assert
-    assertEq(ethVault.isDisabled(IVaultHandler.FunctionChoices.CreateVault), true);
+    assertEq(
+      ethVault.isDisabled(IVaultHandler.FunctionChoices.CreateVault),
+      true
+    );
   }
 
   function testCreateVault_ShouldRevert_WhenIsDisabled() public {
@@ -103,6 +109,7 @@ contract VaultDisablingTest is Test {
     vm.prank(user);
     vm.expectRevert("VaultHandler:: function disabled");
     ethVault.createVault();
+    assertEq(ethVault.userToVault(user), 0);
     vm.prank(address(orchestrator));
     ethVault.toggleFunction(IVaultHandler.FunctionChoices.CreateVault, false);
     //execution
@@ -218,7 +225,10 @@ contract VaultDisablingTest is Test {
     //setup
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.toggleFunction(IVaultHandler.FunctionChoices.RemoveCollateral, true);
+    ethVault.toggleFunction(
+      IVaultHandler.FunctionChoices.RemoveCollateral,
+      true
+    );
     vm.startPrank(user);
     vm.deal(user, amount);
     ethVault.createVault();
@@ -242,7 +252,10 @@ contract VaultDisablingTest is Test {
     //setup
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.toggleFunction(IVaultHandler.FunctionChoices.RemoveCollateral, true);
+    ethVault.toggleFunction(
+      IVaultHandler.FunctionChoices.RemoveCollateral,
+      true
+    );
     vm.startPrank(user);
     vm.deal(user, amount);
     ethVault.createVault();
@@ -266,7 +279,10 @@ contract VaultDisablingTest is Test {
     //setup
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.toggleFunction(IVaultHandler.FunctionChoices.RemoveCollateral, true);
+    ethVault.toggleFunction(
+      IVaultHandler.FunctionChoices.RemoveCollateral,
+      true
+    );
     vm.startPrank(user);
     vm.deal(user, amount);
     ethVault.createVault();
@@ -275,7 +291,10 @@ contract VaultDisablingTest is Test {
     ethVault.removeCollateral(amount);
     vm.stopPrank();
     vm.prank(address(orchestrator));
-    ethVault.toggleFunction(IVaultHandler.FunctionChoices.RemoveCollateral, false);
+    ethVault.toggleFunction(
+      IVaultHandler.FunctionChoices.RemoveCollateral,
+      false
+    );
 
     //execution
     vm.prank(user);
@@ -295,7 +314,10 @@ contract VaultDisablingTest is Test {
     //setup
     uint256 amount = 1 ether;
     vm.prank(address(orchestrator));
-    ethVault.toggleFunction(IVaultHandler.FunctionChoices.RemoveCollateral, true);
+    ethVault.toggleFunction(
+      IVaultHandler.FunctionChoices.RemoveCollateral,
+      true
+    );
     vm.startPrank(user);
     vm.deal(user, amount);
     ethVault.createVault();
@@ -304,7 +326,10 @@ contract VaultDisablingTest is Test {
     ethVault.removeCollateralETH(amount);
     vm.stopPrank();
     vm.prank(address(orchestrator));
-    ethVault.toggleFunction(IVaultHandler.FunctionChoices.RemoveCollateral, false);
+    ethVault.toggleFunction(
+      IVaultHandler.FunctionChoices.RemoveCollateral,
+      false
+    );
 
     //execution
     vm.prank(user);
@@ -477,7 +502,10 @@ contract VaultDisablingTest is Test {
     vm.prank(user2);
     ethVault.liquidateVault{value: fee}(1, 1 ether);
     vm.prank(address(orchestrator));
-    ethVault.toggleFunction(IVaultHandler.FunctionChoices.LiquidateVault, false);
+    ethVault.toggleFunction(
+      IVaultHandler.FunctionChoices.LiquidateVault,
+      false
+    );
     tcapAggregator.setLatestAnswer(50129732288636297500);
     fee = ethVault.getFee(9 ether);
 
@@ -492,5 +520,33 @@ contract VaultDisablingTest is Test {
     assertEq(collateral, 0 ether);
     assertEq(debt, 0);
     assertEq(owner, user);
+  }
+
+  function testToggleFunction_ShouldOnlyDisableOneFunction_WhenToogled()
+    public
+  {
+    //setup
+    vm.startPrank(address(orchestrator));
+    ethVault.toggleFunction(IVaultHandler.FunctionChoices.CreateVault, true);
+    ethVault.toggleFunction(IVaultHandler.FunctionChoices.AddCollateral, true);
+    assertEq(
+      ethVault.isDisabled(IVaultHandler.FunctionChoices.CreateVault),
+      true
+    );
+    assertEq(
+      ethVault.isDisabled(IVaultHandler.FunctionChoices.AddCollateral),
+      true
+    );
+    //execution
+    ethVault.toggleFunction(IVaultHandler.FunctionChoices.CreateVault, false);
+    assertEq(
+      ethVault.isDisabled(IVaultHandler.FunctionChoices.CreateVault),
+      false
+    );
+    //assert
+    assertEq(
+      ethVault.isDisabled(IVaultHandler.FunctionChoices.AddCollateral),
+      true
+    );
   }
 }
