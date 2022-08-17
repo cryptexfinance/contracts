@@ -78,8 +78,9 @@ contract ETHVaultHandler is IVaultHandler {
 	nonReentrant
 	vaultExists
 	whenNotPaused
+    whenNotDisabled(FunctionChoices.AddCollateral)
 	{
-		require(
+    	require(
 			msg.value > 0,
 			"ETHVaultHandler::addCollateralETH: value can't be 0"
 		);
@@ -100,8 +101,9 @@ contract ETHVaultHandler is IVaultHandler {
 	nonReentrant
 	vaultExists
 	whenNotPaused
+    whenNotDisabled(FunctionChoices.RemoveCollateral)
 	{
-		require(
+        require(
 			_amount > 0,
 			"ETHVaultHandler::removeCollateralETH: value can't be 0"
 		);

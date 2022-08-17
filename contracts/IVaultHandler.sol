@@ -34,6 +34,15 @@ IERC165
 	using Counters for Counters.Counter;
 	using SafeERC20 for IERC20;
 
+    enum FunctionChoices {
+		CreateVault,
+		AddCollateral,
+		RemoveCollateral,
+		Mint,
+		Burn,
+		LiquidateVault
+	}
+
 	/**
 	 * @notice Vault object created to manage the mint and burns of TCAP tokens
    * @param Id, unique identifier of the vault
@@ -93,7 +102,10 @@ IERC165
 	/// @notice Id To Vault
 	mapping(uint256 => Vault) public vaults;
 
-	/// @notice value used to multiply chainlink oracle for handling decimals
+    /// @notice @notice map that holds information about a function being enabled/disabled.
+    mapping(FunctionChoices => bool) public isDisabled;
+
+    /// @notice value used to multiply chainlink oracle for handling decimals
 	uint256 public constant oracleDigits = 10000000000;
 
 	/// @notice Maximum decimal places that are supported by the collateral
@@ -181,6 +193,13 @@ IERC165
 	/// @notice An event emitted when a erc20 token is recovered
 	event Recovered(address _token, uint256 _amount);
 
+	/// @notice An event emitted when a function is enabled / disabled
+    event FunctionToggled(
+        address indexed _owner,
+        FunctionChoices _function,
+        bool _isDisabled
+    );
+
 	/**
 	 * @notice Constructor
    * @param _orchestrator address
@@ -265,6 +284,12 @@ IERC165
 		_;
 	}
 
+    /// @notice reverts if function is disabled
+    modifier whenNotDisabled(FunctionChoices _function) {
+        require(isDisabled[_function] == false, "VaultHandler:: function disabled");
+        _;
+    }
+
 	/**
 	 * @notice Sets the collateral ratio needed to mint tokens
    * @param _ratio uint
@@ -347,12 +372,17 @@ IERC165
 		emit NewTreasury(msg.sender, _treasury);
 	}
 
+    function toggleFunction(FunctionChoices _function, bool _isDisabled) external virtual onlyOwner {
+        isDisabled[_function] = _isDisabled;
+        emit FunctionToggled(msg.sender, _function, _isDisabled);
+    }
+
 	/**
 	 * @notice Allows an user to create an unique Vault
    * @dev Only one vault per address can be created
    */
-	function createVault() external virtual whenNotPaused {
-		require(
+	function createVault() external virtual whenNotPaused whenNotDisabled(FunctionChoices.CreateVault) {
+		 require(
 			userToVault[msg.sender] == 0,
 			"VaultHandler::createVault: vault already created"
 		);
@@ -377,9 +407,10 @@ IERC165
 	nonReentrant
 	vaultExists
 	whenNotPaused
+    whenNotDisabled(FunctionChoices.AddCollateral)
 	notZero(_amount)
 	{
-		require(
+        require(
 			collateralContract.transferFrom(msg.sender, address(this), _amount),
 			"VaultHandler::addCollateral: ERC20 transfer did not succeed"
 		);
@@ -402,9 +433,10 @@ IERC165
 	nonReentrant
 	vaultExists
 	whenNotPaused
+    whenNotDisabled(FunctionChoices.RemoveCollateral)
 	notZero(_amount)
 	{
-		Vault storage vault = vaults[userToVault[msg.sender]];
+        Vault storage vault = vaults[userToVault[msg.sender]];
 		uint256 currentRatio = getVaultRatio(vault.Id);
 
 		require(
@@ -439,6 +471,7 @@ IERC165
 	nonReentrant
 	vaultExists
 	whenNotPaused
+    whenNotDisabled(FunctionChoices.Mint)
 	notZero(_amount)
 	{
 		Vault storage vault = vaults[userToVault[msg.sender]];
@@ -477,9 +510,10 @@ IERC165
 	nonReentrant
 	vaultExists
 	whenNotPaused
+    whenNotDisabled(FunctionChoices.Burn)
 	notZero(_amount)
 	{
-		uint256 fee = getFee(_amount);
+        uint256 fee = getFee(_amount);
 		require(
 			msg.value >= fee,
 			"VaultHandler::burn: burn fee less than required"
@@ -508,8 +542,9 @@ IERC165
 	payable
 	nonReentrant
 	whenNotPaused
+    whenNotDisabled(FunctionChoices.LiquidateVault)
 	{
-		Vault storage vault = vaults[_vaultId];
+       Vault storage vault = vaults[_vaultId];
 		require(vault.Id != 0, "VaultHandler::liquidateVault: no vault created");
 
 		uint256 vaultRatio = getVaultRatio(vault.Id);
