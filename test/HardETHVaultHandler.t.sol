@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.5;
 
-import "ds-test/test.sol";
-import "./Vm.sol";
+import "forge-std/Test.sol";
 import "../contracts/ETHVaultHandler.sol";
 import "../contracts/Orchestrator.sol";
 import "../contracts/oracles/ChainlinkOracle.sol";
@@ -10,14 +9,13 @@ import "../contracts/mocks/AggregatorInterfaceTCAP.sol";
 import "../contracts/mocks/AggregatorInterface.sol";
 import "../contracts/mocks/WETH.sol";
 
-contract ETHVaultHandlerTest is DSTest {
+contract ETHVaultHandlerTest is Test {
   // events
   event NewMinimumTCAP(address indexed _owner, uint256 _minimumTCAP);
 
   event NewBurnFee(address indexed _owner, uint256 _burnFee);
 
   // Setup
-  Vm vm;
   ETHVaultHandler ethVault;
   Orchestrator orchestrator = new Orchestrator(address(this));
   TCAP tcap =
@@ -40,7 +38,6 @@ contract ETHVaultHandlerTest is DSTest {
   address treasury = address(0x3);
 
   function setUp() public {
-    vm = Vm(HEVM_ADDRESS);
     ethVault = new ETHVaultHandler(
       orchestrator,
       divisor,
