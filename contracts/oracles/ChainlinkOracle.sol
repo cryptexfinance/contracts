@@ -32,16 +32,19 @@ contract ChainlinkOracle is Ownable, IERC165 {
    * Set the Chainlink Oracle as an aggregator.
    */
   constructor(address _aggregator, address _owner) {
-		require(_aggregator != address(0) && _owner != address(0), "address can't be 0");
+    require(
+      _aggregator != address(0) && _owner != address(0),
+      "address can't be 0"
+    );
     aggregatorContract = AggregatorV3Interface(_aggregator);
-	  transferOwnership(_owner);
+    transferOwnership(_owner);
   }
 
   /**
    * @notice Changes the reference contract.
    * @dev Only owner can call it.
    */
-  function setReferenceContract(address _aggregator) public onlyOwner() {
+  function setReferenceContract(address _aggregator) public onlyOwner {
     aggregatorContract = AggregatorV3Interface(_aggregator);
   }
 
@@ -147,8 +150,9 @@ contract ChainlinkOracle is Ownable, IERC165 {
    * @return timeStamp
    */
   function getPreviousTimestamp(uint80 _id) public view returns (uint256) {
-    (uint80 roundID, , , uint256 timeStamp, ) =
-      aggregatorContract.getRoundData(_id);
+    (uint80 roundID, , , uint256 timeStamp, ) = aggregatorContract.getRoundData(
+      _id
+    );
     require(
       _id <= roundID,
       "ChainlinkOracle::getPreviousTimestamp: not enough history"
