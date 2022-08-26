@@ -205,8 +205,9 @@ contract Timelock is IERC165 {
     }
 
     // solium-disable-next-line security/no-call-value
-    (bool success, bytes memory returnData) =
-      target.call{value: value}(callData);
+    (bool success, bytes memory returnData) = target.call{value: value}(
+      callData
+    );
     require(
       success,
       "Timelock::executeTransaction: Transaction execution reverted."
