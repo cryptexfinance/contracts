@@ -13,7 +13,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		let DAI, WBTC, WETH, USDC;
 		try {
 			DAI = await deployments.get("DAI");
-		} catch (error) {
+		} catch (error: any) {
 			log(error.message);
 
 			const deployResult = await deployIfDifferent(["data"], "DAI", { from: deployer }, "DAI");
@@ -25,7 +25,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 
 		try {
 			WBTC = await deployments.get("WBTC");
-		} catch (error) {
+		} catch (error: any) {
 			log(error.message);
 
 			const deployResult = await deployments.deploy("WBTC", {
@@ -43,7 +43,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 
 		try {
 			WETH = await deployments.get("WETH");
-		} catch (error) {
+		} catch (error: any) {
 			log(error.message);
 
 			const deployResult = await deployIfDifferent(["data"], "WETH", { from: deployer }, "WETH");
@@ -55,7 +55,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 
 		try {
 			USDC = await deployments.get("USDC");
-		} catch (error) {
+		} catch (error: any) {
 			log(error.message);
 
 			const deployResult = await deployIfDifferent(["data"], "USDC", { from: deployer }, "USDC");

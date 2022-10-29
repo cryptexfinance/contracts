@@ -16,7 +16,7 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 		let ctx = await deployments.get("Ctx");
 		try {
 			handlerContract = await deployments.get("DAIVaultHandler");
-		} catch (error) {
+		} catch (error: any) {
 			try {
 				let tcap = await deployments.get("TCAP");
 
@@ -74,7 +74,7 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 				log(
 					`Reward Handler deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
 				);
-			} catch (error) {
+			} catch (error: any) {
 				log(error.message);
 			}
 		}

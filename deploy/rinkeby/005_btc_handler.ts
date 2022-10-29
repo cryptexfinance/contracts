@@ -14,7 +14,7 @@ const BTCVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 
 		try {
 			handlerContract = await deployments.get("BTCVaultHandler");
-		} catch (error) {
+		} catch (error: any) {
 			let tcap = await deployments.get("TCAP");
 			let BTCContract = await deployments.get("WBTC");
 			let divisor = "10000000000";

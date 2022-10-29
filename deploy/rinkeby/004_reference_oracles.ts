@@ -9,7 +9,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		let oracleAddress = process.env.TCAP_ORACLE as string;
 		try {
 			TCAPOracle = await deployments.get("TCAPOracle");
-		} catch (error) {
+		} catch (error: any) {
 			log(error.message);
 			const deployResult = await deployIfDifferent(
 				["data"],
@@ -26,7 +26,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		}
 		try {
 			BTCOracle = await deployments.get("BTCOracle");
-		} catch (error) {
+		} catch (error: any) {
 			log(error.message);
 			oracleAddress = "0xECe365B379E1dD183B20fc5f022230C044d51404";
 
@@ -46,7 +46,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		}
 		try {
 			WETHOracle = await deployments.get("WETHOracle");
-		} catch (error) {
+		} catch (error: any) {
 			log(error.message);
 			let oracleAddress = process.env.ETH_ORACLE as string;
 			const deployResult = await deployIfDifferent(
@@ -66,7 +66,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		}
 		try {
 			DAIOracle = await deployments.get("DAIOracle");
-		} catch (error) {
+		} catch (error: any) {
 			log(error.message);
 			let oracleAddress = process.env.DAI_ORACLE as string;
 			const deployResult = await deployIfDifferent(
@@ -87,7 +87,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 
 		try {
 			USDCOracle = await deployments.get("USDCOracle");
-		} catch (error) {
+		} catch (error: any) {
 			log(error.message);
 			let oracleAddress = "0xa24de01df22b63d23Ebc1882a5E3d4ec0d907bFB";
 			const deployResult = await deployIfDifferent(

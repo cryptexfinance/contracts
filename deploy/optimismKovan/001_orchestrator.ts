@@ -7,7 +7,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		let orchestrator;
 		try {
 			orchestrator = await deployments.get("OptimisticOrchestrator");
-		} catch (error) {
+		} catch (error: any) {
 			try {
 				const crossDomain = "0x4200000000000000000000000000000000000007";
 				const timelock = "0x71cEA4383F7FadDD1F17c960DE7b6A32bFDAf139"; // Testing address for now
@@ -25,7 +25,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 						`OptimisticOrchestrator deployed at ${orchestrator.address} for ${deployResult.receipt.gasUsed}`
 					);
 				}
-			} catch (error) {
+			} catch (error: any) {
 				log(error.message);
 			}
 		}
