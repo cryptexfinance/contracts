@@ -2,3 +2,4 @@ ds-test/=lib/ds-test/src/
 @openzeppelin/=node_modules/@openzeppelin/
 @chainlink/=node_modules/@chainlink/
 forge-std/=lib/forge-std/src/
+@arbitrum/=node_modules/@arbitrum/
