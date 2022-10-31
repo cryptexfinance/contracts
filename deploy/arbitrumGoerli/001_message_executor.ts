@@ -22,6 +22,8 @@ module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 
 	const l2MessageExecutorDeployment = await deployments.deploy("L2MessageExecutor", {
 		from: namedAccounts.deployer,
+		skipIfAlreadyDeployed: true,
+		log: true,
 		args: [process.env.GOERLI_ARBITRUM_MESSAGE_RELAYER_ADDRESS],
 	});
 
@@ -33,6 +35,8 @@ module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 // 	TODO: remove this. Added for testing
 	await deployments.deploy("Greeter", {
 		from: namedAccounts.deployer,
+		skipIfAlreadyDeployed: true,
+		log: true,
 		args: ["Initial Message"],
 	});
 

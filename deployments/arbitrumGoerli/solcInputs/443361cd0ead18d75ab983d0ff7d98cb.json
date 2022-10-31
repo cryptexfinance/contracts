@@ -2,7 +2,7 @@
   "language": "Solidity",
   "sources": {
     "contracts/arbitrum/Greeter.sol": {
-      "content": "// SPDX-License-Identifier: Apache-2.0\n\n// Delete this contract\n\npragma solidity 0.7.5;\n\ncontract Greeter {\n    string greeting;\n\n    constructor(string memory _greeting) public {\n        greeting = _greeting;\n    }\n\n    function greet() public view returns (string memory) {\n        return greeting;\n    }\n\n    function setGreeting(string memory _greeting) public virtual {\n        greeting = _greeting;\n    }\n}\n"
+      "content": "// SPDX-License-Identifier: Apache-2.0\n\n// Delete this contract\n\npragma solidity 0.7.5;\n\ncontract Greeter {\n    string greeting;\n\n    constructor(string memory _greeting) {\n        greeting = _greeting;\n    }\n\n    function greet() public view returns (string memory) {\n        return greeting;\n    }\n\n    function setGreeting(string memory _greeting) public virtual {\n        greeting = _greeting;\n    }\n}\n"
     }
   },
   "settings": {
