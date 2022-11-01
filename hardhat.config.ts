@@ -16,8 +16,6 @@ import "hardhat-tracer";
 const mnemonic = process.env.DEPLOYER_MNEMONIC as string;
 const ganacheMnemonic = process.env.GANACHE_MNEMONIC as string;
 
-const ROPSTEN_PRIVATE_KEY = `${process.env.ROPSTEN_PRIVATE_KEY}`;
-
 const config: HardhatUserConfig = {
 	//@ts-ignore
 	namedAccounts: {
@@ -62,7 +60,7 @@ const config: HardhatUserConfig = {
 		},
 		goerli: {
 			url: process.env.GOERLI_API_URL,
-			accounts: [`${ROPSTEN_PRIVATE_KEY}`],
+			accounts: { mnemonic: mnemonic },
 		},
 		kovan: {
 			url: process.env.KOVAN_API_URL,
@@ -82,7 +80,7 @@ const config: HardhatUserConfig = {
 		},
 		arbitrumGoerli: {
 			url: process.env.ARBITRUM_GOERLI_API_URL,
-			accounts: [`${ROPSTEN_PRIVATE_KEY}`],
+			accounts: { mnemonic: mnemonic },
 		}
 	},
 	etherscan: {
