@@ -16,6 +16,8 @@ jobs:
         with:
           submodules: true
       - uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: install
       - name: Setup | Rust
         uses: ATiltedTree/setup-rust@v1
         with:
@@ -24,8 +26,6 @@ jobs:
         run: |
           curl -L https://foundry.paradigm.xyz | bash
           $HOME/.foundry/bin/foundryup
-      - name: Install Dependencies
-        run: yarn
       - name: Create .env File
         run: cp .env.sample .env
       - name: Set Alchemy Key
