@@ -25,7 +25,11 @@ library AddressAliasHelper {
   /// the inbox to the msg.sender viewed in the L2
   /// @param l1Address the address in the L1 that triggered the tx to L2
   /// @return l2Address L2 address as viewed in msg.sender
-  function applyL1ToL2Alias(address l1Address) internal pure returns (address l2Address) {
+  function applyL1ToL2Alias(address l1Address)
+    internal
+    pure
+    returns (address l2Address)
+  {
     l2Address = address(uint160(l1Address) + offset);
   }
 
@@ -33,7 +37,11 @@ library AddressAliasHelper {
   /// address in the L1 that submitted a tx to the inbox
   /// @param l2Address L2 address as viewed in msg.sender
   /// @return l1Address the address in the L1 that triggered the tx to L2
-  function undoL1ToL2Alias(address l2Address) internal pure returns (address l1Address) {
+  function undoL1ToL2Alias(address l2Address)
+    internal
+    pure
+    returns (address l1Address)
+  {
     l1Address = address(uint160(l2Address) - offset);
   }
 }

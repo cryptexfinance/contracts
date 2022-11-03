@@ -18,10 +18,13 @@ contract ArbitrumTreasury is ITreasury {
     address newMessageExecutor
   );
 
-	// @notice Throws if called by an account different from the owner
-	// @dev call needs to come from arbitrumMessageExecutor
+  // @notice Throws if called by an account different from the owner
+  // @dev call needs to come from arbitrumMessageExecutor
   modifier onlyOwner() override {
-    require(msg.sender == arbitrumMessageExecutor, "ArbitrumTreasury: : caller is not the owner");
+    require(
+      msg.sender == arbitrumMessageExecutor,
+      "ArbitrumTreasury: : caller is not the owner"
+    );
     _;
   }
 
@@ -30,7 +33,9 @@ contract ArbitrumTreasury is ITreasury {
    * @param _owner the owner of the contract
    * @param _arbitrumMessageExecutor address of the arbitrum L2MessageExecutor contract
    */
-  constructor(address _owner, address _arbitrumMessageExecutor) ITreasury(_owner) {
+  constructor(address _owner, address _arbitrumMessageExecutor)
+    ITreasury(_owner)
+  {
     require(
       _arbitrumMessageExecutor != address(0),
       "ArbitrumTreasury::constructor: address can't be zero"
@@ -50,10 +55,7 @@ contract ArbitrumTreasury is ITreasury {
       newMessageExecutor != address(0),
       "ArbitrumTreasury: new owner is the zero address"
     );
-    emit UpdatedMessageExecutor(
-      arbitrumMessageExecutor,
-      newMessageExecutor
-    );
+    emit UpdatedMessageExecutor(arbitrumMessageExecutor, newMessageExecutor);
     arbitrumMessageExecutor = newMessageExecutor;
   }
 }

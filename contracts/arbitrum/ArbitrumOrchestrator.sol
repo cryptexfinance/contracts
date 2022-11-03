@@ -21,7 +21,10 @@ contract ArbitrumOrchestrator is IOrchestrator {
   // @notice Throws if called by an account different from the owner
   // @dev call needs to come from arbitrumMessageExecutor
   modifier onlyOwner() override {
-    require(msg.sender == arbitrumMessageExecutor, "ArbitrumOrchestrator: caller is not the owner");
+    require(
+      msg.sender == arbitrumMessageExecutor,
+      "ArbitrumOrchestrator: caller is not the owner"
+    );
     _;
   }
 
@@ -53,10 +56,7 @@ contract ArbitrumOrchestrator is IOrchestrator {
       newMessageExecutor != address(0),
       "ArbitrumOrchestrator: new owner is the zero address"
     );
-    emit UpdatedMessageExecutor(
-      arbitrumMessageExecutor,
-      newMessageExecutor
-    );
+    emit UpdatedMessageExecutor(arbitrumMessageExecutor, newMessageExecutor);
     arbitrumMessageExecutor = newMessageExecutor;
   }
 }
