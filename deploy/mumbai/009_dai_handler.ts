@@ -14,7 +14,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 
 		try {
 			handlerContract = await deployments.get("DAIVaultHandler");
-		} catch (error) {
+		} catch (error: any) {
 			try {
 				let tcap = await deployments.get("TCAP");
 
@@ -54,7 +54,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 						`DAIVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt?.gasUsed}`
 					);
 				}
-			} catch (error) {
+			} catch (error: any) {
 				log(error.message);
 			}
 		}

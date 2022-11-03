@@ -15,7 +15,7 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 		let orchestrator = await deployments.get("OptimisticOrchestrator");
 		try {
 			handlerContract = await deployments.get("WETHVaultHandler");
-		} catch (error) {
+		} catch (error: any) {
 			log(error.message);
 			try {
 				let tcap = await deployments.get("TCAP");
@@ -56,7 +56,7 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						`WETHVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt?.gasUsed}`
 					);
 				}
-			} catch (error) {
+			} catch (error: any) {
 				log(error.message);
 			}
 		}

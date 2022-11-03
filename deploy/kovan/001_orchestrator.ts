@@ -7,7 +7,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
         let orchestrator;
         try {
             orchestrator = await deployments.get("Orchestrator");
-        } catch (error) {
+        } catch (error: any) {
             try {
                 const deployResult = await deployIfDifferent(
                     ["data"],
@@ -22,7 +22,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
                         `Orchestrator deployed at ${orchestrator.address} for ${deployResult.receipt.gasUsed}`
                     );
                 }
-            } catch (error) {
+            } catch (error: any) {
                 log(error.message);
             }
         }

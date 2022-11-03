@@ -11,7 +11,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		let DAI, WETH;
 		try {
 			DAI = await deployments.get("DAI");
-		} catch (error) {
+		} catch (error: any) {
 			log(error.message);
 
 			const deployResult = await deployIfDifferent("DAI", { from: deployer }, "DAI");
@@ -23,7 +23,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 
 		try {
 			WETH = await deployments.get("WETH");
-		} catch (error) {
+		} catch (error: any) {
 			log(error.message);
 
 			const deployResult = await deployIfDifferent("WETH", { from: deployer }, "WETH");

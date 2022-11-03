@@ -13,7 +13,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		let TCAP;
 		try {
 			TCAP = await deployments.get("TCAP");
-		} catch (error) {
+		} catch (error: any) {
 			log(error.message);
 
 			const deployResult = await deployIfDifferent(

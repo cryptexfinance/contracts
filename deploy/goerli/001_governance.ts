@@ -28,7 +28,7 @@ module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 		});
 		try {
 			const ctxDeployment = await deployments.get("Ctx");
-		} catch (error) {
+		} catch (error: any) {
 			log(error.message);
 			const ctxDeployment = await deployments.deploy("Ctx", {
 				from: namedAccounts.deployer,

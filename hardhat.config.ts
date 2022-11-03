@@ -78,6 +78,10 @@ const config: HardhatUserConfig = {
 			url: process.env.MUMBAI_API_URL,
 			accounts: { mnemonic: mnemonic },
 		},
+		arbitrumGoerli: {
+			url: process.env.ARBITRUM_GOERLI_API_URL,
+			accounts: { mnemonic: mnemonic },
+		}
 	},
 	etherscan: {
 		apiKey: process.env.ETHERSCAN_API_KEY as string,

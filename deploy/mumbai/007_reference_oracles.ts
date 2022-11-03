@@ -14,7 +14,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 
         try {
             TCAPOracle = await deployments.get("TCAPOracle");
-        } catch (error) {
+        } catch (error: any) {
             log(error.message);
             let oracleAddress = tcapAggregator.address;
             const deployResult = await deployIfDifferent(
@@ -34,7 +34,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
             }
             try {
                 WMATICOracle = await deployments.get("WMATICOracle");
-            } catch (error) {
+            } catch (error: any) {
                 log(error.message);
                 let oracleAddress =
                     "0x0715A7794a1dc8e42615F059dD6e406A6594651A";
@@ -55,7 +55,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
                 }
                 try {
                     DAIOracle = await deployments.get("DAIOracle");
-                } catch (error) {
+                } catch (error: any) {
                     log(error.message);
                     let oracleAddress =
                         "0x0FCAa9c899EC5A91eBc3D5Dd869De833b06fB046";

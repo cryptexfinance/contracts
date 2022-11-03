@@ -16,7 +16,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		let AAVE, LINK;
 		try {
 				AAVE = await deployments.get("AAVE");
-		} catch (error) {
+		} catch (error: any) {
 				log(error.message);
 
 				const deployResult = await deployIfDifferent(
@@ -34,7 +34,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 
 				try {
 						LINK = await deployments.get("LINK");
-				} catch (error) {
+				} catch (error: any) {
 						log(error.message);
 
 						const deployResult = await deployIfDifferent(

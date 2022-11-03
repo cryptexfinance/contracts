@@ -16,7 +16,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 		let orchestrator = await deployments.get("PolygonOrchestrator");
 		try {
 			handlerContract = await deployments.get("MATICVaultHandler");
-		} catch (error) {
+		} catch (error: any) {
 			log(error.message);
 			try {
 				let tcap = await deployments.get("TCAP");
@@ -55,7 +55,7 @@ module.exports = async (hre: HardhatRuntimeEnvironment) => {
 						`MATICVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt?.gasUsed}`
 					);
 				}
-			} catch (error) {
+			} catch (error: any) {
 				log(error.message);
 			}
 		}

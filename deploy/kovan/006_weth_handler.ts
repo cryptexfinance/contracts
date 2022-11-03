@@ -16,7 +16,7 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
         let ctx = await deployments.get("Ctx");
         try {
             handlerContract = await deployments.get("WETHVaultHandler");
-        } catch (error) {
+        } catch (error: any) {
             log(error.message);
             try {
                 let tcap = await deployments.get("TCAP");
@@ -81,7 +81,7 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
                 log(
                     `Reward Handler deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
                 );
-            } catch (error) {
+            } catch (error: any) {
                 log(error.message);
             }
         }
