@@ -1,0 +1,35 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/mocks/AggregatorInterfaceTCAP.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity 0.7.5;\n\ncontract AggregatorInterfaceTCAP {\n  int256 value = 37129732288636297500;\n\n  function latestAnswer() public view virtual returns (int256) {\n    return value;\n  }\n\n  function latestRoundData()\n    public\n    view\n    virtual\n    returns (\n      uint80,\n      int256,\n      uint256,\n      uint256,\n      uint80\n    )\n  {\n    return (\n\t\t36893488147419105170,\n      value,\n\t\t1636560798,\n\t\t1636560798,\n\t\t36893488147419105170\n    );\n  }\n\n  function setLatestAnswer(int256 _tcap) public {\n    value = _tcap;\n  }\n\n  event AnswerUpdated(\n    int256 indexed current,\n    uint256 indexed roundId,\n    uint256 timestamp\n  );\n  event NewRound(\n    uint256 indexed roundId,\n    address indexed startedBy,\n    uint256 startedAt\n  );\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}
