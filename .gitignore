@@ -6,6 +6,7 @@ package-lock.json
 .env
 coverage/
 coverage.json
+.DS_Store
 
 node_modules/
 cache/
