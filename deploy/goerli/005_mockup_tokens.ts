@@ -16,7 +16,11 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		} catch (error: any) {
 			log(error.message);
 
-			const deployResult = await deployIfDifferent(["data"], "DAI", { from: deployer }, "DAI");
+			const deployResult = await deployments.deploy("DAI", {
+				from: deployer,
+				contract: "DAI",
+				skipIfAlreadyDeployed: true,
+			})
 			DAI = await deployments.get("DAI");
 			if (deployResult.newlyDeployed) {
 				log(`DAI deployed at ${DAI.address} for ${deployResult.receipt.gasUsed}`);
@@ -46,7 +50,11 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		} catch (error: any) {
 			log(error.message);
 
-			const deployResult = await deployIfDifferent(["data"], "WETH", { from: deployer }, "WETH");
+			const deployResult = await deployments.deploy("WETH", {
+				from: deployer,
+				contract: "WETH",
+				skipIfAlreadyDeployed: true,
+			});
 			WETH = await deployments.get("WETH");
 			if (deployResult.newlyDeployed) {
 				log(`WETH deployed at ${WETH.address} for ${deployResult.receipt.gasUsed}`);
@@ -58,7 +66,11 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		} catch (error: any) {
 			log(error.message);
 
-			const deployResult = await deployIfDifferent(["data"], "USDC", { from: deployer }, "USDC");
+			const deployResult = await deployments.deploy("USDC", {
+				from: deployer,
+				contract: "USDC",
+				skipIfAlreadyDeployed: true,
+			});
 			USDC = await deployments.get("USDC");
 			if (deployResult.newlyDeployed) {
 				log(`USDC deployed at ${USDC.address} for ${deployResult.receipt.gasUsed}`);

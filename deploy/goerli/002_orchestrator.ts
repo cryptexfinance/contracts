@@ -11,12 +11,14 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 			orchestrator = await deployments.get("Orchestrator");
 		} catch (error: any) {
 			try {
-				const deployResult = await deployIfDifferent(
-					["data"],
-					"Orchestrator",
-					{ from: deployer, gas: 8000000 },
-					"Orchestrator",
-					deployer
+				const deployResult = await await deployments.deploy(
+						"Orchestrator",
+						{
+								from: deployer,
+								contract: "Orchestrator",
+								args: [deployer],
+								skipIfAlreadyDeployed: true,
+						}
 				);
 				orchestrator = await deployments.get("Orchestrator");
 				if (deployResult.newlyDeployed) {
