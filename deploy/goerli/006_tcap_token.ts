@@ -16,15 +16,19 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		} catch (error: any) {
 			log(error.message);
 
-			const deployResult = await deployIfDifferent(
-				["data"],
-				"TCAP",
-				{ from: deployer },
-				"TCAP",
-				name,
-				symbol,
-				0,
-				orchestrator.address
+			const deployResult = await deployments.deploy(
+					"TCAP",
+					{
+							from: deployer,
+							contract: "TCAP",
+							args: [
+								name,
+								symbol,
+								0,
+								orchestrator.address
+							],
+							skipIfAlreadyDeployed: true,
+					}
 			);
 			TCAP = await deployments.get("TCAP");
 			if (deployResult.newlyDeployed) {

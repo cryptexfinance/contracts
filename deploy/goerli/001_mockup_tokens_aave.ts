@@ -14,7 +14,15 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		} catch (error: any) {
 			log(error.message);
 
-			const deployResult = await deployIfDifferent(["data"], "AAVE", { from: deployer }, "AAVE");
+			const deployResult = await deployments.deploy(
+					"AAVE",
+					{
+							from: deployer,
+							contract: "AAVE",
+							args: [],
+							skipIfAlreadyDeployed: true,
+					}
+			);
 			AAVE = await deployments.get("AAVE");
 			if (deployResult.newlyDeployed) {
 				log(`AAVE deployed at ${AAVE.address} for ${deployResult.receipt.gasUsed}`);
@@ -25,7 +33,15 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 			} catch (error: any) {
 				log(error.message);
 
-				const deployResult = await deployIfDifferent(["data"], "LINK", { from: deployer }, "LINK");
+				const deployResult = await deployments.deploy(
+					"LINK",
+					{
+							from: deployer,
+							contract: "LINK",
+							args: [],
+							skipIfAlreadyDeployed: true,
+					}
+			);
 				LINK = await deployments.get("LINK");
 				if (deployResult.newlyDeployed) {
 					log(`LINK deployed at ${LINK.address} for ${deployResult.receipt.gasUsed}`);
