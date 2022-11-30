@@ -5,6 +5,8 @@ import { deployments, hardhatArguments } from "hardhat";
 module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 	if (hardhatArguments.network === "goerli") {
 		const Ctx = await deployments.getOrNull("Ctx");
+		if (Ctx) return;
+
 		const { log } = deployments;
 		const namedAccounts = await getNamedAccounts();
 		const oneYear = 1675175407; // Mon, January 24 2023
