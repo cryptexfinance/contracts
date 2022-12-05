@@ -1,0 +1,314 @@
+{
+  "address": "0xC77Ba9Ec1344a69C6b2CDF169F63E247dB237a68",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_timeLock",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_l2MessageExecutor",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_inbox",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "ticketId",
+          "type": "uint256"
+        }
+      ],
+      "name": "RetryableTicketCreated",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "inbox",
+      "outputs": [
+        {
+          "internalType": "contract IInbox",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "l2MessageExecutor",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "payLoad",
+          "type": "bytes"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maxSubmissionCost",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maxGas",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "gasPriceBid",
+          "type": "uint256"
+        }
+      ],
+      "name": "relayMessage",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "timeLock",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_l2MessageExecutor",
+          "type": "address"
+        }
+      ],
+      "name": "updateL2MessageExecutor",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x1316dc8102318aa3232739f3e051dc0e443f38bb82edcb7e3e2659a80ede4efc",
+  "receipt": {
+    "to": null,
+    "from": "0x570f581D23a2AB09FD1990279D9DB6f5DcE18F4A",
+    "contractAddress": "0xC77Ba9Ec1344a69C6b2CDF169F63E247dB237a68",
+    "transactionIndex": 22,
+    "gasUsed": "578000",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000080040000000000000000000000000000000001000000000000000000000000000000000000020000000000000000000800000000000000000000000000000000400000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000040000000000000000000000000000002020000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xfe6955a06f7226381f8c3d89662869f62b4abe2835c3c77163edeed60f42fb5f",
+    "transactionHash": "0x1316dc8102318aa3232739f3e051dc0e443f38bb82edcb7e3e2659a80ede4efc",
+    "logs": [
+      {
+        "transactionIndex": 22,
+        "blockNumber": 7856831,
+        "transactionHash": "0x1316dc8102318aa3232739f3e051dc0e443f38bb82edcb7e3e2659a80ede4efc",
+        "address": "0xC77Ba9Ec1344a69C6b2CDF169F63E247dB237a68",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x000000000000000000000000570f581d23a2ab09fd1990279d9db6f5dce18f4a"
+        ],
+        "data": "0x",
+        "logIndex": 33,
+        "blockHash": "0xfe6955a06f7226381f8c3d89662869f62b4abe2835c3c77163edeed60f42fb5f"
+      }
+    ],
+    "blockNumber": 7856831,
+    "cumulativeGasUsed": "8089111",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0x570f581D23a2AB09FD1990279D9DB6f5DcE18F4A",
+    "0x0000000000000000000000000000000000000000",
+    "0x6BEbC4925716945D46F0Ec336D5C2564F419682C"
+  ],
+  "solcInputHash": "07b06ade6e2f75c07dc387e7feb39cdd",
+  "metadata": "{\"compiler\":{\"version\":\"0.7.5+commit.eb77ed08\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_timeLock\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l2MessageExecutor\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_inbox\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"ticketId\",\"type\":\"uint256\"}],\"name\":\"RetryableTicketCreated\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"inbox\",\"outputs\":[{\"internalType\":\"contract IInbox\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"l2MessageExecutor\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"payLoad\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"maxSubmissionCost\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxGas\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasPriceBid\",\"type\":\"uint256\"}],\"name\":\"relayMessage\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"timeLock\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_l2MessageExecutor\",\"type\":\"address\"}],\"name\":\"updateL2MessageExecutor\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"relayMessage(bytes,uint256,uint256,uint256)\":{\"params\":{\"payLoad\":\"message received from L1 that needs to be executed.*\"}},\"renounceOwnership()\":{\"details\":\"Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"},\"updateL2MessageExecutor(address)\":{\"details\":\"Update the address of the L2MessageExecutor contract.\",\"params\":{\"_l2MessageExecutor\":\"the address of L2 contract used to relay L1 messages.*\"}}},\"version\":1},\"userdoc\":{\"events\":{\"RetryableTicketCreated(uint256)\":{\"notice\":\"Emitted when a retryable ticket is created for relaying L1 message to L2.\"}},\"kind\":\"user\",\"methods\":{\"inbox()\":{\"notice\":\"Address of arbitrum's L1 inbox contract.\"},\"l2MessageExecutor()\":{\"notice\":\"Address of the L2MessageExecutor contract on arbitrum.\"},\"relayMessage(bytes,uint256,uint256,uint256)\":{\"notice\":\"sends message received from timeLock to L2MessageExecutor.\"},\"timeLock()\":{\"notice\":\"Address of the governance TimeLock contract.\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/arbitrum/L1MessageRelayer.sol\":\"L1MessageRelayer\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@arbitrum/nitro-contracts/src/bridge/IBridge.sol\":{\"content\":\"// Copyright 2021-2022, Offchain Labs, Inc.\\n// For license information, see https://github.com/nitro/blob/master/LICENSE\\n// SPDX-License-Identifier: BUSL-1.1\\n\\n// solhint-disable-next-line compiler-version\\npragma solidity >=0.6.9 <0.9.0;\\n\\nimport \\\"./IOwnable.sol\\\";\\n\\ninterface IBridge {\\n    event MessageDelivered(\\n        uint256 indexed messageIndex,\\n        bytes32 indexed beforeInboxAcc,\\n        address inbox,\\n        uint8 kind,\\n        address sender,\\n        bytes32 messageDataHash,\\n        uint256 baseFeeL1,\\n        uint64 timestamp\\n    );\\n\\n    event BridgeCallTriggered(\\n        address indexed outbox,\\n        address indexed to,\\n        uint256 value,\\n        bytes data\\n    );\\n\\n    event InboxToggle(address indexed inbox, bool enabled);\\n\\n    event OutboxToggle(address indexed outbox, bool enabled);\\n\\n    event SequencerInboxUpdated(address newSequencerInbox);\\n\\n    function enqueueDelayedMessage(\\n        uint8 kind,\\n        address sender,\\n        bytes32 messageDataHash\\n    ) external payable returns (uint256);\\n\\n    function enqueueSequencerMessage(bytes32 dataHash, uint256 afterDelayedMessagesRead)\\n        external\\n        returns (\\n            uint256 seqMessageIndex,\\n            bytes32 beforeAcc,\\n            bytes32 delayedAcc,\\n            bytes32 acc\\n        );\\n\\n    function submitBatchSpendingReport(address batchPoster, bytes32 dataHash)\\n        external\\n        returns (uint256 msgNum);\\n\\n    function executeCall(\\n        address to,\\n        uint256 value,\\n        bytes calldata data\\n    ) external returns (bool success, bytes memory returnData);\\n\\n    // These are only callable by the admin\\n    function setDelayedInbox(address inbox, bool enabled) external;\\n\\n    function setOutbox(address inbox, bool enabled) external;\\n\\n    function setSequencerInbox(address _sequencerInbox) external;\\n\\n    // View functions\\n\\n    function sequencerInbox() external view returns (address);\\n\\n    function activeOutbox() external view returns (address);\\n\\n    function allowedDelayedInboxes(address inbox) external view returns (bool);\\n\\n    function allowedOutboxes(address outbox) external view returns (bool);\\n\\n    function delayedInboxAccs(uint256 index) external view returns (bytes32);\\n\\n    function sequencerInboxAccs(uint256 index) external view returns (bytes32);\\n\\n    function delayedMessageCount() external view returns (uint256);\\n\\n    function sequencerMessageCount() external view returns (uint256);\\n\\n    function rollup() external view returns (IOwnable);\\n\\n    function acceptFundsFromOldBridge() external payable;\\n}\\n\",\"keccak256\":\"0x0c456c523be8a6c6df8caf6e054d1825312aa71e3fb67bb8b71cf1d2cd11c3c1\",\"license\":\"BUSL-1.1\"},\"@arbitrum/nitro-contracts/src/bridge/IDelayedMessageProvider.sol\":{\"content\":\"// Copyright 2021-2022, Offchain Labs, Inc.\\n// For license information, see https://github.com/nitro/blob/master/LICENSE\\n// SPDX-License-Identifier: BUSL-1.1\\n\\n// solhint-disable-next-line compiler-version\\npragma solidity >=0.6.9 <0.9.0;\\n\\ninterface IDelayedMessageProvider {\\n    /// @dev event emitted when a inbox message is added to the Bridge's delayed accumulator\\n    event InboxMessageDelivered(uint256 indexed messageNum, bytes data);\\n\\n    /// @dev event emitted when a inbox message is added to the Bridge's delayed accumulator\\n    /// same as InboxMessageDelivered but the batch data is available in tx.input\\n    event InboxMessageDeliveredFromOrigin(uint256 indexed messageNum);\\n}\\n\",\"keccak256\":\"0xeb901f4bd275074e64f05a678c2c40a79876f926a4dd222e8d662e008b5f4903\",\"license\":\"BUSL-1.1\"},\"@arbitrum/nitro-contracts/src/bridge/IInbox.sol\":{\"content\":\"// Copyright 2021-2022, Offchain Labs, Inc.\\n// For license information, see https://github.com/nitro/blob/master/LICENSE\\n// SPDX-License-Identifier: BUSL-1.1\\n\\n// solhint-disable-next-line compiler-version\\npragma solidity >=0.6.9 <0.9.0;\\n\\nimport \\\"./IBridge.sol\\\";\\nimport \\\"./IDelayedMessageProvider.sol\\\";\\n\\ninterface IInbox is IDelayedMessageProvider {\\n    function sendL2Message(bytes calldata messageData) external returns (uint256);\\n\\n    function sendUnsignedTransaction(\\n        uint256 gasLimit,\\n        uint256 maxFeePerGas,\\n        uint256 nonce,\\n        address to,\\n        uint256 value,\\n        bytes calldata data\\n    ) external returns (uint256);\\n\\n    function sendContractTransaction(\\n        uint256 gasLimit,\\n        uint256 maxFeePerGas,\\n        address to,\\n        uint256 value,\\n        bytes calldata data\\n    ) external returns (uint256);\\n\\n    function sendL1FundedUnsignedTransaction(\\n        uint256 gasLimit,\\n        uint256 maxFeePerGas,\\n        uint256 nonce,\\n        address to,\\n        bytes calldata data\\n    ) external payable returns (uint256);\\n\\n    function sendL1FundedContractTransaction(\\n        uint256 gasLimit,\\n        uint256 maxFeePerGas,\\n        address to,\\n        bytes calldata data\\n    ) external payable returns (uint256);\\n\\n    /// @dev Gas limit and maxFeePerGas should not be set to 1 as that is used to trigger the RetryableData error\\n    function createRetryableTicket(\\n        address to,\\n        uint256 arbTxCallValue,\\n        uint256 maxSubmissionCost,\\n        address submissionRefundAddress,\\n        address valueRefundAddress,\\n        uint256 gasLimit,\\n        uint256 maxFeePerGas,\\n        bytes calldata data\\n    ) external payable returns (uint256);\\n\\n    /// @dev Gas limit and maxFeePerGas should not be set to 1 as that is used to trigger the RetryableData error\\n    function unsafeCreateRetryableTicket(\\n        address to,\\n        uint256 arbTxCallValue,\\n        uint256 maxSubmissionCost,\\n        address submissionRefundAddress,\\n        address valueRefundAddress,\\n        uint256 gasLimit,\\n        uint256 maxFeePerGas,\\n        bytes calldata data\\n    ) external payable returns (uint256);\\n\\n    function depositEth() external payable returns (uint256);\\n\\n    /// @notice deprecated in favour of depositEth with no parameters\\n    function depositEth(uint256 maxSubmissionCost) external payable returns (uint256);\\n\\n    function bridge() external view returns (IBridge);\\n\\n    function postUpgradeInit(IBridge _bridge) external;\\n}\\n\",\"keccak256\":\"0xa13598264f80f9182a0dccbf63d2b6d7050ae10e1d76d2d1b91ef1efdee0dfa6\",\"license\":\"BUSL-1.1\"},\"@arbitrum/nitro-contracts/src/bridge/IOwnable.sol\":{\"content\":\"// Copyright 2021-2022, Offchain Labs, Inc.\\n// For license information, see https://github.com/nitro/blob/master/LICENSE\\n// SPDX-License-Identifier: BUSL-1.1\\n\\n// solhint-disable-next-line compiler-version\\npragma solidity >=0.4.21 <0.9.0;\\n\\ninterface IOwnable {\\n    function owner() external view returns (address);\\n}\\n\",\"keccak256\":\"0xf32ba8fd2fb9e661997c145874f22ff9cd52cfa2dc8f3aa050714c7637d8efdd\",\"license\":\"BUSL-1.1\"},\"@openzeppelin/contracts/access/Ownable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity >=0.6.0 <0.8.0;\\n\\nimport \\\"../utils/Context.sol\\\";\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * By default, the owner account will be the one that deploys the contract. This\\n * can later be changed with {transferOwnership}.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\nabstract contract Ownable is Context {\\n    address private _owner;\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the deployer as the initial owner.\\n     */\\n    constructor () internal {\\n        address msgSender = _msgSender();\\n        _owner = msgSender;\\n        emit OwnershipTransferred(address(0), msgSender);\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view virtual returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        require(owner() == _msgSender(), \\\"Ownable: caller is not the owner\\\");\\n        _;\\n    }\\n\\n    /**\\n     * @dev Leaves the contract without owner. It will not be possible to call\\n     * `onlyOwner` functions anymore. Can only be called by the current owner.\\n     *\\n     * NOTE: Renouncing ownership will leave the contract without an owner,\\n     * thereby removing any functionality that is only available to the owner.\\n     */\\n    function renounceOwnership() public virtual onlyOwner {\\n        emit OwnershipTransferred(_owner, address(0));\\n        _owner = address(0);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public virtual onlyOwner {\\n        require(newOwner != address(0), \\\"Ownable: new owner is the zero address\\\");\\n        emit OwnershipTransferred(_owner, newOwner);\\n        _owner = newOwner;\\n    }\\n}\\n\",\"keccak256\":\"0x15e2d5bd4c28a88548074c54d220e8086f638a71ed07e6b3ba5a70066fcf458d\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/Context.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity >=0.6.0 <0.8.0;\\n\\n/*\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with GSN meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\nabstract contract Context {\\n    function _msgSender() internal view virtual returns (address payable) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view virtual returns (bytes memory) {\\n        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691\\n        return msg.data;\\n    }\\n}\\n\",\"keccak256\":\"0x8d3cb350f04ff49cfb10aef08d87f19dcbaecc8027b0bed12f3275cd12f38cf0\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/ReentrancyGuard.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity >=0.6.0 <0.8.0;\\n\\n/**\\n * @dev Contract module that helps prevent reentrant calls to a function.\\n *\\n * Inheriting from `ReentrancyGuard` will make the {nonReentrant} modifier\\n * available, which can be applied to functions to make sure there are no nested\\n * (reentrant) calls to them.\\n *\\n * Note that because there is a single `nonReentrant` guard, functions marked as\\n * `nonReentrant` may not call one another. This can be worked around by making\\n * those functions `private`, and then adding `external` `nonReentrant` entry\\n * points to them.\\n *\\n * TIP: If you would like to learn more about reentrancy and alternative ways\\n * to protect against it, check out our blog post\\n * https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].\\n */\\nabstract contract ReentrancyGuard {\\n    // Booleans are more expensive than uint256 or any type that takes up a full\\n    // word because each write operation emits an extra SLOAD to first read the\\n    // slot's contents, replace the bits taken up by the boolean, and then write\\n    // back. This is the compiler's defense against contract upgrades and\\n    // pointer aliasing, and it cannot be disabled.\\n\\n    // The values being non-zero value makes deployment a bit more expensive,\\n    // but in exchange the refund on every call to nonReentrant will be lower in\\n    // amount. Since refunds are capped to a percentage of the total\\n    // transaction's gas, it is best to keep them low in cases like this one, to\\n    // increase the likelihood of the full refund coming into effect.\\n    uint256 private constant _NOT_ENTERED = 1;\\n    uint256 private constant _ENTERED = 2;\\n\\n    uint256 private _status;\\n\\n    constructor () internal {\\n        _status = _NOT_ENTERED;\\n    }\\n\\n    /**\\n     * @dev Prevents a contract from calling itself, directly or indirectly.\\n     * Calling a `nonReentrant` function from another `nonReentrant`\\n     * function is not supported. It is possible to prevent this from happening\\n     * by making the `nonReentrant` function external, and make it call a\\n     * `private` function that does the actual work.\\n     */\\n    modifier nonReentrant() {\\n        // On the first call to nonReentrant, _notEntered will be true\\n        require(_status != _ENTERED, \\\"ReentrancyGuard: reentrant call\\\");\\n\\n        // Any calls to nonReentrant after this point will fail\\n        _status = _ENTERED;\\n\\n        _;\\n\\n        // By storing the original value once again, a refund is triggered (see\\n        // https://eips.ethereum.org/EIPS/eip-2200)\\n        _status = _NOT_ENTERED;\\n    }\\n}\\n\",\"keccak256\":\"0x8bbbc2f5c10065ee272592ae0a7a6ceb23de2fbd81564ee0bb015ecf404d5f61\",\"license\":\"MIT\"},\"contracts/arbitrum/AddressAliasHelper.sol\":{\"content\":\"// SPDX-License-Identifier: Apache-2.0\\n\\n/*\\n * Copyright 2019-2021, Offchain Labs, Inc.\\n *\\n * Licensed under the Apache License, Version 2.0 (the \\\"License\\\");\\n * you may not use this file except in compliance with the License.\\n * You may obtain a copy of the License at\\n *\\n *    http://www.apache.org/licenses/LICENSE-2.0\\n *\\n * Unless required by applicable law or agreed to in writing, software\\n * distributed under the License is distributed on an \\\"AS IS\\\" BASIS,\\n * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\\n * See the License for the specific language governing permissions and\\n * limitations under the License.\\n */\\n\\npragma solidity 0.7.5;\\n\\nlibrary AddressAliasHelper {\\n  uint160 constant offset = uint160(0x1111000000000000000000000000000000001111);\\n\\n  /// @notice Utility function that converts the address in the L1 that submitted a tx to\\n  /// the inbox to the msg.sender viewed in the L2\\n  /// @param l1Address the address in the L1 that triggered the tx to L2\\n  /// @return l2Address L2 address as viewed in msg.sender\\n  function applyL1ToL2Alias(address l1Address) internal pure returns (address l2Address) {\\n    l2Address = address(uint160(l1Address) + offset);\\n  }\\n\\n  /// @notice Utility function that converts the msg.sender viewed in the L2 to the\\n  /// address in the L1 that submitted a tx to the inbox\\n  /// @param l2Address L2 address as viewed in msg.sender\\n  /// @return l1Address the address in the L1 that triggered the tx to L2\\n  function undoL1ToL2Alias(address l2Address) internal pure returns (address l1Address) {\\n    l1Address = address(uint160(l2Address) - offset);\\n  }\\n}\\n\",\"keccak256\":\"0xaa8c22c4651dfacbfbf98a510a2ccc9cbb1f110427231dff96b7a7c908d9518f\",\"license\":\"Apache-2.0\"},\"contracts/arbitrum/L1MessageRelayer.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.7.5;\\n\\nimport \\\"@arbitrum/nitro-contracts/src/bridge/IInbox.sol\\\";\\nimport \\\"@openzeppelin/contracts/access/Ownable.sol\\\";\\n\\nimport \\\"./L2MessageExecutor.sol\\\";\\n\\ncontract L1MessageRelayer is Ownable {\\n\\n\\t/// @notice Address of the governance TimeLock contract.\\n\\taddress public timeLock;\\n\\n\\t/// @notice Address of the L2MessageExecutor contract on arbitrum.\\n\\taddress public l2MessageExecutor;\\n\\n\\t/// @notice Address of arbitrum's L1 inbox contract.\\n\\tIInbox public inbox;\\n\\n\\t/// @notice Emitted when a retryable ticket is created for relaying L1 message to L2.\\n\\tevent RetryableTicketCreated(uint256 indexed ticketId);\\n\\n\\t/// @notice Throws if called by any account other than the timeLock contract.\\n\\tmodifier onlyTimeLock() {\\n\\t\\trequire(\\n\\t\\t\\tmsg.sender == timeLock,\\n\\t\\t\\t\\\"L1MessageRelayer::onlyTimeLock: Unauthorized message sender\\\"\\n\\t\\t);\\n\\t\\t_;\\n\\t}\\n\\n\\tconstructor(address _timeLock, address _l2MessageExecutor, address _inbox) public {\\n\\t\\ttimeLock = _timeLock;\\n\\t\\tl2MessageExecutor = _l2MessageExecutor;\\n\\t\\tinbox = IInbox(_inbox);\\n\\t}\\n\\n\\t/**\\n   * @dev Update the address of the L2MessageExecutor contract.\\n   * @param _l2MessageExecutor the address of L2 contract used to relay L1 messages.\\n  **/\\n\\tfunction updateL2MessageExecutor(address _l2MessageExecutor) external onlyOwner {\\n\\t\\trequire(\\n\\t\\t\\t_l2MessageExecutor != address(0),\\n\\t\\t\\t\\\"L1MessageRelayer::updateL2MessageExecutor _l2MessageExecutor is the zero address\\\"\\n\\t\\t);\\n\\t\\tl2MessageExecutor = _l2MessageExecutor;\\n\\t}\\n\\n\\t/**\\n   * @notice sends message received from timeLock to L2MessageExecutor.\\n   * @param payLoad message received from L1 that needs to be executed.\\n  **/\\n\\tfunction relayMessage(\\n\\t\\tbytes calldata payLoad,\\n\\t\\tuint256 maxSubmissionCost,\\n\\t\\tuint256 maxGas,\\n\\t\\tuint256 gasPriceBid\\n\\t) external onlyTimeLock payable returns (uint256){\\n\\t\\tbytes memory data = abi.encodeWithSelector(L2MessageExecutor.executeMessage.selector, payLoad);\\n\\t\\tuint256 ticketID = inbox.createRetryableTicket{ value: msg.value }(\\n\\t\\t\\tl2MessageExecutor,\\n\\t\\t\\t0,\\n\\t\\t\\tmaxSubmissionCost,\\n\\t\\t\\tmsg.sender,\\n\\t\\t\\tmsg.sender,\\n\\t\\t\\tmaxGas,\\n\\t\\t\\tgasPriceBid,\\n\\t\\t\\tdata\\n\\t\\t);\\n\\n\\t\\temit RetryableTicketCreated(ticketID);\\n\\t\\treturn ticketID;\\n\\t}\\n\\n}\\n\",\"keccak256\":\"0x49ee7df94399e721893609a7503f587e3c1970f90354d164ff3fec0cd987f159\",\"license\":\"MIT\"},\"contracts/arbitrum/L2MessageExecutor.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.7.5;\\n\\nimport { ReentrancyGuard } from \\\"@openzeppelin/contracts/utils/ReentrancyGuard.sol\\\";\\n\\nimport { AddressAliasHelper } from \\\"./AddressAliasHelper.sol\\\";\\n\\n\\ncontract L2MessageExecutor is ReentrancyGuard {\\n\\n\\t/// @notice Address of the L1MessageRelayer contract on mainnet.\\n\\taddress public l1MessageRelayer;\\n\\n\\tconstructor(address _l1MessageRelayer) {\\n\\t\\tl1MessageRelayer = _l1MessageRelayer;\\n\\t}\\n\\n\\t/**\\n\\t * @notice Throws if called by any account other than this contract.\\n\\t**/\\n\\tmodifier onlyThis() {\\n    require(msg.sender == address(this), \\\"L2MessageExecutor: Unauthorized message sender\\\");\\n    _;\\n  }\\n\\n\\t/**\\n   * @dev Update the address of the L1MessageRelayer contract.\\n   * @param _l1MessageRelayer the address of L1 contract used to relay messsages to L2.\\n  **/\\n\\tfunction updateL2MessageRelayer(address _l1MessageRelayer) external onlyThis {\\n\\t\\trequire(\\n\\t\\t\\t_l1MessageRelayer != address(0),\\n\\t\\t\\t\\\"L2MessageExecutor::updateL2MessageRelayer: _l1MessageRelayer is the zero address\\\"\\n\\t\\t);\\n\\t\\tl1MessageRelayer = _l1MessageRelayer;\\n\\t}\\n\\n\\t/**\\n   * @notice executes message received from L1.\\n   * @param payLoad message received from L1 that needs to be executed.\\n  **/\\n\\tfunction executeMessage(bytes calldata payLoad) external nonReentrant {\\n\\t\\t// To check that message came from L1, we check that the sender is the L1 contract's L2 alias.\\n\\t\\trequire(\\n\\t\\t\\t\\tmsg.sender == AddressAliasHelper.applyL1ToL2Alias(l1MessageRelayer),\\n\\t\\t\\t\\t\\\"L2MessageExecutor::executeMessage: Unauthorized message sender\\\"\\n\\t\\t);\\n\\t\\t(address target,  bytes memory callData) = abi.decode(payLoad, (address, bytes));\\n\\t\\t(bool success, ) = target.call(callData);\\n\\t\\trequire(\\n      success,\\n      \\\"L2MessageExecutor::executeMessage: Message execution reverted.\\\"\\n    );\\n\\n\\t}\\n\\n}\\n\",\"keccak256\":\"0xd7566049a94c7a06fbb4399c198dcd1b3a4484b9826de66c2eeed63779ad35ce\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b506040516109123803806109128339818101604052606081101561003357600080fd5b5080516020820151604090920151909190600061004e6100da565b600080546001600160a01b0319166001600160a01b0383169081178255604051929350917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908290a350600180546001600160a01b039485166001600160a01b0319918216179091556002805493851693821693909317909255600380549190931691161790556100de565b3390565b610825806100ed6000396000f3fe60806040526004361061007b5760003560e01c8063b8c169921161004e578063b8c1699214610189578063d085835a1461019e578063f2fde38b146101b3578063fb0e722b146101e65761007b565b8063715018a614610080578063885d6ba0146100975780638da5cb5b146101255780639a71038214610156575b600080fd5b34801561008c57600080fd5b506100956101fb565b005b610113600480360360808110156100ad57600080fd5b8101906020810181356401000000008111156100c857600080fd5b8201836020820111156100da57600080fd5b803590602001918460018302840111640100000000831117156100fc57600080fd5b9193509150803590602081013590604001356102b9565b60408051918252519081900360200190f35b34801561013157600080fd5b5061013a61050f565b604080516001600160a01b039092168252519081900360200190f35b34801561016257600080fd5b506100956004803603602081101561017957600080fd5b50356001600160a01b031661051e565b34801561019557600080fd5b5061013a6105f9565b3480156101aa57600080fd5b5061013a610608565b3480156101bf57600080fd5b50610095600480360360208110156101d657600080fd5b50356001600160a01b0316610617565b3480156101f257600080fd5b5061013a61072b565b61020361073a565b6001600160a01b031661021461050f565b6001600160a01b03161461026f576040805162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e6572604482015290519081900360640190fd5b600080546040516001600160a01b03909116907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908390a3600080546001600160a01b0319169055565b6001546000906001600160a01b031633146103055760405162461bcd60e51b815260040180806020018281038252603b8152602001806107b5603b913960400191505060405180910390fd5b606063e0299bf560e01b878760405160240180806020018281038252848482818152602001925080828437600081840152601f19601f8201169050808301925050509350505050604051602081830303815290604052906001600160e01b0319166020820180516001600160e01b03838183161783525050505090506000600360009054906101000a90046001600160a01b03166001600160a01b031663679b6ded34600260009054906101000a90046001600160a01b031660008a33338c8c8b6040518a63ffffffff1660e01b815260040180896001600160a01b03168152602001888152602001878152602001866001600160a01b03168152602001856001600160a01b0316815260200184815260200183815260200180602001828103825283818151815260200191508051906020019080838360005b8381101561045757818101518382015260200161043f565b50505050905090810190601f1680156104845780820380516001836020036101000a031916815260200191505b5099505050505050505050506020604051808303818588803b1580156104a957600080fd5b505af11580156104bd573d6000803e3d6000fd5b50505050506040513d60208110156104d457600080fd5b505160405190915081907fde92b5b7839f4a2c640f5e3bbb66d415458dadc57a487b0c7fa562ed7c9c896f90600090a2979650505050505050565b6000546001600160a01b031690565b61052661073a565b6001600160a01b031661053761050f565b6001600160a01b031614610592576040805162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e6572604482015290519081900360640190fd5b6001600160a01b0381166105d75760405162461bcd60e51b81526004018080602001828103825260508152602001806107656050913960600191505060405180910390fd5b600280546001600160a01b0319166001600160a01b0392909216919091179055565b6002546001600160a01b031681565b6001546001600160a01b031681565b61061f61073a565b6001600160a01b031661063061050f565b6001600160a01b03161461068b576040805162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e6572604482015290519081900360640190fd5b6001600160a01b0381166106d05760405162461bcd60e51b815260040180806020018281038252602681526020018061073f6026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b0392909216919091179055565b6003546001600160a01b031681565b339056fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f20616464726573734c314d65737361676552656c617965723a3a7570646174654c324d6573736167654578656375746f72205f6c324d6573736167654578656375746f7220697320746865207a65726f20616464726573734c314d65737361676552656c617965723a3a6f6e6c7954696d654c6f636b3a20556e617574686f72697a6564206d6573736167652073656e646572a264697066735822122023455ba9cf06aa5afc60fbc3c3ceed1c6fd900eaf6562011401f3f215a0739ae64736f6c63430007050033",
+  "deployedBytecode": "0x60806040526004361061007b5760003560e01c8063b8c169921161004e578063b8c1699214610189578063d085835a1461019e578063f2fde38b146101b3578063fb0e722b146101e65761007b565b8063715018a614610080578063885d6ba0146100975780638da5cb5b146101255780639a71038214610156575b600080fd5b34801561008c57600080fd5b506100956101fb565b005b610113600480360360808110156100ad57600080fd5b8101906020810181356401000000008111156100c857600080fd5b8201836020820111156100da57600080fd5b803590602001918460018302840111640100000000831117156100fc57600080fd5b9193509150803590602081013590604001356102b9565b60408051918252519081900360200190f35b34801561013157600080fd5b5061013a61050f565b604080516001600160a01b039092168252519081900360200190f35b34801561016257600080fd5b506100956004803603602081101561017957600080fd5b50356001600160a01b031661051e565b34801561019557600080fd5b5061013a6105f9565b3480156101aa57600080fd5b5061013a610608565b3480156101bf57600080fd5b50610095600480360360208110156101d657600080fd5b50356001600160a01b0316610617565b3480156101f257600080fd5b5061013a61072b565b61020361073a565b6001600160a01b031661021461050f565b6001600160a01b03161461026f576040805162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e6572604482015290519081900360640190fd5b600080546040516001600160a01b03909116907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0908390a3600080546001600160a01b0319169055565b6001546000906001600160a01b031633146103055760405162461bcd60e51b815260040180806020018281038252603b8152602001806107b5603b913960400191505060405180910390fd5b606063e0299bf560e01b878760405160240180806020018281038252848482818152602001925080828437600081840152601f19601f8201169050808301925050509350505050604051602081830303815290604052906001600160e01b0319166020820180516001600160e01b03838183161783525050505090506000600360009054906101000a90046001600160a01b03166001600160a01b031663679b6ded34600260009054906101000a90046001600160a01b031660008a33338c8c8b6040518a63ffffffff1660e01b815260040180896001600160a01b03168152602001888152602001878152602001866001600160a01b03168152602001856001600160a01b0316815260200184815260200183815260200180602001828103825283818151815260200191508051906020019080838360005b8381101561045757818101518382015260200161043f565b50505050905090810190601f1680156104845780820380516001836020036101000a031916815260200191505b5099505050505050505050506020604051808303818588803b1580156104a957600080fd5b505af11580156104bd573d6000803e3d6000fd5b50505050506040513d60208110156104d457600080fd5b505160405190915081907fde92b5b7839f4a2c640f5e3bbb66d415458dadc57a487b0c7fa562ed7c9c896f90600090a2979650505050505050565b6000546001600160a01b031690565b61052661073a565b6001600160a01b031661053761050f565b6001600160a01b031614610592576040805162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e6572604482015290519081900360640190fd5b6001600160a01b0381166105d75760405162461bcd60e51b81526004018080602001828103825260508152602001806107656050913960600191505060405180910390fd5b600280546001600160a01b0319166001600160a01b0392909216919091179055565b6002546001600160a01b031681565b6001546001600160a01b031681565b61061f61073a565b6001600160a01b031661063061050f565b6001600160a01b03161461068b576040805162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e6572604482015290519081900360640190fd5b6001600160a01b0381166106d05760405162461bcd60e51b815260040180806020018281038252602681526020018061073f6026913960400191505060405180910390fd5b600080546040516001600160a01b03808516939216917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e091a3600080546001600160a01b0319166001600160a01b0392909216919091179055565b6003546001600160a01b031681565b339056fe4f776e61626c653a206e6577206f776e657220697320746865207a65726f20616464726573734c314d65737361676552656c617965723a3a7570646174654c324d6573736167654578656375746f72205f6c324d6573736167654578656375746f7220697320746865207a65726f20616464726573734c314d65737361676552656c617965723a3a6f6e6c7954696d654c6f636b3a20556e617574686f72697a6564206d6573736167652073656e646572a264697066735822122023455ba9cf06aa5afc60fbc3c3ceed1c6fd900eaf6562011401f3f215a0739ae64736f6c63430007050033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "owner()": {
+        "details": "Returns the address of the current owner."
+      },
+      "relayMessage(bytes,uint256,uint256,uint256)": {
+        "params": {
+          "payLoad": "message received from L1 that needs to be executed.*"
+        }
+      },
+      "renounceOwnership()": {
+        "details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner."
+      },
+      "transferOwnership(address)": {
+        "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+      },
+      "updateL2MessageExecutor(address)": {
+        "details": "Update the address of the L2MessageExecutor contract.",
+        "params": {
+          "_l2MessageExecutor": "the address of L2 contract used to relay L1 messages.*"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "events": {
+      "RetryableTicketCreated(uint256)": {
+        "notice": "Emitted when a retryable ticket is created for relaying L1 message to L2."
+      }
+    },
+    "kind": "user",
+    "methods": {
+      "inbox()": {
+        "notice": "Address of arbitrum's L1 inbox contract."
+      },
+      "l2MessageExecutor()": {
+        "notice": "Address of the L2MessageExecutor contract on arbitrum."
+      },
+      "relayMessage(bytes,uint256,uint256,uint256)": {
+        "notice": "sends message received from timeLock to L2MessageExecutor."
+      },
+      "timeLock()": {
+        "notice": "Address of the governance TimeLock contract."
+      }
+    },
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 674,
+        "contract": "contracts/arbitrum/L1MessageRelayer.sol:L1MessageRelayer",
+        "label": "_owner",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 9031,
+        "contract": "contracts/arbitrum/L1MessageRelayer.sol:L1MessageRelayer",
+        "label": "timeLock",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 9034,
+        "contract": "contracts/arbitrum/L1MessageRelayer.sol:L1MessageRelayer",
+        "label": "l2MessageExecutor",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_address"
+      },
+      {
+        "astId": 9037,
+        "contract": "contracts/arbitrum/L1MessageRelayer.sol:L1MessageRelayer",
+        "label": "inbox",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_contract(IInbox)326"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IInbox)326": {
+        "encoding": "inplace",
+        "label": "contract IInbox",
+        "numberOfBytes": "20"
+      }
+    }
+  }
+}
