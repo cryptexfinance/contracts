@@ -56,7 +56,7 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						priceFeedDAI.address,
 						priceFeedETH.address,
 						rewardAddress,
-						timelock.address,
+						0
 					],
 				});
 				handlerContract = await deployments.get("DAIVaultHandler");

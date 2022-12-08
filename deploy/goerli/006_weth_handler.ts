@@ -57,7 +57,7 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						priceFeedETH.address,
 						priceFeedETH.address,
 						rewardAddress,
-						timelock.address,
+						0
 					],
 				});
 				handlerContract = await deployments.get("WETHVaultHandler");

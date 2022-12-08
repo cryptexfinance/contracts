@@ -40,7 +40,7 @@ const BTCVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 					priceFeedBTC.address,
 					priceFeedETH.address,
 					ethers.constants.AddressZero,
-					timelock.address,
+					0
 				],
 				skipIfAlreadyDeployed: true,
 			});
