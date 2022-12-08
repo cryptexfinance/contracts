@@ -23,10 +23,10 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 
 				let WETHContract = await deployments.get("WETH");
 
-				let divisor = process.env.DIVISOR as string;
-				let ratio = process.env.RATIO as string;
-				let burnFee = process.env.BURN_FEE as string;
-				let liquidationPenalty = process.env.LIQUIDATION_PENALTY as string;
+				let divisor =  "10000000000";
+				let ratio = "200";
+				let burnFee = "1";
+				let liquidationPenalty = "10";
 
 				let tcapOracle = await deployments.get("TCAPOracle");
 				let priceFeedETH = await deployments.get("WETHOracle");
