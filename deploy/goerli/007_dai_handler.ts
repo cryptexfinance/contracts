@@ -55,7 +55,7 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						DAIContract.address,
 						priceFeedDAI.address,
 						priceFeedETH.address,
-						rewardAddress,
+						namedAccounts.deployer,
 						0
 					],
 				});
@@ -65,14 +65,6 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						`DAIVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt?.gasUsed}`
 					);
 				}
-				const rewardDeployment = await deployments.deploy("DAIRewardHandler", {
-					contract: "RewardHandler",
-					from: deployer,
-					args: [orchestrator.address, ctx.address, vaultAddress],
-				});
-				log(
-					`Reward Handler deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
-				);
 			} catch (error: any) {
 				log(error.message);
 			}

@@ -56,7 +56,7 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						WETHContract.address,
 						priceFeedETH.address,
 						priceFeedETH.address,
-						rewardAddress,
+						namedAccounts.deployer,
 						0
 					],
 				});
@@ -66,14 +66,6 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						`WETHVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt?.gasUsed}`
 					);
 				}
-				const rewardDeployment = await deployments.deploy("WETHRewardHandler", {
-					contract: "RewardHandler",
-					from: deployer,
-					args: [orchestrator.address, ctx.address, vaultAddress],
-				});
-				log(
-					`Reward Handler deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
-				);
 			} catch (error: any) {
 				log(error.message);
 			}
