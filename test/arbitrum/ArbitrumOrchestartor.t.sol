@@ -18,7 +18,8 @@ contract ArbitrumOrchestratorTest is Test {
 
   function setUp() public {
     vm.startPrank(address(user));
-    l2MessageExecutor = new L2MessageExecutor(user);
+    l2MessageExecutor = new L2MessageExecutor();
+		l2MessageExecutor.initialize(user);
     orchestrator = new ArbitrumOrchestrator(user, address(l2MessageExecutor));
     vm.stopPrank();
   }
@@ -26,7 +27,8 @@ contract ArbitrumOrchestratorTest is Test {
   function testUpdateOwner() public {
     assertEq(orchestrator.owner(), address(l2MessageExecutor));
 		vm.startPrank(AddressAliasHelper.applyL1ToL2Alias(address(user)));
-		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor(user);
+		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor();
+		newL2MessageExecutor.initialize(user);
 		bytes memory callData = abi.encodeWithSelector(
       orchestrator.transferOwnership.selector,
       address(newL2MessageExecutor)
@@ -41,7 +43,8 @@ contract ArbitrumOrchestratorTest is Test {
 		vm.startPrank(AddressAliasHelper.applyL1ToL2Alias(address(user)));
 
 		// Update owner
-		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor(user);
+		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor();
+		newL2MessageExecutor.initialize(user);
 		bytes memory callData = abi.encodeWithSelector(
       orchestrator.transferOwnership.selector,
       address(newL2MessageExecutor)
@@ -66,7 +69,8 @@ contract ArbitrumOrchestratorTest is Test {
 	function testRenounceOwnershipShouldRevert() public {
 		vm.startPrank(AddressAliasHelper.applyL1ToL2Alias(address(user)));
 
-		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor(user);
+		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor();
+		newL2MessageExecutor.initialize(user);
 		bytes memory callData = abi.encodeWithSelector(
       orchestrator.renounceOwnership.selector
     );

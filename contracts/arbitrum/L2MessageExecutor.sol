@@ -5,11 +5,20 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 
 import {AddressAliasHelper} from "./AddressAliasHelper.sol";
 
+/**
+ * @dev This contract executes messages received from layer1 governance on arbitrum.
+ * This meant to be an upgradeable contract and it should only be used with TransparentUpgradeableProxy.
+ */
 contract L2MessageExecutor is ReentrancyGuard {
   /// @notice Address of the L1MessageRelayer contract on mainnet.
   address public l1MessageRelayer;
 
-  constructor(address _l1MessageRelayer) {
+  /// @dev flag to make sure that the initialize function is only called once
+  bool private isInitialized = false;
+
+  function initialize(address _l1MessageRelayer) external {
+    require(!isInitialized, "Contract is already initialized!");
+    isInitialized = true;
     l1MessageRelayer = _l1MessageRelayer;
   }
 
@@ -22,18 +31,6 @@ contract L2MessageExecutor is ReentrancyGuard {
       "L2MessageExecutor: Unauthorized message sender"
     );
     _;
-  }
-
-  /**
-   * @dev Update the address of the L1MessageRelayer contract.
-   * @param _l1MessageRelayer the address of L1 contract used to relay messsages to L2.
-   **/
-  function updateL2MessageRelayer(address _l1MessageRelayer) external onlyThis {
-    require(
-      _l1MessageRelayer != address(0),
-      "L2MessageExecutor::updateL2MessageRelayer: _l1MessageRelayer is the zero address"
-    );
-    l1MessageRelayer = _l1MessageRelayer;
   }
 
   /**

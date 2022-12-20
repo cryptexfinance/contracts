@@ -17,7 +17,8 @@ contract ArbitrumTreasuryTest is Test {
 
   function setUp() public {
     vm.startPrank(address(user));
-    l2MessageExecutor = new L2MessageExecutor(user);
+    l2MessageExecutor = new L2MessageExecutor();
+		l2MessageExecutor.initialize(user);
     treasury = new ArbitrumTreasury(address(l2MessageExecutor));
     vm.stopPrank();
   }
@@ -25,7 +26,8 @@ contract ArbitrumTreasuryTest is Test {
   function testUpdateOwner() public {
     assertEq(treasury.owner(), address(l2MessageExecutor));
 		vm.startPrank(AddressAliasHelper.applyL1ToL2Alias(address(user)));
-		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor(user);
+		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor();
+		newL2MessageExecutor.initialize(user);
 		bytes memory callData = abi.encodeWithSelector(
       treasury.transferOwnership.selector,
       address(newL2MessageExecutor)
@@ -39,7 +41,8 @@ contract ArbitrumTreasuryTest is Test {
 	function testRenounceOwnershipShouldRevert() public {
 		vm.startPrank(AddressAliasHelper.applyL1ToL2Alias(address(user)));
 
-		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor(user);
+		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor();
+		newL2MessageExecutor.initialize(user);
 		bytes memory callData = abi.encodeWithSelector(
       treasury.renounceOwnership.selector
     );
