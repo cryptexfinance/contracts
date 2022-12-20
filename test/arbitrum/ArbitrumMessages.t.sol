@@ -121,4 +121,11 @@ contract ArbitrumMessages is Test {
 		);
 		l1MessageRelayer.setL2MessageExecutorProxy(user);
 	}
+
+	function testL2MessageExecutorInializedOnlyOnce() public {
+		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor();
+		newL2MessageExecutor.initialize(user);
+		vm.expectRevert("Contract is already initialized!");
+		newL2MessageExecutor.initialize(address(l1MessageRelayer));
+	}
 }
