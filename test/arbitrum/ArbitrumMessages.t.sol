@@ -42,7 +42,7 @@ contract ArbitrumMessages is Test {
     assertEq(greeter.greet(), "Second Message");
   }
 
-  function testExecuteMessageWithInbox() public {
+  function testExecuteMessageThroughL1Relayer() public {
     assertEq(greeter.greet(), "First Message");
 
     bytes memory _callData = abi.encodeWithSelector(
