@@ -13,7 +13,7 @@ import "./TCAP.sol";
  * @author Cryptex.finance
  * @notice Orchestrator contract in charge of managing the settings of the vaults, rewards and TCAP token. It acts as the owner of these contracts.
  */
-abstract contract IOrchestrator is Proprietor {
+abstract contract BaseOrchestrator is Proprietor {
   /// @dev Enum which saves the available functions to emergency call.
   enum Functions {
     BURNFEE,
@@ -51,7 +51,7 @@ abstract contract IOrchestrator is Proprietor {
   constructor(address _guardian, address _owner) Proprietor(_owner) {
     require(
       _guardian != address(0) && _owner != address(0),
-      "IOrchestrator::constructor: address can't be zero"
+      "BaseOrchestrator::constructor: address can't be zero"
     );
     guardian = _guardian;
   }
@@ -60,7 +60,7 @@ abstract contract IOrchestrator is Proprietor {
   modifier onlyGuardian() {
     require(
       msg.sender == guardian,
-      "IOrchestrator::onlyGuardian: caller is not the guardian"
+      "BaseOrchestrator::onlyGuardian: caller is not the guardian"
     );
     _;
   }
@@ -72,7 +72,7 @@ abstract contract IOrchestrator is Proprietor {
   modifier validVault(IVaultHandler _vault) {
     require(
       ERC165Checker.supportsInterface(address(_vault), _INTERFACE_ID_IVAULT),
-      "IOrchestrator::validVault: not a valid vault"
+      "BaseOrchestrator::validVault: not a valid vault"
     );
     _;
   }
@@ -84,7 +84,7 @@ abstract contract IOrchestrator is Proprietor {
   modifier validTCAP(TCAP _tcap) {
     require(
       ERC165Checker.supportsInterface(address(_tcap), _INTERFACE_ID_TCAP),
-      "IOrchestrator::validTCAP: not a valid TCAP ERC20"
+      "BaseOrchestrator::validTCAP: not a valid TCAP ERC20"
     );
     _;
   }
@@ -96,7 +96,7 @@ abstract contract IOrchestrator is Proprietor {
   modifier validChainlinkOracle(address _oracle) {
     require(
       ERC165Checker.supportsInterface(_oracle, _INTERFACE_ID_CHAINLINK_ORACLE),
-      "IOrchestrator::validChainlinkOrchestrator: not a valid Chainlink Oracle"
+      "BaseOrchestrator::validChainlinkOrchestrator: not a valid Chainlink Oracle"
     );
     _;
   }
@@ -109,7 +109,7 @@ abstract contract IOrchestrator is Proprietor {
   function setGuardian(address _guardian) external onlyOwner {
     require(
       _guardian != address(0),
-      "IOrchestrator::setGuardian: guardian can't be zero"
+      "BaseOrchestrator::setGuardian: guardian can't be zero"
     );
     guardian = _guardian;
     emit GuardianSet(msg.sender, _guardian);
@@ -156,7 +156,7 @@ abstract contract IOrchestrator is Proprietor {
   {
     require(
       emergencyCalled[_vault][Functions.BURNFEE] != true,
-      "IOrchestrator::setEmergencyBurnFee: emergency call already used"
+      "BaseOrchestrator::setEmergencyBurnFee: emergency call already used"
     );
     emergencyCalled[_vault][Functions.BURNFEE] = true;
     _vault.setBurnFee(0);
@@ -188,7 +188,7 @@ abstract contract IOrchestrator is Proprietor {
   {
     require(
       emergencyCalled[_vault][Functions.LIQUIDATION] != true,
-      "IOrchestrator::setEmergencyLiquidationPenalty: emergency call already used"
+      "BaseOrchestrator::setEmergencyLiquidationPenalty: emergency call already used"
     );
     emergencyCalled[_vault][Functions.LIQUIDATION] = true;
     _vault.setLiquidationPenalty(0);
@@ -207,7 +207,7 @@ abstract contract IOrchestrator is Proprietor {
   {
     require(
       emergencyCalled[_vault][Functions.PAUSE] != true,
-      "IOrchestrator::pauseVault: emergency call already used"
+      "BaseOrchestrator::pauseVault: emergency call already used"
     );
     emergencyCalled[_vault][Functions.PAUSE] = true;
     _vault.pause();
@@ -314,7 +314,7 @@ abstract contract IOrchestrator is Proprietor {
 
     require(
       target != address(0),
-      "IOrchestrator::executeTransaction: target can't be zero"
+      "BaseOrchestrator::executeTransaction: target can't be zero"
     );
 
     // solium-disable-next-line security/no-call-value
@@ -323,11 +323,10 @@ abstract contract IOrchestrator is Proprietor {
     );
     require(
       success,
-      "IOrchestrator::executeTransaction: Transaction execution reverted."
+      "BaseOrchestrator::executeTransaction: Transaction execution reverted."
     );
 
     emit TransactionExecuted(target, value, signature, data);
-    (target, value, signature, data);
 
     return returnData;
   }
@@ -340,7 +339,7 @@ abstract contract IOrchestrator is Proprietor {
   function retrieveETH(address _to) external onlyOwner {
     require(
       _to != address(0),
-      "IOrchestrator::retrieveETH: address can't be zero"
+      "BaseOrchestrator::retrieveETH: address can't be zero"
     );
     uint256 amount = address(this).balance;
     payable(_to).transfer(amount);
