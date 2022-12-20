@@ -114,4 +114,11 @@ contract ArbitrumMessages is Test {
     );
     l2MessageExecutor.executeMessage(payLoad);
   }
+
+	function testRevertsetL2MessageExecutorProxy() public {
+		vm.expectRevert(
+			"L1MessageRelayer::setL2MessageExecutorProxy: l2MessageExecutorProxy is already set"
+		);
+		l1MessageRelayer.setL2MessageExecutorProxy(user);
+	}
 }
