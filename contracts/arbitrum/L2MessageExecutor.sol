@@ -19,6 +19,10 @@ contract L2MessageExecutor is ReentrancyGuard {
   function initialize(address _l1MessageRelayer) external {
     require(!isInitialized, "Contract is already initialized!");
     isInitialized = true;
+    require(
+      _l1MessageRelayer != address(0),
+      "_l1MessageRelayer can't be the zero address"
+    );
     l1MessageRelayer = _l1MessageRelayer;
   }
 
@@ -48,6 +52,7 @@ contract L2MessageExecutor is ReentrancyGuard {
       payLoad,
       (address, bytes)
     );
+    require(target != address(0), "target can't be the zero address");
     (bool success, ) = target.call(callData);
     require(
       success,

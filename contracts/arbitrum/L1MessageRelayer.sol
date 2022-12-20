@@ -28,6 +28,8 @@ contract L1MessageRelayer {
   }
 
   constructor(address _timeLock, address _inbox) {
+    require(_timeLock != address(0), "_timeLock can't the zero address");
+    require(_inbox != address(0), "_inbox can't the zero address");
     timeLock = _timeLock;
     inbox = IInbox(_inbox);
   }
@@ -69,6 +71,8 @@ contract L1MessageRelayer {
     uint256 maxGas,
     uint256 gasPriceBid
   ) external payable onlyTimeLock returns (uint256) {
+    require(maxGas != 1, "maxGas can't be 1");
+    require(gasPriceBid != 1, "gasPriceBid can't be 1");
     bytes memory data = abi.encodeWithSelector(
       L2MessageExecutor.executeMessage.selector,
       payLoad

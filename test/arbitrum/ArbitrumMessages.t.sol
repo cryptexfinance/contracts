@@ -79,4 +79,39 @@ contract ArbitrumMessages is Test {
     assertEq(l1MessageRelayer.l2MessageExecutorProxy(), user);
     vm.stopPrank();
   }
+
+	function testRevertForZeroTimelockAddress() public {
+		vm.expectRevert(
+      "_timeLock can't the zero address"
+    );
+		new L1MessageRelayer(address(0), address(inbox));
+	}
+
+	function testRevertForZeroInboxAddress() public {
+		vm.expectRevert(
+      "_inbox can't the zero address"
+    );
+		new L1MessageRelayer(user, address(0));
+	}
+
+	function testRevertForZeroL1MessageRelayerAddress() public {
+		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor();
+		vm.expectRevert(
+      "_l1MessageRelayer can't be the zero address"
+    );
+		newL2MessageExecutor.initialize(address(0));
+	}
+
+	function testRevertWhenZeroTargetAddress() public {
+    bytes memory callData = abi.encodeWithSelector(
+      Greeter.setGreeting.selector,
+      "Second Message"
+    );
+    bytes memory payLoad = abi.encode(address(0), callData);
+    vm.startPrank(AddressAliasHelper.applyL1ToL2Alias(address(l1MessageRelayer)));
+		vm.expectRevert(
+      "target can't be the zero address"
+    );
+    l2MessageExecutor.executeMessage(payLoad);
+  }
 }
