@@ -2,11 +2,10 @@
 pragma solidity 0.7.5;
 
 import "@arbitrum/nitro-contracts/src/bridge/IInbox.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "./L2MessageExecutor.sol";
 
-contract L1MessageRelayer is Ownable {
+contract L1MessageRelayer {
   /// @notice Address of the governance TimeLock contract.
   address public timeLock;
 
@@ -39,12 +38,24 @@ contract L1MessageRelayer is Ownable {
   }
 
   /**
+   * @dev Initialises the address of the L2MessageExecutor contract.
+   * @param _l2MessageExecutor the address of L2 contract used to relay L1 messages.
+   **/
+  function setL2MessageExecutor(address _l2MessageExecutor) external {
+    require(
+      l2MessageExecutor == address(0x0),
+      "L1MessageRelayer::setL2MessageExecutor: l2MessageExecutor is already set"
+    );
+    l2MessageExecutor = _l2MessageExecutor;
+  }
+
+  /**
    * @dev Update the address of the L2MessageExecutor contract.
    * @param _l2MessageExecutor the address of L2 contract used to relay L1 messages.
    **/
   function updateL2MessageExecutor(address _l2MessageExecutor)
     external
-    onlyOwner
+    onlyTimeLock
   {
     require(
       _l2MessageExecutor != address(0),
