@@ -96,7 +96,7 @@ contract OptimisticTreasuryTest is Test {
     oTreasury.executeTransaction(address(dai), value, signature, data);
 
     // Empty address
-    vm.expectRevert("BaseTreasury::executeTransaction: target can't be zero");
+    vm.expectRevert("ITreasury::executeTransaction: target can't be zero");
     ol2.executeTransaction(oTreasury, address(0), value, signature, data);
 
     ol2.executeTransaction(oTreasury, address(dai), value, signature, data);

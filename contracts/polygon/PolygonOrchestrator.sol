@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.5;
 
-import "../BaseOrchestrator.sol";
+import "../IOrchestrator.sol";
 import "./PolygonL2Messenger.sol";
 
 /**
@@ -9,7 +9,7 @@ import "./PolygonL2Messenger.sol";
  * @author Cryptex.finance
  * @notice Orchestrator contract in charge of managing the settings of the vaults, rewards and TCAP token. It acts as the owner of these contracts.
  */
-contract PolygonOrchestrator is BaseOrchestrator {
+contract PolygonOrchestrator is IOrchestrator {
   /// @notice Address of the polygonMessenger contract.
   PolygonL2Messenger public polygonMessenger;
 
@@ -37,7 +37,7 @@ contract PolygonOrchestrator is BaseOrchestrator {
     address _guardian,
     address _owner,
     address _polygonMessenger
-  ) BaseOrchestrator(_guardian, _owner) {
+  ) IOrchestrator(_guardian, _owner) {
     require(
       _polygonMessenger != address(0),
       "PolygonOrchestrator::constructor: address can't be zero"

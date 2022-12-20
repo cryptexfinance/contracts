@@ -2,15 +2,16 @@
 pragma solidity 0.7.5;
 
 import "@arbitrum/nitro-contracts/src/bridge/IInbox.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "./L2MessageExecutor.sol";
 
-contract L1MessageRelayer {
+contract L1MessageRelayer is Ownable {
   /// @notice Address of the governance TimeLock contract.
   address public timeLock;
 
-  /// @notice Address of the L2MessageExecutorProxy contract on arbitrum.
-  address public l2MessageExecutorProxy;
+  /// @notice Address of the L2MessageExecutor contract on arbitrum.
+  address public l2MessageExecutor;
 
   /// @notice Address of arbitrum's L1 inbox contract.
   IInbox public inbox;
@@ -27,42 +28,33 @@ contract L1MessageRelayer {
     _;
   }
 
-  constructor(address _timeLock, address _inbox) {
-    require(_timeLock != address(0), "_timeLock can't the zero address");
-    require(_inbox != address(0), "_inbox can't the zero address");
+  constructor(
+    address _timeLock,
+    address _l2MessageExecutor,
+    address _inbox
+  ) {
     timeLock = _timeLock;
+    l2MessageExecutor = _l2MessageExecutor;
     inbox = IInbox(_inbox);
   }
 
   /**
-   * @dev Initialises the address of the l2MessageExecutorProxy contract.
-   * @param _l2MessageExecutorProxy the address of L2 contract used to relay L1 messages.
+   * @dev Update the address of the L2MessageExecutor contract.
+   * @param _l2MessageExecutor the address of L2 contract used to relay L1 messages.
    **/
-  function setL2MessageExecutorProxy(address _l2MessageExecutorProxy) external {
-    require(
-      l2MessageExecutorProxy == address(0x0),
-      "L1MessageRelayer::setL2MessageExecutorProxy: l2MessageExecutorProxy is already set"
-    );
-    l2MessageExecutorProxy = _l2MessageExecutorProxy;
-  }
-
-  /**
-   * @dev Update the address of the L2MessageExecutorProxy contract.
-   * @param _l2MessageExecutorProxy the address of L2 contract used to relay L1 messages.
-   **/
-  function updateL2MessageExecutorProxy(address _l2MessageExecutorProxy)
+  function updateL2MessageExecutor(address _l2MessageExecutor)
     external
-    onlyTimeLock
+    onlyOwner
   {
     require(
-      _l2MessageExecutorProxy != address(0),
-      "L1MessageRelayer::updateL2MessageExecutorProxy _l2MessageExecutorProxy is the zero address"
+      _l2MessageExecutor != address(0),
+      "L1MessageRelayer::updateL2MessageExecutor _l2MessageExecutor is the zero address"
     );
-    l2MessageExecutorProxy = _l2MessageExecutorProxy;
+    l2MessageExecutor = _l2MessageExecutor;
   }
 
   /**
-   * @notice sends message received from timeLock to L2MessageExecutorProxy.
+   * @notice sends message received from timeLock to L2MessageExecutor.
    * @param payLoad message received from L1 that needs to be executed.
    **/
   function relayMessage(
@@ -71,14 +63,12 @@ contract L1MessageRelayer {
     uint256 maxGas,
     uint256 gasPriceBid
   ) external payable onlyTimeLock returns (uint256) {
-    require(maxGas != 1, "maxGas can't be 1");
-    require(gasPriceBid != 1, "gasPriceBid can't be 1");
     bytes memory data = abi.encodeWithSelector(
       L2MessageExecutor.executeMessage.selector,
       payLoad
     );
     uint256 ticketID = inbox.createRetryableTicket{value: msg.value}(
-      l2MessageExecutorProxy,
+      l2MessageExecutor,
       0,
       maxSubmissionCost,
       msg.sender,

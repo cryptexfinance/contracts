@@ -329,6 +329,7 @@ contract Orchestrator is Ownable {
     );
 
     emit TransactionExecuted(target, value, signature, data);
+    (target, value, signature, data);
 
     return returnData;
   }

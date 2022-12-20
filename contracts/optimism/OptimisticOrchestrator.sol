@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.5;
 
-import "../BaseOrchestrator.sol";
+import "../IOrchestrator.sol";
 import "./iOVM_CrossDomainMessenger.sol";
 
 /**
@@ -9,7 +9,7 @@ import "./iOVM_CrossDomainMessenger.sol";
  * @author Cryptex.finance
  * @notice Orchestrator contract in charge of managing the settings of the vaults, rewards and TCAP token. It acts as the owner of these contracts.
  */
-contract OptimisticOrchestrator is BaseOrchestrator {
+contract OptimisticOrchestrator is IOrchestrator {
   /// @notice Address of the optimistic ovmL2CrossDomainMessenger contract.
   iOVM_CrossDomainMessenger public immutable ovmL2CrossDomainMessenger;
 
@@ -23,7 +23,7 @@ contract OptimisticOrchestrator is BaseOrchestrator {
     address _guardian,
     address _owner,
     address _ovmL2CrossDomainMessenger
-  ) BaseOrchestrator(_guardian, _owner) {
+  ) IOrchestrator(_guardian, _owner) {
     require(
       _ovmL2CrossDomainMessenger != address(0),
       "OptimisticOrchestrator::constructor: address can't be zero"

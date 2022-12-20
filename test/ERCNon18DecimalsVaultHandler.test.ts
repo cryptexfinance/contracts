@@ -46,7 +46,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		const {timestamp: now} = await waffle.provider.getBlock("latest");
 		CTX = await deployContract("Ctx", wallet, [wallet.address, wallet.address, now + 60 * 60]);
 		orchestrator = await deployContract("Orchestrator", wallet, [wallet.address]);
-		treasury = await deployContract("BaseTreasury", wallet, [wallet.address]);
+		treasury = await deployContract("ITreasury", wallet, [wallet.address]);
 		tCAP = await deployContract("TCAP", wallet, ["TCAP Token", "TCAP", 0, orchestrator.address]);
 		aggregatorInterfaceTCAP = await fakeDeployContract("AggregatorInterface", wallet, []);
 		tCAPOracle = await deployContract("ChainlinkOracle", wallet, [

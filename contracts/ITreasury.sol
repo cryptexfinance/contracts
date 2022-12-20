@@ -8,7 +8,7 @@ import "./Proprietor.sol";
  * @author Cryptex.finance
  * @notice This contract will hold the assets generated on L2 networks.
  */
-contract BaseTreasury is Proprietor {
+contract ITreasury is Proprietor {
   /// @notice An event emitted when a transaction is executed
   event TransactionExecuted(
     address indexed target,
@@ -46,7 +46,7 @@ contract BaseTreasury is Proprietor {
 
     require(
       target != address(0),
-      "BaseTreasury::executeTransaction: target can't be zero"
+      "ITreasury::executeTransaction: target can't be zero"
     );
 
     // solium-disable-next-line security/no-call-value
@@ -55,10 +55,11 @@ contract BaseTreasury is Proprietor {
     );
     require(
       success,
-      "BaseTreasury::executeTransaction: Transaction execution reverted."
+      "ITreasury::executeTransaction: Transaction execution reverted."
     );
 
     emit TransactionExecuted(target, value, signature, data);
+    (target, value, signature, data);
 
     return returnData;
   }
@@ -69,7 +70,7 @@ contract BaseTreasury is Proprietor {
    * @dev Only owner can call it
    */
   function retrieveETH(address _to) external onlyOwner {
-    require(_to != address(0), "BaseTreasury::retrieveETH: address can't be zero");
+    require(_to != address(0), "ITreasury::retrieveETH: address can't be zero");
     uint256 amount = address(this).balance;
     payable(_to).transfer(amount);
   }

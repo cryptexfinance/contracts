@@ -9,7 +9,6 @@ import "../../contracts/governance/GovernorBeta.sol";
 import "../../contracts/governance/Timelock.sol";
 import "../../contracts/arbitrum/L1MessageRelayer.sol";
 import "../../contracts/arbitrum/L2MessageExecutor.sol";
-import "../../contracts/arbitrum/L2MessageExecutorProxy.sol";
 import "../../contracts/arbitrum/AddressAliasHelper.sol";
 import "../../contracts/ETHVaultHandler.sol";
 import "../../contracts/Orchestrator.sol";
@@ -39,7 +38,6 @@ contract GovernanceBridgeIntegration is Test {
 
   L1MessageRelayer l1MessageRelayer;
   L2MessageExecutor l2MessageExecutor;
-	L2MessageExecutorProxy proxy;
   MockInbox inbox;
   Ctx ctx;
   GovernorBeta governorBeta;
@@ -68,29 +66,25 @@ contract GovernanceBridgeIntegration is Test {
     inbox = new MockInbox();
     l1MessageRelayer = new L1MessageRelayer(
       address(timeLock),
+      address(0x0),
       address(inbox)
     );
-		l2MessageExecutor = new L2MessageExecutor();
-		bytes memory data = abi.encodeWithSelector(
-      l2MessageExecutor.initialize.selector,
-			address(l1MessageRelayer)
-    );
-		proxy = new L2MessageExecutorProxy(address(l2MessageExecutor), address(timeLock), data);
-    l1MessageRelayer.setL2MessageExecutorProxy(address(proxy));
+    l2MessageExecutor = new L2MessageExecutor(address(l1MessageRelayer));
+    l1MessageRelayer.updateL2MessageExecutor(address(l2MessageExecutor));
     ctx.delegate(user);
 
     orchestrator = new Orchestrator(user);
-    orchestrator.transferOwnership(address(proxy));
+    orchestrator.transferOwnership(address(l2MessageExecutor));
     tcap = new TCAP("Total Crypto Market Cap Token", "TCAP", 0, orchestrator);
     tcapAggregator = new AggregatorInterfaceTCAP();
     ethAggregator = new AggregatorInterface();
     tcapOracle = new ChainlinkOracle(
       address(tcapAggregator),
-      address(proxy)
+      address(l2MessageExecutor)
     );
     ethOracle = new ChainlinkOracle(
       address(ethAggregator),
-      address(proxy)
+      address(l2MessageExecutor)
     );
     weth = new WETH();
     ethVault = new ETHVaultHandler(
