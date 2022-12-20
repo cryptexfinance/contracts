@@ -327,7 +327,6 @@ abstract contract IOrchestrator is Proprietor {
     );
 
     emit TransactionExecuted(target, value, signature, data);
-    (target, value, signature, data);
 
     return returnData;
   }
