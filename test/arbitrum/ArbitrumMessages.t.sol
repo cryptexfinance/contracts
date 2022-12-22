@@ -115,11 +115,27 @@ contract ArbitrumMessages is Test {
     l2MessageExecutor.executeMessage(payLoad);
   }
 
-	function testRevertsetL2MessageExecutorProxy() public {
+	function testRevertsetL2MessageExecutorProxyAlreadySet() public {
 		vm.expectRevert(
 			"L1MessageRelayer::setL2MessageExecutorProxy: l2MessageExecutorProxy is already set"
 		);
+		vm.prank(user);
 		l1MessageRelayer.setL2MessageExecutorProxy(user);
+	}
+
+	function testRevertsetL2MessageExecutorProxyCalledByNotOwner() public {
+		vm.expectRevert(
+			"Ownable: caller is not the owner"
+		);
+		l1MessageRelayer.setL2MessageExecutorProxy(user);
+	}
+
+	function testL1MessageRelayerRenounceOwnership() public {
+		vm.expectRevert(
+			"function disabled"
+		);
+		vm.prank(user);
+		l1MessageRelayer.renounceOwnership();
 	}
 
 	function testL2MessageExecutorInializedOnlyOnce() public {
