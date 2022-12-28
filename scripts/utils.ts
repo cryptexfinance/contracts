@@ -8,7 +8,7 @@ let governor: Deployment;
 let governorContract: Contract;
 
 const initialize = async () => {
-	signer = ethers.provider.getSigner("0x8d6f396d210d385033b348bcae9e4f9ea4e045bd");
+	signer = ethers.provider.getSigner("0x8D6F396D210d385033b348bCae9e4f9Ea4e045bD");
 	governor = await deployments.get("GovernorBeta");
 	governorContract = await ethers.getContractAt("GovernorBeta", governor.address, signer);
 };
@@ -21,19 +21,19 @@ export async function fundMultisign(amount: string) {
 	// VB sends us ETH
 	await hre.network.provider.request({
 		method: "hardhat_impersonateAccount",
-		params: ["0xab5801a7d398351b8be11c439e05c5b3259aec9b"],
+		params: ["0xd8da6bf26964af9d7eed9e03e53415d37aa96045"],
 	});
 
-	let vbSigner = ethers.provider.getSigner("0xab5801a7d398351b8be11c439e05c5b3259aec9b");
+	let vbSigner = ethers.provider.getSigner("0xd8da6bf26964af9d7eed9e03e53415d37aa96045");
 
 	await vbSigner.sendTransaction({
-		to: "0x8d6f396d210d385033b348bcae9e4f9ea4e045bd",
+		to: "0x8D6F396D210d385033b348bCae9e4f9Ea4e045bD",
 		value: ethers.BigNumber.from(amount),
 	});
 
 	await hre.network.provider.request({
 		method: "hardhat_impersonateAccount",
-		params: ["0x8d6f396d210d385033b348bcae9e4f9ea4e045bd"],
+		params: ["0x8D6F396D210d385033b348bCae9e4f9Ea4e045bD"],
 	});
 }
 
@@ -50,7 +50,7 @@ export async function createProposal(
 
     let ctx = await deployments.get("Ctx");
     let ctxContract= await ethers.getContractAt("Ctx",ctx.address, signer);
-    const x =  await ctxContract.delegate("0x8d6f396d210d385033b348bcae9e4f9ea4e045bd");
+    const x =  await ctxContract.delegate("0x8D6F396D210d385033b348bCae9e4f9Ea4e045bD");
     await ethers.provider.send("evm_mine", []);
 
 	console.log("==================Create Proposal==================");
