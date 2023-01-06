@@ -15,7 +15,6 @@ module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 		from: namedAccounts.deployer,
 		args: [
 			namedAccounts.deployer,
-			ethers.constants.AddressZero, // temp l2 addr
 			inboxAddress
 		],
 	});

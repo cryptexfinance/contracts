@@ -14,11 +14,11 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
     let handlerContract;
     let orchestrator = await deployments.get("ArbitrumOrchestrator");
     try {
-      handlerContract = await deployments.get("jWETHVaultHandler");
+      handlerContract = await deployments.get("WETHVaultHandler");
     } catch (error: any) {
       log(error.message);
       try {
-        let jpegz = await deployments.get("JPEGZ");
+        let tcap = await deployments.get("TCAP");
 
         let WETHContract = await deployments.get("WETH");
 
@@ -27,11 +27,12 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
         let burnFee = 1;
         let liquidationPenalty = 10;
 
-        let jpegzOracle = await deployments.get("JPEGZOracle");
+        let tcapOracle = await deployments.get("TCAPOracle");
         let l2MessageExecutor = await deployments.get("L2MessageExecutor");
         let priceFeedETH = await deployments.get("WETHOracle");
+        let nonce = await owner.getTransactionCount();
 
-        const deployResult = await deployments.deploy("jWETHVaultHandler", {
+        const deployResult = await deployments.deploy("WETHVaultHandler", {
           from: deployer,
           contract: "ETHVaultHandler",
           args: [
@@ -40,8 +41,8 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
             ratio,
             burnFee,
             liquidationPenalty,
-            jpegzOracle.address,
-            jpegz.address,
+            tcapOracle.address,
+            tcap.address,
             WETHContract.address,
             priceFeedETH.address,
             priceFeedETH.address,
@@ -49,10 +50,10 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
             "20000000000000000000",
           ],
         });
-        handlerContract = await deployments.get("jWETHVaultHandler");
+        handlerContract = await deployments.get("WETHVaultHandler");
         if (deployResult.newlyDeployed) {
           log(
-            `jWETHVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt?.gasUsed}`
+            `WETHVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt?.gasUsed}`
           );
         }
       } catch (error: any) {

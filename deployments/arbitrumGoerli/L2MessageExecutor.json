@@ -1,0 +1,140 @@
+{
+  "address": "0x027591a373B7c3Dc5A372594F16A6134cE2870f0",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "payLoad",
+          "type": "bytes"
+        }
+      ],
+      "name": "executeMessage",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_l1MessageRelayer",
+          "type": "address"
+        }
+      ],
+      "name": "initialize",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "l1MessageRelayer",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xba0b251fd647be98ce5ab5407a6f9f21ae5adaec9b26397624d1b6bf252bfa3e",
+  "receipt": {
+    "to": null,
+    "from": "0x49Ae0618578D12cc06eE992C23DB683D8ADAf43E",
+    "contractAddress": "0x027591a373B7c3Dc5A372594F16A6134cE2870f0",
+    "transactionIndex": 1,
+    "gasUsed": "388781",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x2aff784e0dc3d18eb5af7a77a9a76fe48c3e9e1776b5981fd1ddbcbeca281b9d",
+    "transactionHash": "0xba0b251fd647be98ce5ab5407a6f9f21ae5adaec9b26397624d1b6bf252bfa3e",
+    "logs": [],
+    "blockNumber": 4087769,
+    "cumulativeGasUsed": "388781",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "57fd964943961eb21329ffa8c2b6f646",
+  "metadata": "{\"compiler\":{\"version\":\"0.7.5+commit.eb77ed08\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"payLoad\",\"type\":\"bytes\"}],\"name\":\"executeMessage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_l1MessageRelayer\",\"type\":\"address\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"l1MessageRelayer\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"This contract executes messages received from layer1 governance on arbitrum. This meant to be an upgradeable contract and it should only be used with TransparentUpgradeableProxy.\",\"kind\":\"dev\",\"methods\":{\"executeMessage(bytes)\":{\"params\":{\"payLoad\":\"message received from L1 that needs to be executed.*\"}}},\"stateVariables\":{\"isInitialized\":{\"details\":\"flag to make sure that the initialize function is only called once\"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"executeMessage(bytes)\":{\"notice\":\"executes message received from L1.\"},\"l1MessageRelayer()\":{\"notice\":\"Address of the L1MessageRelayer contract on mainnet.\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/arbitrum/L2MessageExecutor.sol\":\"L2MessageExecutor\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/utils/ReentrancyGuard.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity >=0.6.0 <0.8.0;\\n\\n/**\\n * @dev Contract module that helps prevent reentrant calls to a function.\\n *\\n * Inheriting from `ReentrancyGuard` will make the {nonReentrant} modifier\\n * available, which can be applied to functions to make sure there are no nested\\n * (reentrant) calls to them.\\n *\\n * Note that because there is a single `nonReentrant` guard, functions marked as\\n * `nonReentrant` may not call one another. This can be worked around by making\\n * those functions `private`, and then adding `external` `nonReentrant` entry\\n * points to them.\\n *\\n * TIP: If you would like to learn more about reentrancy and alternative ways\\n * to protect against it, check out our blog post\\n * https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].\\n */\\nabstract contract ReentrancyGuard {\\n    // Booleans are more expensive than uint256 or any type that takes up a full\\n    // word because each write operation emits an extra SLOAD to first read the\\n    // slot's contents, replace the bits taken up by the boolean, and then write\\n    // back. This is the compiler's defense against contract upgrades and\\n    // pointer aliasing, and it cannot be disabled.\\n\\n    // The values being non-zero value makes deployment a bit more expensive,\\n    // but in exchange the refund on every call to nonReentrant will be lower in\\n    // amount. Since refunds are capped to a percentage of the total\\n    // transaction's gas, it is best to keep them low in cases like this one, to\\n    // increase the likelihood of the full refund coming into effect.\\n    uint256 private constant _NOT_ENTERED = 1;\\n    uint256 private constant _ENTERED = 2;\\n\\n    uint256 private _status;\\n\\n    constructor () internal {\\n        _status = _NOT_ENTERED;\\n    }\\n\\n    /**\\n     * @dev Prevents a contract from calling itself, directly or indirectly.\\n     * Calling a `nonReentrant` function from another `nonReentrant`\\n     * function is not supported. It is possible to prevent this from happening\\n     * by making the `nonReentrant` function external, and make it call a\\n     * `private` function that does the actual work.\\n     */\\n    modifier nonReentrant() {\\n        // On the first call to nonReentrant, _notEntered will be true\\n        require(_status != _ENTERED, \\\"ReentrancyGuard: reentrant call\\\");\\n\\n        // Any calls to nonReentrant after this point will fail\\n        _status = _ENTERED;\\n\\n        _;\\n\\n        // By storing the original value once again, a refund is triggered (see\\n        // https://eips.ethereum.org/EIPS/eip-2200)\\n        _status = _NOT_ENTERED;\\n    }\\n}\\n\",\"keccak256\":\"0x8bbbc2f5c10065ee272592ae0a7a6ceb23de2fbd81564ee0bb015ecf404d5f61\",\"license\":\"MIT\"},\"contracts/arbitrum/AddressAliasHelper.sol\":{\"content\":\"// SPDX-License-Identifier: Apache-2.0\\n\\n/*\\n * Copyright 2019-2021, Offchain Labs, Inc.\\n *\\n * Licensed under the Apache License, Version 2.0 (the \\\"License\\\");\\n * you may not use this file except in compliance with the License.\\n * You may obtain a copy of the License at\\n *\\n *    http://www.apache.org/licenses/LICENSE-2.0\\n *\\n * Unless required by applicable law or agreed to in writing, software\\n * distributed under the License is distributed on an \\\"AS IS\\\" BASIS,\\n * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\\n * See the License for the specific language governing permissions and\\n * limitations under the License.\\n */\\n\\npragma solidity 0.7.5;\\n\\nlibrary AddressAliasHelper {\\n  uint160 constant OFFSET = uint160(0x1111000000000000000000000000000000001111);\\n\\n  /// @notice Utility function that converts the address in the L1 that submitted a tx to\\n  /// the inbox to the msg.sender viewed in the L2\\n  /// @param l1Address the address in the L1 that triggered the tx to L2\\n  /// @return l2Address L2 address as viewed in msg.sender\\n  function applyL1ToL2Alias(address l1Address)\\n    internal\\n    pure\\n    returns (address l2Address)\\n  {\\n    l2Address = address(uint160(l1Address) + OFFSET);\\n  }\\n\\n  /// @notice Utility function that converts the msg.sender viewed in the L2 to the\\n  /// address in the L1 that submitted a tx to the inbox\\n  /// @param l2Address L2 address as viewed in msg.sender\\n  /// @return l1Address the address in the L1 that triggered the tx to L2\\n  function undoL1ToL2Alias(address l2Address)\\n    internal\\n    pure\\n    returns (address l1Address)\\n  {\\n    l1Address = address(uint160(l2Address) - OFFSET);\\n  }\\n}\\n\",\"keccak256\":\"0x5587b600f2e53e42772f8c7ad66b71f6c87525f8e0dadee41f6774ecad377ad4\",\"license\":\"Apache-2.0\"},\"contracts/arbitrum/L2MessageExecutor.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.7.5;\\n\\nimport {ReentrancyGuard} from \\\"@openzeppelin/contracts/utils/ReentrancyGuard.sol\\\";\\n\\nimport {AddressAliasHelper} from \\\"./AddressAliasHelper.sol\\\";\\n\\n/**\\n * @dev This contract executes messages received from layer1 governance on arbitrum.\\n * This meant to be an upgradeable contract and it should only be used with TransparentUpgradeableProxy.\\n */\\ncontract L2MessageExecutor is ReentrancyGuard {\\n  /// @notice Address of the L1MessageRelayer contract on mainnet.\\n  address public l1MessageRelayer;\\n\\n  /// @dev flag to make sure that the initialize function is only called once\\n  bool private isInitialized = false;\\n\\n  function initialize(address _l1MessageRelayer) external {\\n    require(!isInitialized, \\\"Contract is already initialized!\\\");\\n    isInitialized = true;\\n    require(\\n      _l1MessageRelayer != address(0),\\n      \\\"_l1MessageRelayer can't be the zero address\\\"\\n    );\\n    l1MessageRelayer = _l1MessageRelayer;\\n  }\\n\\n  /**\\n   * @notice Throws if called by any account other than this contract.\\n   **/\\n  modifier onlyThis() {\\n    require(\\n      msg.sender == address(this),\\n      \\\"L2MessageExecutor: Unauthorized message sender\\\"\\n    );\\n    _;\\n  }\\n\\n  /**\\n   * @notice executes message received from L1.\\n   * @param payLoad message received from L1 that needs to be executed.\\n   **/\\n  function executeMessage(bytes calldata payLoad) external nonReentrant {\\n    // To check that message came from L1, we check that the sender is the L1 contract's L2 alias.\\n    require(\\n      msg.sender == AddressAliasHelper.applyL1ToL2Alias(l1MessageRelayer),\\n      \\\"L2MessageExecutor::executeMessage: Unauthorized message sender\\\"\\n    );\\n\\n    (address target, bytes memory callData) = abi.decode(\\n      payLoad,\\n      (address, bytes)\\n    );\\n    require(target != address(0), \\\"target can't be the zero address\\\");\\n    (bool success, ) = target.call(callData);\\n    require(\\n      success,\\n      \\\"L2MessageExecutor::executeMessage: Message execution reverted.\\\"\\n    );\\n  }\\n}\\n\",\"keccak256\":\"0x5288070dbf2d39d46207ab6b0cc26a3bbc7688c58acdcd10a68951ede4f7e649\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60806040526001805460ff60a01b1916905534801561001d57600080fd5b5060016000556105a1806100326000396000f3fe608060405234801561001057600080fd5b50600436106100415760003560e01c80633d1f867914610046578063c4d66de81461006a578063e0299bf514610092575b600080fd5b61004e610102565b604080516001600160a01b039092168252519081900360200190f35b6100906004803603602081101561008057600080fd5b50356001600160a01b0316610111565b005b610090600480360360208110156100a857600080fd5b8101906020810181356401000000008111156100c357600080fd5b8201836020820111156100d557600080fd5b803590602001918460018302840111640100000000831117156100f757600080fd5b5090925090506101ea565b6001546001600160a01b031681565b600154600160a01b900460ff1615610170576040805162461bcd60e51b815260206004820181905260248201527f436f6e747261637420697320616c726561647920696e697469616c697a656421604482015290519081900360640190fd5b6001805460ff60a01b1916600160a01b1790556001600160a01b0381166101c85760405162461bcd60e51b815260040180806020018281038252602b815260200180610541602b913960400191505060405180910390fd5b600180546001600160a01b0319166001600160a01b0392909216919091179055565b60026000541415610242576040805162461bcd60e51b815260206004820152601f60248201527f5265656e7472616e637947756172643a207265656e7472616e742063616c6c00604482015290519081900360640190fd5b600260005560015461025c906001600160a01b03166104ab565b6001600160a01b0316336001600160a01b0316146102ab5760405162461bcd60e51b815260040180806020018281038252603e8152602001806104c5603e913960400191505060405180910390fd5b60006060838360408110156102bf57600080fd5b6001600160a01b0382351691908101906040810160208201356401000000008111156102ea57600080fd5b8201836020820111156102fc57600080fd5b8035906020019184600183028401116401000000008311171561031e57600080fd5b91908080601f0160208091040260200160405190810160405280939291908181526020018383808284376000920191909152509698509196505050506001600160a01b038516151592506103bc915050576040805162461bcd60e51b815260206004820181905260248201527f7461726765742063616e277420626520746865207a65726f2061646472657373604482015290519081900360640190fd5b6000826001600160a01b0316826040518082805190602001908083835b602083106103f85780518252601f1990920191602091820191016103d9565b6001836020036101000a0380198251168184511680821785525050505050509050019150506000604051808303816000865af19150503d806000811461045a576040519150601f19603f3d011682016040523d82523d6000602084013e61045f565b606091505b505090508061049f5760405162461bcd60e51b815260040180806020018281038252603e815260200180610503603e913960400191505060405180910390fd5b50506001600055505050565b731111000000000000000000000000000000001111019056fe4c324d6573736167654578656375746f723a3a657865637574654d6573736167653a20556e617574686f72697a6564206d6573736167652073656e6465724c324d6573736167654578656375746f723a3a657865637574654d6573736167653a204d65737361676520657865637574696f6e2072657665727465642e5f6c314d65737361676552656c617965722063616e277420626520746865207a65726f2061646472657373a2646970667358221220d34e6c900e2089c9257e54be56774979a09095df8b605d06f858190e2e87d3e464736f6c63430007050033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100415760003560e01c80633d1f867914610046578063c4d66de81461006a578063e0299bf514610092575b600080fd5b61004e610102565b604080516001600160a01b039092168252519081900360200190f35b6100906004803603602081101561008057600080fd5b50356001600160a01b0316610111565b005b610090600480360360208110156100a857600080fd5b8101906020810181356401000000008111156100c357600080fd5b8201836020820111156100d557600080fd5b803590602001918460018302840111640100000000831117156100f757600080fd5b5090925090506101ea565b6001546001600160a01b031681565b600154600160a01b900460ff1615610170576040805162461bcd60e51b815260206004820181905260248201527f436f6e747261637420697320616c726561647920696e697469616c697a656421604482015290519081900360640190fd5b6001805460ff60a01b1916600160a01b1790556001600160a01b0381166101c85760405162461bcd60e51b815260040180806020018281038252602b815260200180610541602b913960400191505060405180910390fd5b600180546001600160a01b0319166001600160a01b0392909216919091179055565b60026000541415610242576040805162461bcd60e51b815260206004820152601f60248201527f5265656e7472616e637947756172643a207265656e7472616e742063616c6c00604482015290519081900360640190fd5b600260005560015461025c906001600160a01b03166104ab565b6001600160a01b0316336001600160a01b0316146102ab5760405162461bcd60e51b815260040180806020018281038252603e8152602001806104c5603e913960400191505060405180910390fd5b60006060838360408110156102bf57600080fd5b6001600160a01b0382351691908101906040810160208201356401000000008111156102ea57600080fd5b8201836020820111156102fc57600080fd5b8035906020019184600183028401116401000000008311171561031e57600080fd5b91908080601f0160208091040260200160405190810160405280939291908181526020018383808284376000920191909152509698509196505050506001600160a01b038516151592506103bc915050576040805162461bcd60e51b815260206004820181905260248201527f7461726765742063616e277420626520746865207a65726f2061646472657373604482015290519081900360640190fd5b6000826001600160a01b0316826040518082805190602001908083835b602083106103f85780518252601f1990920191602091820191016103d9565b6001836020036101000a0380198251168184511680821785525050505050509050019150506000604051808303816000865af19150503d806000811461045a576040519150601f19603f3d011682016040523d82523d6000602084013e61045f565b606091505b505090508061049f5760405162461bcd60e51b815260040180806020018281038252603e815260200180610503603e913960400191505060405180910390fd5b50506001600055505050565b731111000000000000000000000000000000001111019056fe4c324d6573736167654578656375746f723a3a657865637574654d6573736167653a20556e617574686f72697a6564206d6573736167652073656e6465724c324d6573736167654578656375746f723a3a657865637574654d6573736167653a204d65737361676520657865637574696f6e2072657665727465642e5f6c314d65737361676552656c617965722063616e277420626520746865207a65726f2061646472657373a2646970667358221220d34e6c900e2089c9257e54be56774979a09095df8b605d06f858190e2e87d3e464736f6c63430007050033",
+  "devdoc": {
+    "details": "This contract executes messages received from layer1 governance on arbitrum. This meant to be an upgradeable contract and it should only be used with TransparentUpgradeableProxy.",
+    "kind": "dev",
+    "methods": {
+      "executeMessage(bytes)": {
+        "params": {
+          "payLoad": "message received from L1 that needs to be executed.*"
+        }
+      }
+    },
+    "stateVariables": {
+      "isInitialized": {
+        "details": "flag to make sure that the initialize function is only called once"
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "executeMessage(bytes)": {
+        "notice": "executes message received from L1."
+      },
+      "l1MessageRelayer()": {
+        "notice": "Address of the L1MessageRelayer contract on mainnet."
+      }
+    },
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 3566,
+        "contract": "contracts/arbitrum/L2MessageExecutor.sol:L2MessageExecutor",
+        "label": "_status",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 9926,
+        "contract": "contracts/arbitrum/L2MessageExecutor.sol:L2MessageExecutor",
+        "label": "l1MessageRelayer",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 9930,
+        "contract": "contracts/arbitrum/L2MessageExecutor.sol:L2MessageExecutor",
+        "label": "isInitialized",
+        "offset": 20,
+        "slot": "1",
+        "type": "t_bool"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}
