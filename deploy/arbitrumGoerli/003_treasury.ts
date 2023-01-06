@@ -7,7 +7,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 
 	const { deployIfDifferent, log } = deployments;
 	const { deployer } = await getNamedAccounts();
-	const l2MessageExecutorDeployResult = await deployments.getOrNull("L2MessageExecutor");
+	// const l2MessageExecutorDeployResult = await deployments.getOrNull("L2MessageExecutor");
 
 
 	const arbitrumTreasuryResult = await deployments.deploy("ArbitrumTreasury", {
@@ -15,8 +15,9 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 		skipIfAlreadyDeployed: true,
 		log: true,
 		args: [
-			l2MessageExecutorDeployResult.address,
-			l2MessageExecutorDeployResult.address
+            deployer
+			// l2MessageExecutorDeployResult.address,
+			// l2MessageExecutorDeployResult.address
 		],
 	});
 	log(
