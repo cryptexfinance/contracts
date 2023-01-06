@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { deployments, hardhatArguments } from "hardhat";
+import { deployments, hardhatArguments, ethers } from "hardhat";
 import "ethers";
 
 function requireEnvVariables(envVars: string[]){
@@ -24,7 +24,6 @@ module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 		from: namedAccounts.deployer,
 		skipIfAlreadyDeployed: true,
 		log: true,
-		args: [process.env.GOERLI_ARBITRUM_MESSAGE_RELAYER_ADDRESS],
 	});
 
 	log(
@@ -32,13 +31,27 @@ module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 		for ${l2MessageExecutorDeployment.receipt?.gasUsed}`
 	);
 
-// 	TODO: remove this. Added for testing
-	await deployments.deploy("Greeter", {
+	let ABI = ["function initialize(address)"];
+	let iface = new ethers.utils.Interface(ABI);
+	// TODO: replace deployer with GOERLI_ARBITRUM_MESSAGE_RELAYER_ADDRESS
+	let callData = iface.encodeFunctionData(
+		"initialize",
+		[process.env["GOERLI_ARBITRUM_MESSAGE_RELAYER_ADDRESS"]]
+	);
+
+	const l2MessageExecutorProxyDeployment = await deployments.deploy("L2MessageExecutorProxy", {
 		from: namedAccounts.deployer,
 		skipIfAlreadyDeployed: true,
 		log: true,
-		args: ["Initial Message"],
+		// TODO: replace deployer with Timelock Address
+		args: [l2MessageExecutorDeployment.address, namedAccounts.deployer, callData]
 	});
+
+	log(
+		`L2MessageExecutorProxy deployed at ${l2MessageExecutorProxyDeployment.address}
+		for ${l2MessageExecutorProxyDeployment.receipt?.gasUsed}`
+	);
+
 
 };
 
