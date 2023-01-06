@@ -15,7 +15,7 @@ module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 	if (hardhatArguments.network !== "arbitrumGoerli") {
 		return
 	}
-	requireEnvVariables(["GOERLI_ARBITRUM_MESSAGE_RELAYER_ADDRESS"]);
+	requireEnvVariables(["GOERLI_ARBITRUM_MESSAGE_RELAYER_ADDRESS", "GOERLI_TIMELOCK_ADDRESS"]);
 
 	const { log } = deployments;
 	const namedAccounts = await getNamedAccounts();
@@ -43,8 +43,11 @@ module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 		from: namedAccounts.deployer,
 		skipIfAlreadyDeployed: true,
 		log: true,
-		// TODO: replace deployer with Timelock Address
-		args: [l2MessageExecutorDeployment.address, namedAccounts.deployer, callData]
+		args: [
+			l2MessageExecutorDeployment.address,
+			process.env["GOERLI_TIMELOCK_ADDRESS"],
+			callData
+		]
 	});
 
 	log(
