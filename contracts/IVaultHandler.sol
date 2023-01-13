@@ -87,6 +87,9 @@ abstract contract IVaultHandler is
   /// @notice Fee percentage of the total amount to burn charged on ETH when burning TCAP Tokens
   uint256 public burnFee;
 
+  /// @notice Fee percentage of the total amount to mint charged on ETH when burning TCAP Tokens
+  uint256 public mintFee;
+
   /// @notice Penalty charged to vault owner when a vault is liquidated, this value goes to the liquidator
   uint256 public liquidationPenalty;
 
@@ -132,6 +135,9 @@ abstract contract IVaultHandler is
 
   /// @notice An event emitted when the ratio is updated
   event NewRatio(address indexed _owner, uint256 _ratio);
+
+  /// @notice An event emitted when the mint fee is updated
+  event NewMintFee(address indexed _owner, uint256 _mintFee);
 
   /// @notice An event emitted when the burn fee is updated
   event NewBurnFee(address indexed _owner, uint256 _burnFee);
@@ -203,6 +209,7 @@ abstract contract IVaultHandler is
    * @param _divisor uint256
    * @param _ratio uint256
    * @param _burnFee uint256
+   * @param _mintFee uint256
    * @param _liquidationPenalty uint256
    * @param _tcapOracle address
    * @param _tcapAddress address
@@ -217,6 +224,7 @@ abstract contract IVaultHandler is
     uint256 _divisor,
     uint256 _ratio,
     uint256 _burnFee,
+    uint256 _mintFee,
     uint256 _liquidationPenalty,
     address _tcapOracle,
     TCAP _tcapAddress,
@@ -236,13 +244,14 @@ abstract contract IVaultHandler is
     );
 
     require(
-      _burnFee <= MAX_FEE,
-      "VaultHandler::constructor: burn fee higher than MAX_FEE"
+      _burnFee <= MAX_FEE && _mintFee <= MAX_FEE,
+      "VaultHandler::constructor: fee higher than MAX_FEE"
     );
 
     divisor = _divisor;
     ratio = _ratio;
     burnFee = _burnFee;
+    mintFee = _mintFee;
     liquidationPenalty = _liquidationPenalty;
     tcapOracle = ChainlinkOracle(_tcapOracle);
     collateralContract = IERC20(_collateralAddress);
@@ -308,6 +317,20 @@ abstract contract IVaultHandler is
   }
 
   /**
+   * @notice Sets the mint fee percentage an user pays when burning tcap tokens
+   * @param _mintFee uint
+   * @dev Only owner can call it
+   */
+  function setMintFee(uint256 _mintFee) external virtual onlyOwner {
+    require(
+      _mintFee <= MAX_FEE,
+      "VaultHandler::setMintFee: fee higher than MAX_FEE"
+    );
+    mintFee = _mintFee;
+    emit NewMintFee(msg.sender, _mintFee);
+  }
+
+  /**
    * @notice Sets the burn fee percentage an user pays when burning tcap tokens
    * @param _burnFee uint
    * @dev Only owner can call it
@@ -315,7 +338,7 @@ abstract contract IVaultHandler is
   function setBurnFee(uint256 _burnFee) external virtual onlyOwner {
     require(
       _burnFee <= MAX_FEE,
-      "VaultHandler::setBurnFee: burn fee higher than MAX_FEE"
+      "VaultHandler::setBurnFee: fee higher than MAX_FEE"
     );
     burnFee = _burnFee;
     emit NewBurnFee(msg.sender, _burnFee);
@@ -470,6 +493,7 @@ abstract contract IVaultHandler is
    */
   function mint(uint256 _amount)
     external
+    payable
     virtual
     nonReentrant
     vaultExists
@@ -477,6 +501,12 @@ abstract contract IVaultHandler is
     whenNotDisabled(FunctionChoices.Mint)
     notZero(_amount)
   {
+    uint256 fee = getMintFee(_amount);
+    require(
+      msg.value >= fee,
+      "VaultHandler::mint: mint fee less than required"
+    );
+
     Vault storage vault = vaults[userToVault[msg.sender]];
     uint256 collateral = requiredCollateral(_amount);
 
@@ -496,9 +526,11 @@ abstract contract IVaultHandler is
       vault.Debt >= minimumTCAP,
       "VaultHandler::mint: mint amount less than required"
     );
-
     TCAPToken.mint(msg.sender, _amount);
+    safeTransferETH(treasury, fee);
     emit TokensMinted(msg.sender, vault.Id, _amount);
+    //send back ETH above fee
+    safeTransferETH(msg.sender, msg.value.sub(fee));
   }
 
   /**
@@ -519,7 +551,7 @@ abstract contract IVaultHandler is
     whenNotDisabled(FunctionChoices.Burn)
     notZero(_amount)
   {
-    uint256 fee = getFee(_amount);
+    uint256 fee = getBurnFee(_amount);
     require(
       msg.value >= fee,
       "VaultHandler::burn: burn fee less than required"
@@ -565,7 +597,7 @@ abstract contract IVaultHandler is
       "VaultHandler::liquidateVault: liquidation amount different than required"
     );
 
-    uint256 fee = getFee(requiredTCAP);
+    uint256 fee = getBurnFee(requiredTCAP);
     require(
       msg.value >= fee,
       "VaultHandler::liquidateVault: burn fee less than required"
@@ -825,19 +857,37 @@ abstract contract IVaultHandler is
   }
 
   /**
-   * @notice Returns the required fee of ETH to burn the TCAP tokens
+   * @notice Returns the required fee of ETH to mint the tokens
+   * @param _amount to burn
+   * @return fee
+   * @dev The returned value is returned in wei
+   * @dev f = (((P * A * b)/ 10000))/ EP
+   * f = Mint Fee Value in wei
+   * P = Token Price
+   * A = Amount to Burn
+   * b = Burn Fee %
+   * EP = ETH Price
+   * 10000 = the value is 100 multiplied by 100 to support two decimals on the burn fee
+   */
+  function getMintFee(uint256 _amount) public view virtual returns (uint256 fee) {
+    uint256 ethPrice = getOraclePrice(ETHPriceOracle);
+    fee = (TCAPPrice().mul(_amount).mul(mintFee)).div(10000).div(ethPrice);
+  }
+
+  /**
+   * @notice Returns the required fee of ETH to burn the tokens
    * @param _amount to burn
    * @return fee
    * @dev The returned value is returned in wei
    * @dev f = (((P * A * b)/ 10000))/ EP
    * f = Burn Fee Value in wei
-   * P = TCAP Token Price
-   * A = TCAP Amount to Burn
+   * P = Token Price
+   * A = Amount to Burn
    * b = Burn Fee %
    * EP = ETH Price
    * 10000 = the value is 100 multiplied by 100 to support two decimals on the burn fee
    */
-  function getFee(uint256 _amount) public view virtual returns (uint256 fee) {
+  function getBurnFee(uint256 _amount) public view virtual returns (uint256 fee) {
     uint256 ethPrice = getOraclePrice(ETHPriceOracle);
     fee = (TCAPPrice().mul(_amount).mul(burnFee)).div(10000).div(ethPrice);
   }

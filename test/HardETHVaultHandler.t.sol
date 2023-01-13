@@ -12,7 +12,7 @@ import "../contracts/mocks/WETH.sol";
 contract ETHVaultHandlerTest is Test {
   // events
   event NewMinimumTCAP(address indexed _owner, uint256 _minimumTCAP);
-
+  event NewMintFee(address indexed _owner, uint256 _mintFee);
   event NewBurnFee(address indexed _owner, uint256 _burnFee);
 
   // Setup
@@ -34,6 +34,7 @@ contract ETHVaultHandlerTest is Test {
   uint256 divisor = 10000000000;
   uint256 ratio = 110;
   uint256 burnFee = 50;
+  uint256 mintFee = 50;
   uint256 liquidationPenalty = 5;
   address treasury = address(0x3);
 
@@ -43,6 +44,7 @@ contract ETHVaultHandlerTest is Test {
       divisor,
       ratio,
       burnFee,
+      mintFee,
       liquidationPenalty,
       address(tcapOracle),
       tcap,
@@ -61,6 +63,7 @@ contract ETHVaultHandlerTest is Test {
     assertEq(divisor, ethVault.divisor());
     assertEq(ratio, ethVault.ratio());
     assertEq(burnFee, ethVault.burnFee());
+    assertEq(burnFee, ethVault.mintFee());
     assertEq(liquidationPenalty, ethVault.liquidationPenalty());
     assertEq(address(tcapOracle), address(ethVault.tcapOracle()));
     assertEq(address(tcap), address(ethVault.TCAPToken()));
@@ -75,9 +78,7 @@ contract ETHVaultHandlerTest is Test {
     public
   {
     if (_burnFee > 1000) {
-      vm.expectRevert(
-        "VaultHandler::constructor: burn fee higher than MAX_FEE"
-      );
+      vm.expectRevert("VaultHandler::constructor: fee higher than MAX_FEE");
     }
 
     ETHVaultHandler vault = new ETHVaultHandler(
@@ -85,6 +86,7 @@ contract ETHVaultHandlerTest is Test {
       divisor,
       ratio,
       _burnFee,
+      mintFee,
       liquidationPenalty,
       address(tcapOracle),
       tcap,
@@ -98,6 +100,29 @@ contract ETHVaultHandlerTest is Test {
     if (!(_burnFee > 1000)) {
       assertEq(_burnFee, vault.burnFee());
     }
+  }
+
+  function testConstructor_ShouldRevert_WhenMintFeeIsHigh(uint256 _mintFee)
+    public
+  {
+    vm.assume(_mintFee > 1000);
+
+    vm.expectRevert("VaultHandler::constructor: fee higher than MAX_FEE");
+    new ETHVaultHandler(
+      orchestrator,
+      divisor,
+      ratio,
+      burnFee,
+      _mintFee,
+      liquidationPenalty,
+      address(tcapOracle),
+      tcap,
+      address(weth),
+      address(ethOracle),
+      address(ethOracle),
+      treasury,
+      0
+    );
   }
 
   function testConstructor_ShouldRevert_WhenLiquidationPenaltyIsHigh(
@@ -119,6 +144,7 @@ contract ETHVaultHandlerTest is Test {
       divisor,
       _ratio,
       burnFee,
+      mintFee,
       _liquidationPenalty,
       address(tcapOracle),
       tcap,
@@ -176,12 +202,13 @@ contract ETHVaultHandlerTest is Test {
     assertEq(ethVault.minimumTCAP(), _minimumTCAP);
   }
 
-  function testMint_ShouldCreateTCAP() public {
+  function testMint_ShouldCreateTCAP_WhenFeeIsPaid() public {
+    uint256 fee = ethVault.getMintFee(1 ether);
     vm.startPrank(user);
     vm.deal(user, 100 ether);
     ethVault.createVault();
     ethVault.addCollateralETH{value: 10 ether}();
-    ethVault.mint(1 ether);
+    ethVault.mint{value: fee}(1 ether);
 
     (uint256 id, uint256 collateral, uint256 debt, address owner) = ethVault
       .vaults(1);
@@ -191,7 +218,25 @@ contract ETHVaultHandlerTest is Test {
     assertEq(owner, user);
   }
 
-  function testMint_ShouldMint_WhenEnoughTCAP() public {
+  //todo: should give back vuelto
+
+  function testMint_ShouldFail_WhenFeeIsNotPaid() public {
+    vm.startPrank(user);
+    vm.deal(user, 100 ether);
+    ethVault.createVault();
+    ethVault.addCollateralETH{value: 10 ether}();
+    vm.expectRevert("VaultHandler::mint: mint fee less than required");
+    ethVault.mint(1 ether);
+
+    (uint256 id, uint256 collateral, uint256 debt, address owner) = ethVault
+      .vaults(1);
+    assertEq(id, 1);
+    assertEq(collateral, 10 ether);
+    assertEq(debt, 0 ether);
+    assertEq(owner, user);
+  }
+
+  function testMint_ShouldMint_WhenEnoughCAP() public {
     // setup
     orchestrator.executeTransaction(
       address(ethVault),
@@ -199,6 +244,7 @@ contract ETHVaultHandlerTest is Test {
       "setMinimumTCAP(uint256)",
       abi.encode(20 ether)
     );
+    uint256 fee = ethVault.getMintFee(20 ether);
     vm.startPrank(user);
     vm.deal(user, 100 ether);
     ethVault.createVault();
@@ -206,10 +252,10 @@ contract ETHVaultHandlerTest is Test {
 
     // execution
     vm.expectRevert("VaultHandler::mint: mint amount less than required");
-    ethVault.mint(1 ether);
+    ethVault.mint{value: fee}(1 ether);
 
-    ethVault.mint(20 ether);
-    ethVault.mint(1 ether);
+    ethVault.mint{value: fee}(20 ether);
+    ethVault.mint{value: fee}(1 ether);
 
     //asserts
     (, , uint256 debt, ) = ethVault.vaults(1);
@@ -227,8 +273,8 @@ contract ETHVaultHandlerTest is Test {
     // execution
     vm.startPrank(user);
     vm.expectRevert("VaultHandler::mint: mint amount less than required");
-    ethVault.mint(1 ether);
-    ethVault.mint(9 ether);
+    ethVault.mint{value: fee}(1 ether);
+    ethVault.mint{value: fee}(9 ether);
 
     // asserts
     (, , debt, ) = ethVault.vaults(1);
@@ -251,14 +297,15 @@ contract ETHVaultHandlerTest is Test {
     );
     vm.startPrank(user);
     uint256 requiredCollateral = ethVault.requiredCollateral(_tcapAmount);
-    uint256 fee = ethVault.getFee(_tcapAmount);
-    vm.deal(user, requiredCollateral + t + fee);
+    uint256 mfee = ethVault.getBurnFee(_tcapAmount);
+    uint256 bfee = ethVault.getBurnFee(_tcapAmount);
+    vm.deal(user, requiredCollateral + t + mfee + bfee);
     ethVault.createVault();
     ethVault.addCollateralETH{value: requiredCollateral + t}();
-    ethVault.mint(_tcapAmount);
+    ethVault.mint{value: mfee}(_tcapAmount);
 
     // execution
-    ethVault.burn{value: fee}(_tcapAmount);
+    ethVault.burn{value: bfee}(_tcapAmount);
 
     // assert
     (uint256 id, uint256 collateral, uint256 debt, address owner) = ethVault
@@ -272,12 +319,8 @@ contract ETHVaultHandlerTest is Test {
   function testBurnTCAP_ShouldRevert_WhenFeeIsNotPaid(uint96 _tcapAmount)
     public
   {
-    // checks
-    if (_tcapAmount < 1 ether) {
-      return;
-    }
-
     // setUp
+    vm.assume(_tcapAmount > 1 ether);
     uint256 t = 1 wei;
     orchestrator.executeTransaction(
       address(ethVault),
@@ -285,12 +328,13 @@ contract ETHVaultHandlerTest is Test {
       "setMinimumTCAP(uint256)",
       abi.encode(1 ether)
     );
+    uint256 mfee = ethVault.getMintFee(_tcapAmount);
     vm.startPrank(user);
     uint256 requiredCollateral = ethVault.requiredCollateral(_tcapAmount);
-    vm.deal(user, requiredCollateral + t);
+    vm.deal(user, requiredCollateral + t + mfee);
     ethVault.createVault();
     ethVault.addCollateralETH{value: requiredCollateral + t}();
-    ethVault.mint(_tcapAmount);
+    ethVault.mint{value: mfee}(_tcapAmount);
 
     // execution
     vm.expectRevert("VaultHandler::burn: burn fee less than required");
@@ -308,8 +352,8 @@ contract ETHVaultHandlerTest is Test {
   function testLiquidateVault_ShouldLiquidateVault_WhenRatioAbove100(
     uint96 _priceIncrease
   ) public {
-    if (_priceIncrease == 0) return;
     // setUp
+    vm.assume(_priceIncrease != 0);
     uint96 _tcapAmount = 1 ether;
     uint256 t = 1 wei;
     orchestrator.executeTransaction(
@@ -318,20 +362,21 @@ contract ETHVaultHandlerTest is Test {
       "setMinimumTCAP(uint256)",
       abi.encode(1 ether)
     );
+    uint256 mfee = ethVault.getMintFee(_tcapAmount);
     vm.startPrank(user);
     uint256 requiredCollateral = ethVault.requiredCollateral(_tcapAmount);
-    vm.deal(user, requiredCollateral + t);
+    vm.deal(user, requiredCollateral + t + mfee);
     ethVault.createVault();
     ethVault.addCollateralETH{value: requiredCollateral + t}();
-    ethVault.mint(_tcapAmount);
+    ethVault.mint{value: mfee}(_tcapAmount);
     (, uint256 collateralOld, uint256 debtOld, ) = ethVault.vaults(1);
 
     vm.stopPrank();
     vm.startPrank(user2);
-    vm.deal(user2, requiredCollateral + t);
+    vm.deal(user2, requiredCollateral + t + mfee);
     ethVault.createVault();
     ethVault.addCollateralETH{value: requiredCollateral + t}();
-    ethVault.mint(_tcapAmount);
+    ethVault.mint{value: mfee}(_tcapAmount);
 
     // execution
     // change price of TCAP
@@ -348,7 +393,7 @@ contract ETHVaultHandlerTest is Test {
 
     uint256 requiredLiquidation = ethVault.requiredLiquidationTCAP(1);
     reward = ethVault.liquidationReward(1);
-    uint256 fee = ethVault.getFee(_tcapAmount);
+    uint256 fee = ethVault.getBurnFee(_tcapAmount);
     vm.deal(user2, fee);
     ethVault.liquidateVault{value: fee}(1, requiredLiquidation);
 
@@ -364,8 +409,8 @@ contract ETHVaultHandlerTest is Test {
   function testLiquidateVault_ShouldLiquidateVault_WhenRatioBelow100(
     uint96 _priceIncrease
   ) public {
-    if (_priceIncrease == 0) return;
     // setUp
+    vm.assume(_priceIncrease != 0);
     uint96 _tcapAmount = 1 ether;
     uint256 t = 1 wei;
     orchestrator.executeTransaction(
@@ -374,20 +419,21 @@ contract ETHVaultHandlerTest is Test {
       "setMinimumTCAP(uint256)",
       abi.encode(1 ether)
     );
+    uint256 mfee = ethVault.getMintFee(_tcapAmount);
     vm.startPrank(user);
     uint256 requiredCollateral = ethVault.requiredCollateral(_tcapAmount);
-    vm.deal(user, requiredCollateral + t);
+    vm.deal(user, requiredCollateral + t + mfee);
     ethVault.createVault();
     ethVault.addCollateralETH{value: requiredCollateral + t}();
-    ethVault.mint(_tcapAmount);
+    ethVault.mint{value: mfee}(_tcapAmount);
     (, uint256 collateralOld, uint256 debtOld, ) = ethVault.vaults(1);
 
     vm.stopPrank();
     vm.startPrank(user2);
-    vm.deal(user2, requiredCollateral + t);
+    vm.deal(user2, requiredCollateral + t + mfee);
     ethVault.createVault();
     ethVault.addCollateralETH{value: requiredCollateral + t}();
-    ethVault.mint(_tcapAmount);
+    ethVault.mint{value: mfee}(_tcapAmount);
 
     // execution
     // change price of TCAP
@@ -399,7 +445,7 @@ contract ETHVaultHandlerTest is Test {
 
     uint256 requiredLiquidation = ethVault.requiredLiquidationTCAP(1);
     reward = ethVault.liquidationReward(1);
-    uint256 fee = ethVault.getFee(_tcapAmount);
+    uint256 fee = ethVault.getBurnFee(_tcapAmount);
     vm.deal(user2, fee);
     ethVault.liquidateVault{value: fee}(1, requiredLiquidation);
 
@@ -428,11 +474,9 @@ contract ETHVaultHandlerTest is Test {
     public
   {
     //setUp
-    if (_newFee <= 1000) {
-      return;
-    }
+    vm.assume(_newFee > 1000);
     uint256 oldFee = ethVault.burnFee();
-    vm.expectRevert("VaultHandler::setBurnFee: burn fee higher than MAX_FEE");
+    vm.expectRevert("VaultHandler::setBurnFee: fee higher than MAX_FEE");
 
     //execution
     orchestrator.setBurnFee(ethVault, _newFee);
@@ -458,7 +502,71 @@ contract ETHVaultHandlerTest is Test {
     assertEq(ethVault.burnFee(), _newFee);
   }
 
-  function testGetFee_ShouldCalculateCorrectValue(
+  function testSetMintFee_ShouldRevert_WhenNotCalledByOwner() public {
+    //setUp
+    uint256 oldFee = ethVault.mintFee();
+    vm.expectRevert("Ownable: caller is not the owner");
+
+    //execution
+    ethVault.setMintFee(2);
+
+    //assert
+    assertEq(oldFee, ethVault.mintFee());
+  }
+
+  function testSetMintFee_ShouldRevert_WhenValueAboveMax(uint256 _newFee)
+    public
+  {
+    //setUp
+    vm.assume(_newFee > 1000);
+    uint256 oldFee = ethVault.mintFee();
+    vm.expectRevert("VaultHandler::setMintFee: fee higher than MAX_FEE");
+
+    //execution
+    orchestrator.setMintFee(ethVault, _newFee);
+
+    //assert
+    assertEq(oldFee, ethVault.mintFee());
+  }
+
+  function testSetMintFee_ShouldAllowDecimals_WhenValueBelowMax(uint256 _newFee)
+    public
+  {
+    //setUp
+    if (_newFee > 1000) {
+      return;
+    }
+
+    //execution
+    vm.expectEmit(true, true, true, true);
+    emit NewMintFee(address(orchestrator), _newFee);
+    orchestrator.setMintFee(ethVault, _newFee);
+
+    //assert
+    assertEq(ethVault.mintFee(), _newFee);
+  }
+
+  function testGetMintFee_ShouldCalculateCorrectValue(
+    uint8 _mintFee,
+    uint96 _amount
+  ) public {
+    //setUp
+    if (_mintFee > 1000) {
+      return;
+    }
+    orchestrator.setMintFee(ethVault, _mintFee);
+    uint256 calculatedFee = (ethVault.TCAPPrice() * (_amount) * (_mintFee)) /
+      (10000) /
+      (ethVault.getOraclePrice(ethOracle));
+
+    //execution
+    uint256 currentFee = ethVault.getMintFee(_amount);
+
+    //assert
+    assertEq(calculatedFee, currentFee);
+  }
+
+  function testGetBurnFee_ShouldCalculateCorrectValue(
     uint8 _burnFee,
     uint96 _amount
   ) public {
@@ -472,13 +580,39 @@ contract ETHVaultHandlerTest is Test {
       (ethVault.getOraclePrice(ethOracle));
 
     //execution
-    uint256 currentFee = ethVault.getFee(_amount);
+    uint256 currentFee = ethVault.getBurnFee(_amount);
 
     //assert
     assertEq(calculatedFee, currentFee);
   }
 
-  function testGetFee_ShouldCalculateCorrectValue_withNewDecimalFormat(
+  function testGetMintFee_ShouldCalculateCorrectValue_withNewDecimalFormat(
+    uint8 _mintFeePercentage,
+    uint96 _amount
+  ) public {
+    // We always think about fee as a percentage first.
+    // We multiply by 100 later so that the code works
+    if ((_mintFeePercentage * 100) > 1000) {
+      return;
+    }
+    orchestrator.setMintFee(ethVault, _mintFeePercentage * 100);
+    // By dividing by 100 in the formula below, we can ensure that fee calculated
+    // is the same as the previous version
+    uint256 calculatedFee = (ethVault.TCAPPrice() *
+      (_amount) *
+      (_mintFeePercentage)) /
+      (100) /
+      (ethVault.getOraclePrice(ethOracle));
+
+    uint256 currentFee = ethVault.getBurnFee(_amount);
+    emit log_uint(currentFee);
+    emit log_uint(calculatedFee);
+    assertEq(calculatedFee, currentFee);
+
+    // We assert that the old fee calculation is the same as the new one.
+  }
+
+  function testGetBurnFee_ShouldCalculateCorrectValue_withNewDecimalFormat(
     uint8 _burnFeePercentage,
     uint96 _amount
   ) public {
@@ -496,7 +630,10 @@ contract ETHVaultHandlerTest is Test {
       (100) /
       (ethVault.getOraclePrice(ethOracle));
 
-    uint256 currentFee = ethVault.getFee(_amount);
+    uint256 currentFee = ethVault.getBurnFee(_amount);
+    emit log_uint(currentFee);
+    emit log_uint(calculatedFee);
+    assertEq(calculatedFee, currentFee);
 
     // We assert that the old fee calculation is the same as the new one.
   }

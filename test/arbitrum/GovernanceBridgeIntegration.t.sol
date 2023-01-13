@@ -57,6 +57,7 @@ contract GovernanceBridgeIntegration is Test {
   uint256 divisor = 10000000000;
   uint256 ratio = 110;
   uint256 burnFee = 50;
+  uint256 mintFee =50;
   uint256 liquidationPenalty = 5;
   address treasury = address(0x3);
 
@@ -98,6 +99,7 @@ contract GovernanceBridgeIntegration is Test {
       divisor,
       ratio,
       burnFee,
+      mintFee,
       liquidationPenalty,
       address(tcapOracle),
       tcap,
