@@ -76,6 +76,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 			"10000000000",
 			"150",
 			"1",
+            "50",
 			"10",
 			tCAPOracle.address,
 			tCAP.address,
@@ -97,6 +98,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 			"10000000000",
 			"150",
 			"1",
+            "50",
 			"10",
 			tCAPOracle.address,
 			tCAP.address,
@@ -195,12 +197,13 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		// TCAP amount to be minted by both vaults
 		// A weird number is chosen in order to check the precision of the math.
 		let tcapAmount = BigNumber.from("2418604651162790553");
+        const mintFee = await wBTCVaultHandler.getMintFee(tcapAmount);
 
 		await wBTCVaultHandler.createVault();
 		await wBTC.approve(wBTCVaultHandler.address, btcCollateralAmountDeposit);
 		await wBTCVaultHandler.addCollateral(btcCollateralAmountDeposit);
 		// Mint a small amount of TCAP
-		await wBTCVaultHandler.mint(tcapAmount);
+		await wBTCVaultHandler.mint(tcapAmount, {value: mintFee});
 		const btcVaultRatio = await wBTCVaultHandler.getVaultRatio(1);
 		expect(btcVaultRatio).to.be.above(150);
 
@@ -208,7 +211,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		await DAIVaultHandler.createVault();
 		await DAIVaultHandler.addCollateral(DAICollateralAmountDeposit);
 		// Mint same amount of Tcap minted in Btc Vault
-		await DAIVaultHandler.mint(tcapAmount);
+		await DAIVaultHandler.mint(tcapAmount, {value: mintFee});
 		const daiVaultRatio = await DAIVaultHandler.getVaultRatio(1);
 		expect(daiVaultRatio).to.be.above(150);
 
@@ -237,12 +240,12 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		// A weird number is chosen in order to check the precision of the math.
 		// approx 2.4 TCAP
 		let tcapAmount = BigNumber.from("2418604651162790553");
-
+        const mintFee = await wBTCVaultHandler.getMintFee(tcapAmount);
 		await wBTCVaultHandler.createVault();
 		await wBTC.approve(wBTCVaultHandler.address, btcCollateralAmountDeposit);
 		await wBTCVaultHandler.addCollateral(btcCollateralAmountDeposit);
 		// Mint a small amount of TCAP
-		await wBTCVaultHandler.mint(tcapAmount);
+		await wBTCVaultHandler.mint(tcapAmount, {value: mintFee});
 		const oldBTCVaultRatio = await wBTCVaultHandler.getVaultRatio(1);
 		expect(oldBTCVaultRatio).to.be.above(150);
 
@@ -250,16 +253,16 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		await DAIVaultHandler.createVault();
 		await DAIVaultHandler.addCollateral(DAICollateralAmountDeposit);
 		// Mint same amount of Tcap minted in Btc Vault
-		await DAIVaultHandler.mint(tcapAmount);
+		await DAIVaultHandler.mint(tcapAmount,{value:mintFee});
 		const oldDAIVaultRatio = await DAIVaultHandler.getVaultRatio(1);
 		expect(oldDAIVaultRatio).to.be.above(150);
 		expect(oldBTCVaultRatio.toNumber()).to.be.closeTo(oldDAIVaultRatio.toNumber(), 1);
 
 		// approx 0.4 TCAP
 		const tcapToBurn = BigNumber.from("400000000000000000");
-		const burnFee = await wBTCVaultHandler.getFee(tcapToBurn);
+		const burnFee = await wBTCVaultHandler.getBurnFee(tcapToBurn);
 		// Make sure burn fee is same for both vaults
-		expect(burnFee).to.be.eq(await wBTCVaultHandler.getFee(tcapToBurn));
+		expect(burnFee).to.be.eq(await wBTCVaultHandler.getBurnFee(tcapToBurn));
 
 		await wBTCVaultHandler.burn(tcapToBurn, {value: burnFee});
 		const newBTCVaultRatio = await wBTCVaultHandler.getVaultRatio(1);
@@ -289,12 +292,12 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		// A weird number is chosen in order to check the precision of the math.
 		// approx 2.4 TCAP
 		let tcapAmount = BigNumber.from("2418604651162790553");
-
+        const mintFee = await wBTCVaultHandler.getMintFee(tcapAmount);
 		await wBTCVaultHandler.createVault();
 		await wBTC.approve(wBTCVaultHandler.address, btcCollateralAmountDeposit);
 		await wBTCVaultHandler.addCollateral(btcCollateralAmountDeposit);
 		// Mint a small amount of TCAP
-		await wBTCVaultHandler.mint(tcapAmount);
+		await wBTCVaultHandler.mint(tcapAmount,{value:mintFee});
 		const oldBTCVaultRatio = await wBTCVaultHandler.getVaultRatio(1);
 		expect(oldBTCVaultRatio).to.be.above(150);
 
@@ -302,7 +305,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		await DAIVaultHandler.createVault();
 		await DAIVaultHandler.addCollateral(DAICollateralAmountDeposit);
 		// Mint same amount of Tcap minted in Btc Vault
-		await DAIVaultHandler.mint(tcapAmount);
+		await DAIVaultHandler.mint(tcapAmount,{value:mintFee});
 		const oldDAIVaultRatio = await DAIVaultHandler.getVaultRatio(1);
 		expect(oldDAIVaultRatio).to.be.above(150);
 		expect(oldBTCVaultRatio.toNumber()).to.be.closeTo(oldDAIVaultRatio.toNumber(), 1);
@@ -352,12 +355,12 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		// A weird number is chosen in order to check the precision of the math.
 		// approx 2.4 TCAP
 		let tcapAmount = BigNumber.from("2418604651162790553");
-
+        const mintFee = await wBTCVaultHandler.getMintFee(tcapAmount);
 		await wBTCVaultHandler.createVault();
 		await wBTC.approve(wBTCVaultHandler.address, btcCollateralAmountDeposit);
 		await wBTCVaultHandler.addCollateral(btcCollateralAmountDeposit);
 		// Mint a small amount of TCAP
-		await wBTCVaultHandler.mint(tcapAmount);
+		await wBTCVaultHandler.mint(tcapAmount,{value:mintFee});
 		const oldBTCVaultRatio = await wBTCVaultHandler.getVaultRatio(1);
 		expect(oldBTCVaultRatio).to.be.above(150);
 
@@ -365,7 +368,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		await DAIVaultHandler.createVault();
 		await DAIVaultHandler.addCollateral(DAICollateralAmountDeposit);
 		// Mint same amount of Tcap minted in Btc Vault
-		await DAIVaultHandler.mint(tcapAmount);
+		await DAIVaultHandler.mint(tcapAmount,{value:mintFee});
 		const oldDAIVaultRatio = await DAIVaultHandler.getVaultRatio(1);
 		expect(oldDAIVaultRatio).to.be.above(150);
 		expect(oldBTCVaultRatio.toNumber()).to.be.closeTo(oldDAIVaultRatio.toNumber(), 1);
@@ -416,12 +419,12 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		// A weird number is chosen in order to check the precision of the math.
 		// approx 2.4 TCAP
 		let tcapAmount = BigNumber.from("2418604651162790553");
-
+        const mintFee = await wBTCVaultHandler.getMintFee(tcapAmount);
 		await wBTCVaultHandler.createVault();
 		await wBTC.approve(wBTCVaultHandler.address, btcCollateralAmountDeposit);
 		await wBTCVaultHandler.addCollateral(btcCollateralAmountDeposit);
 		// Mint a small amount of TCAP
-		await wBTCVaultHandler.mint(tcapAmount);
+		await wBTCVaultHandler.mint(tcapAmount,{value:mintFee});
 		const oldBTCVaultRatio = await wBTCVaultHandler.getVaultRatio(1);
 		expect(oldBTCVaultRatio).to.be.above(150);
 
@@ -429,7 +432,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		await DAIVaultHandler.createVault();
 		await DAIVaultHandler.addCollateral(DAICollateralAmountDeposit);
 		// Mint same amount of Tcap minted in Btc Vault
-		await DAIVaultHandler.mint(tcapAmount);
+		await DAIVaultHandler.mint(tcapAmount,{value:mintFee});
 		const oldDAIVaultRatio = await DAIVaultHandler.getVaultRatio(1);
 		expect(oldDAIVaultRatio).to.be.above(150);
 		expect(oldBTCVaultRatio.toNumber()).to.be.closeTo(oldDAIVaultRatio.toNumber(), 1);
@@ -487,12 +490,12 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		// A weird number is chosen in order to check the precision of the math.
 		// approx 2.4 TCAP
 		let tcapAmount = BigNumber.from("2418604651162790553");
-
+        const mintFee = await wBTCVaultHandler.getMintFee(tcapAmount);
 		await wBTCVaultHandler.createVault();
 		await wBTC.approve(wBTCVaultHandler.address, btcCollateralAmountDeposit);
 		await wBTCVaultHandler.addCollateral(btcCollateralAmountDeposit);
 		// Mint a small amount of TCAP
-		await wBTCVaultHandler.mint(tcapAmount);
+		await wBTCVaultHandler.mint(tcapAmount,{value:mintFee});
 		const oldBTCVaultRatio = await wBTCVaultHandler.getVaultRatio(1);
 		expect(oldBTCVaultRatio).to.be.above(150);
 
@@ -500,7 +503,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		await DAIVaultHandler.createVault();
 		await DAIVaultHandler.addCollateral(DAICollateralAmountDeposit);
 		// Mint same amount of Tcap minted in Btc Vault
-		await DAIVaultHandler.mint(tcapAmount);
+		await DAIVaultHandler.mint(tcapAmount,{value:mintFee});
 		const oldDAIVaultRatio = await DAIVaultHandler.getVaultRatio(1);
 		expect(oldDAIVaultRatio).to.be.above(150);
 		expect(oldBTCVaultRatio.toNumber()).to.be.closeTo(oldDAIVaultRatio.toNumber(), 1);
@@ -562,12 +565,12 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		// A weird number is chosen in order to check the precision of the math.
 		// approx 2.4 TCAP
 		let tcapAmount = BigNumber.from("2418604651162790553");
-
+        const mintFee = await wBTCVaultHandler.getMintFee(tcapAmount);
 		await wBTCVaultHandler.createVault();
 		await wBTC.approve(wBTCVaultHandler.address, btcCollateralAmountDeposit);
 		await wBTCVaultHandler.addCollateral(btcCollateralAmountDeposit);
 		// Mint a small amount of TCAP
-		await wBTCVaultHandler.mint(tcapAmount);
+		await wBTCVaultHandler.mint(tcapAmount,{value:mintFee});
 		const oldBTCVaultRatio = await wBTCVaultHandler.getVaultRatio(1);
 		expect(oldBTCVaultRatio).to.be.above(150);
 
@@ -575,7 +578,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		await DAIVaultHandler.createVault();
 		await DAIVaultHandler.addCollateral(DAICollateralAmountDeposit);
 		// Mint same amount of Tcap minted in Btc Vault
-		await DAIVaultHandler.mint(tcapAmount);
+		await DAIVaultHandler.mint(tcapAmount,{value:mintFee});
 		const oldDAIVaultRatio = await DAIVaultHandler.getVaultRatio(1);
 		expect(oldDAIVaultRatio).to.be.above(150);
 		expect(oldBTCVaultRatio.toNumber()).to.be.closeTo(oldDAIVaultRatio.toNumber(), 1);
@@ -615,8 +618,8 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 			0.01
 		);
 
-		const BTCBurnFee = await wBTCVaultHandler.getFee(BTCTcapLiquidationAmount);
-		const DAIBurnFee = await DAIVaultHandler.getFee(DAITcapLiquidationAmount);
+		const BTCBurnFee = await wBTCVaultHandler.getBurnFee(BTCTcapLiquidationAmount);
+		const DAIBurnFee = await DAIVaultHandler.getBurnFee(DAITcapLiquidationAmount);
 		await wBTCVaultHandler.liquidateVault(1, BTCTcapLiquidationAmount, {value: BTCBurnFee});
 		await DAIVaultHandler.liquidateVault(1, DAITcapLiquidationAmount, {value: DAIBurnFee});
 		expect(await wBTCVaultHandler.getVaultRatio(1)).to.be.eq(
@@ -634,12 +637,12 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		);
 		// TCAP amount to be minted
 		let tcapAmount = BigNumber.from("2418604651162790553");
-
+        const mintFee = await wBTCVaultHandler.getMintFee(tcapAmount);
 		await wBTCVaultHandler.createVault();
 		await wBTC.approve(wBTCVaultHandler.address, btcCollateralAmountDeposit);
 		await wBTCVaultHandler.addCollateral(btcCollateralAmountDeposit);
 		// Mint a small amount of TCAP
-		await wBTCVaultHandler.mint(tcapAmount);
+		await wBTCVaultHandler.mint(tcapAmount,{value:mintFee});
 		const oldBTCVaultRatio = await wBTCVaultHandler.getVaultRatio(1);
 		expect(oldBTCVaultRatio).to.be.above(150);
 
@@ -660,7 +663,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 
 		const BTCTcapLiquidationAmount = await wBTCVaultHandler.requiredLiquidationTCAP(1);
 
-		const BTCBurnFee = await wBTCVaultHandler.getFee(BTCTcapLiquidationAmount);
+		const BTCBurnFee = await wBTCVaultHandler.getBurnFee(BTCTcapLiquidationAmount);
 		await wBTCVaultHandler.liquidateVault(1, BTCTcapLiquidationAmount, {value: BTCBurnFee});
 
 		const BTCVaultRatioAfterLiquidation = await wBTCVaultHandler.getVaultRatio(1);
@@ -680,12 +683,12 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		);
 		// TCAP amount to be minted
 		let tcapAmount = BigNumber.from("2418604651162790553");
-
+        const mintFee = await wBTCVaultHandler.getMintFee(tcapAmount);
 		await wBTCVaultHandler.createVault();
 		await wBTC.approve(wBTCVaultHandler.address, btcCollateralAmountDeposit);
 		await wBTCVaultHandler.addCollateral(btcCollateralAmountDeposit);
 		// Mint a small amount of TCAP
-		await wBTCVaultHandler.mint(tcapAmount);
+		await wBTCVaultHandler.mint(tcapAmount,{value:mintFee});
 		const oldBTCVaultRatio = await wBTCVaultHandler.getVaultRatio(1);
 		expect(oldBTCVaultRatio).to.be.above(150);
 
@@ -705,7 +708,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
 		expect(newBTCVaultRatio).to.be.below(100);
 
 		const BTCTcapBurnAmount = BigNumber.from("1000000000000000000"); // 1 TCAP
-		const BTCBurnFee = await wBTCVaultHandler.getFee(BTCTcapBurnAmount);
+		const BTCBurnFee = await wBTCVaultHandler.getBurnFee(BTCTcapBurnAmount);
 		const vaultRatioBeforeBurning = await wBTCVaultHandler.getVaultRatio(1);
 		await wBTCVaultHandler.burn(BTCTcapBurnAmount, {value: BTCBurnFee});
 		const vaultRatioAfterBurning = await wBTCVaultHandler.getVaultRatio(1);
