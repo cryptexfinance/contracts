@@ -24,7 +24,8 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 
         let divisor = 10000000000;
         let ratio = 200;
-        let burnFee = 1;
+        let burnFee = 15;
+        let mintFee = 15;
         let liquidationPenalty = 10;
 
         let jpegzOracle = await deployments.get("JPEGZOracle");
@@ -39,6 +40,7 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
             divisor,
             ratio,
             burnFee,
+            mintFee,
             liquidationPenalty,
             jpegzOracle.address,
             jpegz.address,

@@ -2,7 +2,7 @@
 pragma solidity 0.7.5;
 
 contract AggregatorInterfaceJPEGZ {
-  int256 value = 37129732288636297500;
+  int256 value = 280462775339973792;
 
   function latestAnswer() public view virtual returns (int256) {
     return value;
@@ -21,11 +21,11 @@ contract AggregatorInterfaceJPEGZ {
     )
   {
     return (
-		36893488147419105170,
+		280462775339973792,
       value,
 		1636560798,
 		1636560798,
-		36893488147419105170
+		280462775339973792
     );
   }
 

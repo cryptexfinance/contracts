@@ -2,7 +2,7 @@
 pragma solidity 0.7.5;
 
 contract AggregatorInterfaceTCAP {
-  int256 value = 37129732288636297500;
+  int256 value = 99927976670000000000;
 
   function latestAnswer() public view virtual returns (int256) {
     return value;
@@ -21,11 +21,11 @@ contract AggregatorInterfaceTCAP {
     )
   {
     return (
-		36893488147419105170,
+		99927976670000000000,
       value,
 		1636560798,
 		1636560798,
-		36893488147419105170
+		99927976670000000000
     );
   }
 
