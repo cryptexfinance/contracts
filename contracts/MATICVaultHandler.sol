@@ -21,6 +21,7 @@ contract MATICVaultHandler is IVaultHandler {
    * @param _divisor uint256
    * @param _ratio uint256
    * @param _burnFee uint256
+   * @param _mintFee uint256
    * @param _liquidationPenalty uint256
    * @param _tcapOracle address
    * @param _tcapAddress address
@@ -34,6 +35,7 @@ contract MATICVaultHandler is IVaultHandler {
     uint256 _divisor,
     uint256 _ratio,
     uint256 _burnFee,
+    uint256 _mintFee,
     uint256 _liquidationPenalty,
     address _tcapOracle,
     TCAP _tcapAddress,
@@ -48,6 +50,7 @@ contract MATICVaultHandler is IVaultHandler {
       _divisor,
       _ratio,
       _burnFee,
+      _mintFee,
       _liquidationPenalty,
       _tcapOracle,
       _tcapAddress,

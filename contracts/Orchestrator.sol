@@ -16,6 +16,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract Orchestrator is Ownable {
   /// @dev Enum which saves the available functions to emergency call.
   enum Functions {
+    MINTFEE,
     BURNFEE,
     LIQUIDATION,
     PAUSE
@@ -129,6 +130,39 @@ contract Orchestrator is Ownable {
     validVault(_vault)
   {
     _vault.setRatio(_ratio);
+  }
+
+  /**
+   * @notice Sets the mint fee of a vault
+   * @param _vault address
+   * @param _mintFee value
+   * @dev Only owner can call it
+   */
+  function setMintFee(IVaultHandler _vault, uint256 _mintFee)
+    external
+    onlyOwner
+    validVault(_vault)
+  {
+    _vault.setMintFee(_mintFee);
+  }
+
+  /**
+   * @notice Sets the mint fee to 0, only used on a black swan event
+   * @param _vault address
+   * @dev Only guardian can call it
+   * @dev Validates if _vault is valid
+   */
+  function setEmergencyMintFee(IVaultHandler _vault)
+    external
+    onlyGuardian
+    validVault(_vault)
+  {
+    require(
+      emergencyCalled[_vault][Functions.MINTFEE] != true,
+      "Orchestrator::setEmergencyMintFee: emergency call already used"
+    );
+    emergencyCalled[_vault][Functions.MINTFEE] = true;
+    _vault.setMintFee(0);
   }
 
   /**
