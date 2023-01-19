@@ -47,7 +47,7 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
             WETHContract.address,
             priceFeedETH.address,
             priceFeedETH.address,
-            l2MessageExecutor.address,
+            deployer,
             "20000000000000000000",
           ],
         });
