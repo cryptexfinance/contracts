@@ -15,10 +15,6 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
       "AggregatorInterfaceJPEGZ"
     );
 
-    const ethAggregator = await deployments.getOrNull(
-        "AggregatorInterfaceETH"
-      );
-
     try {
       TCAPOracle = await deployments.get("TCAPOracle");
     } catch (error: any) {
@@ -43,8 +39,8 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
         WETHOracle = await deployments.get("WETHOracle");
       } catch (error: any) {
         log(error.message);
-        // Couldn't find oracle address for arbitrum
-        let oracleAddress = ethAggregator.address;
+        // arbitrum goerli
+        let oracleAddress = "0x62CAe0FA2da220f43a51F86Db2EDb36DcA9A5A08";
         const deployResult = await deployments.deploy("WETHOracle", {
           from: deployer,
           contract: "ChainlinkOracle",
