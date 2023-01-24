@@ -424,7 +424,7 @@ describe("ERC20 Vault", async function () {
         await expect(ercTokenHandler.connect(addr3).liquidateVault(2, 0)).to.be.revertedWith(
             "VaultHandler::liquidateVault: vault is not liquidable"
         );
-        const totalMarketCap = "43129732288636297500";
+        const totalMarketCap = "143129732288636297500";
         await aggregatorTCAPInstance.connect(owner).setLatestAnswer(totalMarketCap);
     });
 
