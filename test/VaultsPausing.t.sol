@@ -503,8 +503,8 @@ contract VaultDisablingTest is Test {
     vm.deal(user2, ( amount) * 2);
     ethVault.createVault();
     ethVault.addCollateralETH{value: amount}();
-    ethVault.mint{value: mfeeHigh}(9 ether);
-    tcap.transfer(user2, 9 ether);
+    ethVault.mint{value: mfeeHigh}(3 ether);
+    tcap.transfer(user2, 3 ether);
     uint256 fee = ethVault.getBurnFee(amount);
     vm.stopPrank();
     vm.expectRevert("VaultHandler:: function disabled");
@@ -515,7 +515,7 @@ contract VaultDisablingTest is Test {
       IVaultHandler.FunctionChoices.LiquidateVault,
       false
     );
-    tcapAggregator.setLatestAnswer(50129732288636297500);
+    tcapAggregator.setLatestAnswer(143129732288636297500);
     fee = ethVault.getBurnFee(9 ether);
 
     //execution
