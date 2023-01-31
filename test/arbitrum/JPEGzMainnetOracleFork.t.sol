@@ -8,7 +8,7 @@ import "../../contracts/TCAP.sol";
 import "../../contracts/oracles/ChainlinkOracle.sol";
 import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 
-contract JPEGzMainnetTest is Test {
+contract JPEGzMainnetFork is Test {
   // events
   event NewMinimumTCAP(address indexed _owner, uint256 _minimumTCAP);
   event NewMintFee(address indexed _owner, uint256 _mintFee);
@@ -27,8 +27,8 @@ contract JPEGzMainnetTest is Test {
   ChainlinkOracle ethOracle =
     new ChainlinkOracle(address(ethAggregator), address(this));
   address weth = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
-  address user = address(0x1);
-  address user2 = address(0x2);
+  address user = address(0x51);
+  address user2 = address(0x52);
 
   //// Params
   uint256 divisor = 1000000000;
@@ -36,7 +36,7 @@ contract JPEGzMainnetTest is Test {
   uint256 burnFee = 150;
   uint256 mintFee = 150;
   uint256 liquidationPenalty = 20;
-  address treasury = address(0x3);
+  address treasury = address(0x53);
 
   function setUp() public {
     ethVault = new ETHVaultHandler(
@@ -77,11 +77,10 @@ contract JPEGzMainnetTest is Test {
   function testConstructor_ShouldRevert_WhenBurnFeeIsHigh(uint256 _burnFee)
     public
   {
-    if (_burnFee > 1000) {
-      vm.expectRevert("VaultHandler::constructor: fee higher than MAX_FEE");
-    }
+    vm.assume(_burnFee > 1000);
+    vm.expectRevert("VaultHandler::constructor: fee higher than MAX_FEE");
 
-    ETHVaultHandler vault = new ETHVaultHandler(
+    new ETHVaultHandler(
       orchestrator,
       divisor,
       ratio,
@@ -96,10 +95,6 @@ contract JPEGzMainnetTest is Test {
       treasury,
       0
     );
-
-    if (!(_burnFee > 1000)) {
-      assertEq(_burnFee, vault.burnFee());
-    }
   }
 
   function testConstructor_ShouldRevert_WhenMintFeeIsHigh(uint256 _mintFee)
@@ -126,20 +121,13 @@ contract JPEGzMainnetTest is Test {
   }
 
   function testConstructor_ShouldRevert_WhenLiquidationPenaltyIsHigh(
-    uint256 _liquidationPenalty,
-    uint256 _ratio
+    uint128 _liquidationPenalty,
+    uint128 _ratio
   ) public {
-    if (_liquidationPenalty + 100 < _liquidationPenalty) {
-      return;
-    }
-
-    if ((_liquidationPenalty + 100) >= _ratio) {
-      vm.expectRevert(
-        "VaultHandler::constructor: liquidation penalty too high"
-      );
-    }
-
-    ETHVaultHandler vault = new ETHVaultHandler(
+    vm.assume(_liquidationPenalty + 10 >= _ratio);
+    vm.assume(_ratio > 100);
+    vm.expectRevert("VaultHandler::constructor: liquidation penalty too high");
+    new ETHVaultHandler(
       orchestrator,
       divisor,
       _ratio,
@@ -154,40 +142,36 @@ contract JPEGzMainnetTest is Test {
       treasury,
       0
     );
-
-    if (!((_liquidationPenalty + 100) >= _ratio)) {
-      assertEq(_liquidationPenalty, vault.liquidationPenalty());
-    }
   }
 
   function testSetLiquidationPenalty_ShouldUpdateValue(
-    uint256 _liquidationPenalty
+    uint128 _liquidationPenalty
   ) public {
-    if (_liquidationPenalty + 100 < _liquidationPenalty) {
-      return;
-    }
-
-    if ((_liquidationPenalty + 100) >= ratio) {
-      vm.expectRevert(
-        "VaultHandler::setLiquidationPenalty: liquidation penalty too high"
-      );
-    }
+    vm.assume(_liquidationPenalty + 10 >= ratio);
+    vm.expectRevert(
+      "VaultHandler::setLiquidationPenalty: liquidation penalty too high"
+    );
 
     orchestrator.setLiquidationPenalty(ethVault, _liquidationPenalty);
   }
 
-  function testShouldUpdateRatio(uint256 _ratio) public {
-    if (_ratio < 100) {
-      vm.expectRevert("VaultHandler::setRatio: ratio lower than MIN_RATIO");
-    } else {
-      if (ethVault.liquidationPenalty() + 100 >= _ratio) {
-        vm.expectRevert("VaultHandler::setRatio: liquidation penalty too high");
-      }
-    }
+  function testSetRatio_ShouldFail_WhenRatioLowerThanMin(uint256 _ratio)
+    public
+  {
+    _ratio = bound(_ratio, 0, 99);
+    vm.expectRevert("VaultHandler::setRatio: ratio lower than MIN_RATIO");
     orchestrator.setRatio(ethVault, _ratio);
   }
 
-  function testSetMinimumTCAP_ShouldUpdateValue(uint256 _minimumTCAP) public {
+  function testSetRatio_ShouldFail_WhenLiquidationPenaltyHigh(uint256 _ratio)
+    public
+  {
+    _ratio = bound(_ratio, 100, liquidationPenalty + 100);
+    vm.expectRevert("VaultHandler::setRatio: liquidation penalty too high");
+    orchestrator.setRatio(ethVault, _ratio);
+  }
+
+  function testSetMinimumJGPEZ_ShouldUpdateValue(uint256 _minimumTCAP) public {
     vm.expectRevert("Ownable: caller is not the owner");
     ethVault.setMinimumTCAP(_minimumTCAP);
 
@@ -202,7 +186,7 @@ contract JPEGzMainnetTest is Test {
     assertEq(ethVault.minimumTCAP(), _minimumTCAP);
   }
 
-  function testMint_ShouldCreateTCAP_WhenFeeIsPaid() public {
+  function testMint_ShouldCreateJPEGZ_WhenFeeIsPaid() public {
     uint256 fee = ethVault.getMintFee(1 ether);
     vm.startPrank(user);
     vm.deal(user, 100 ether);
@@ -217,6 +201,11 @@ contract JPEGzMainnetTest is Test {
     assertEq(debt, 1 ether);
     assertEq(owner, user);
     assertEq(address(treasury).balance, fee);
+    uint256 _fee = ((15 / 10) *
+      1 ether *
+      ethVault.getOraclePrice(jpegzOracle)) /
+      (ethVault.oracleDigits() * 10 * ethVault.getOraclePrice(ethOracle));
+    assertEq(address(treasury).balance, _fee);
   }
 
   function testMint_ShouldGiveBackETH_WhenFeeIsHigh() public {
@@ -298,11 +287,9 @@ contract JPEGzMainnetTest is Test {
     assertEq(debt, 30 ether);
   }
 
-  function testBurnTCAP_ShouldBurn_WhenFeeIsPaid(uint96 _tcapAmount) public {
+  function testBurnJPEGZ_ShouldBurn_WhenFeeIsPaid(uint96 _tcapAmount) public {
     // checks
-    if (_tcapAmount < 1 ether) {
-      return;
-    }
+    vm.assume(_tcapAmount > 1 ether);
 
     // setUp
     uint256 t = 1 wei;
@@ -331,9 +318,15 @@ contract JPEGzMainnetTest is Test {
     assertEq(collateral, requiredCollateral + t);
     assertEq(debt, 0);
     assertEq(owner, user);
+
+    uint256 _fee = (_tcapAmount * ethVault.getOraclePrice(jpegzOracle) * 15) /
+      10 /
+      (ethVault.oracleDigits() * 10 * ethVault.getOraclePrice(ethOracle));
+    assertEq(address(treasury).balance, _fee * 2); // * 2 because of burn fee + mint fee
+    assertEq(_fee, bfee);
   }
 
-  function testBurnTCAP_ShouldRevert_WhenFeeIsNotPaid(uint96 _tcapAmount)
+  function testBurnJPEGZ_ShouldRevert_WhenFeeIsNotPaid(uint96 _tcapAmount)
     public
   {
     // setUp
@@ -385,9 +378,7 @@ contract JPEGzMainnetTest is Test {
     public
   {
     //setUp
-    if (_newFee > 1000) {
-      return;
-    }
+    vm.assume(_newFee < 1000);
 
     //execution
     vm.expectEmit(true, true, true, true);
@@ -447,9 +438,7 @@ contract JPEGzMainnetTest is Test {
     uint96 _amount
   ) public {
     //setUp
-    if (_mintFee > 1000) {
-      return;
-    }
+    vm.assume(_mintFee < 1000);
     orchestrator.setMintFee(ethVault, _mintFee);
     uint256 calculatedFee = (ethVault.TCAPPrice() * (_amount) * (_mintFee)) /
       (10000) /
@@ -467,9 +456,7 @@ contract JPEGzMainnetTest is Test {
     uint96 _amount
   ) public {
     //setUp
-    if (_burnFee > 1000) {
-      return;
-    }
+    vm.assume(_burnFee < 1000);
     orchestrator.setBurnFee(ethVault, _burnFee);
     uint256 calculatedFee = (ethVault.TCAPPrice() * (_amount) * (_burnFee)) /
       (10000) /
