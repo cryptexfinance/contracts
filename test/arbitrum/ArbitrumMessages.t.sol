@@ -25,7 +25,6 @@ contract ArbitrumMessages is Test {
     l2MessageExecutor = new L2MessageExecutor();
 		l2MessageExecutor.initialize(address(l1MessageRelayer));
     greeter = new Greeter("First Message");
-    l1MessageRelayer.setL2MessageExecutorProxy(address(l2MessageExecutor));
     vm.stopPrank();
   }
 
@@ -51,7 +50,13 @@ contract ArbitrumMessages is Test {
     );
     bytes memory _payLoad = abi.encode(address(greeter), _callData);
     vm.startPrank(user);
-    l1MessageRelayer.relayMessage(_payLoad, 21000 * 5, 21000 * 5, 21000 * 5);
+    l1MessageRelayer.relayMessage(
+			address(l2MessageExecutor),
+			abi.encodeWithSignature("executeMessage(bytes)", _payLoad),
+			21000 * 5,
+			21000 * 5,
+			21000 * 5
+		);
     assertEq(greeter.greet(), "Second Message");
   }
 
@@ -64,7 +69,13 @@ contract ArbitrumMessages is Test {
     vm.expectRevert(
       "L1MessageRelayer::onlyTimeLock: Unauthorized message sender"
     );
-    l1MessageRelayer.relayMessage(payLoad, 21000 * 5, 21000 * 5, 21000 * 5);
+    l1MessageRelayer.relayMessage(
+			address(l2MessageExecutor),
+			abi.encodeWithSignature("executeMessage(bytes)", payLoad),
+			21000 * 5,
+			21000 * 5,
+			21000 * 5
+		);
   }
 
   function testRevertOnUpdateExecutor() public {
@@ -114,21 +125,6 @@ contract ArbitrumMessages is Test {
     );
     l2MessageExecutor.executeMessage(payLoad);
   }
-
-	function testRevertsetL2MessageExecutorProxyAlreadySet() public {
-		vm.expectRevert(
-			"L1MessageRelayer::setL2MessageExecutorProxy: l2MessageExecutorProxy is already set"
-		);
-		vm.prank(user);
-		l1MessageRelayer.setL2MessageExecutorProxy(user);
-	}
-
-	function testRevertsetL2MessageExecutorProxyCalledByNotOwner() public {
-		vm.expectRevert(
-			"Ownable: caller is not the owner"
-		);
-		l1MessageRelayer.setL2MessageExecutorProxy(user);
-	}
 
 	function testL1MessageRelayerRenounceOwnership() public {
 		vm.expectRevert(
