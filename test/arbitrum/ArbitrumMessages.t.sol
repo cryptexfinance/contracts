@@ -78,19 +78,6 @@ contract ArbitrumMessages is Test {
 		);
   }
 
-  function testRevertOnUpdateExecutor() public {
-    vm.expectRevert("L1MessageRelayer::onlyTimeLock: Unauthorized message sender");
-    l1MessageRelayer.updateL2MessageExecutorProxy(address(l2MessageExecutor));
-  }
-
-  function testUpdateL2MessageExecutor() public {
-    vm.startPrank(user);
-    assertEq(l1MessageRelayer.l2MessageExecutorProxy(), address(l2MessageExecutor));
-    l1MessageRelayer.updateL2MessageExecutorProxy(user);
-    assertEq(l1MessageRelayer.l2MessageExecutorProxy(), user);
-    vm.stopPrank();
-  }
-
 	function testRevertForZeroTimelockAddress() public {
 		vm.expectRevert(
       "_timeLock can't the zero address"

@@ -39,21 +39,6 @@ contract L1MessageRelayer is Ownable {
   }
 
   /**
-   * @dev Update the address of the L2MessageExecutorProxy contract.
-   * @param _l2MessageExecutorProxy the address of L2 contract used to relay L1 messages.
-   **/
-  function updateL2MessageExecutorProxy(address _l2MessageExecutorProxy)
-    external
-    onlyTimeLock
-  {
-    require(
-      _l2MessageExecutorProxy != address(0),
-      "L1MessageRelayer::updateL2MessageExecutorProxy _l2MessageExecutorProxy is the zero address"
-    );
-    l2MessageExecutorProxy = _l2MessageExecutorProxy;
-  }
-
-  /**
    * @notice sends message received from timeLock to L2MessageExecutorProxy.
    * @param target address of the target contract on arbitrum.
    * @param payLoad message calldata that will be executed by l2MessageExecutorProxy.
