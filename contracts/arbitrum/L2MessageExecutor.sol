@@ -27,17 +27,6 @@ contract L2MessageExecutor is ReentrancyGuard {
   }
 
   /**
-   * @notice Throws if called by any account other than this contract.
-   **/
-  modifier onlyThis() {
-    require(
-      msg.sender == address(this),
-      "L2MessageExecutor: Unauthorized message sender"
-    );
-    _;
-  }
-
-  /**
    * @notice executes message received from L1.
    * @param payLoad message received from L1 that needs to be executed.
    **/
