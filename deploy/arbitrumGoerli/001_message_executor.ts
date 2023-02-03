@@ -31,6 +31,15 @@ module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 		for ${l2MessageExecutorDeployment.receipt?.gasUsed}`
 	);
 
+	const l2AdminProxyDeployment = await deployments.deploy("L2AdminProxy", {
+		from: namedAccounts.deployer,
+		skipIfAlreadyDeployed: true,
+		log: true,
+		args: [
+			process.env["GOERLI_ARBITRUM_MESSAGE_RELAYER_ADDRESS"]
+		]
+	});
+
 	let ABI = ["function initialize(address)"];
 	let iface = new ethers.utils.Interface(ABI);
 	// TODO: replace deployer with GOERLI_ARBITRUM_MESSAGE_RELAYER_ADDRESS
@@ -45,7 +54,7 @@ module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 		log: true,
 		args: [
 			l2MessageExecutorDeployment.address,
-			process.env["GOERLI_TIMELOCK_ADDRESS"],
+			l2AdminProxyDeployment.address,
 			callData
 		]
 	});
