@@ -16,6 +16,12 @@ contract L2MessageExecutor is ReentrancyGuard {
   /// @dev flag to make sure that the initialize function is only called once
   bool private isInitialized = false;
 
+  constructor() {
+		// Disable initialization for external users.
+		// Only proxies should be able to initialize this contract.
+    isInitialized = true;
+  }
+
   function initialize(address _l1MessageRelayer) external {
     require(!isInitialized, "Contract is already initialized!");
     isInitialized = true;

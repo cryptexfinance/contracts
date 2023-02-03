@@ -1,76 +1,82 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.5;
 
+import "@openzeppelin/contracts/utils/Address.sol";
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
 import "../../contracts/arbitrum/L2MessageExecutor.sol";
 import "../../contracts/arbitrum/ArbitrumOrchestrator.sol";
 import "../../contracts/arbitrum/AddressAliasHelper.sol";
+import "../../contracts/arbitrum/L2MessageExecutorProxy.sol";
 
 
 contract ArbitrumOrchestratorTest is Test {
-  address user = address(0x1);
-	address user2 = address(0x2);
+  address user = address(0x51);
+	address user2 = address(0x52);
 
   L2MessageExecutor l2MessageExecutor;
 	ArbitrumOrchestrator orchestrator;
+	L2MessageExecutorProxy proxy;
 
   function setUp() public {
     vm.startPrank(address(user));
     l2MessageExecutor = new L2MessageExecutor();
-		l2MessageExecutor.initialize(user);
-    orchestrator = new ArbitrumOrchestrator(user, address(l2MessageExecutor));
+		proxy = new L2MessageExecutorProxy(
+			address(l2MessageExecutor),
+			user,
+			abi.encodeWithSelector(
+				l2MessageExecutor.initialize.selector,
+				address(user)
+			)
+		);
+    orchestrator = new ArbitrumOrchestrator(user, address(proxy));
     vm.stopPrank();
   }
 
   function testUpdateOwner() public {
-    assertEq(orchestrator.owner(), address(l2MessageExecutor));
+    assertEq(orchestrator.owner(), address(proxy));
 		vm.startPrank(AddressAliasHelper.applyL1ToL2Alias(address(user)));
-		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor();
-		newL2MessageExecutor.initialize(user);
+		address newOwner = user2;
 		bytes memory callData = abi.encodeWithSelector(
       orchestrator.transferOwnership.selector,
-      address(newL2MessageExecutor)
+      newOwner
     );
     bytes memory payLoad = abi.encode(address(orchestrator), callData);
-		l2MessageExecutor.executeMessage(payLoad);
-		assertEq(orchestrator.owner(), address(newL2MessageExecutor));
+		Address.functionCall(
+      address(proxy),
+      abi.encodeWithSelector(l2MessageExecutor.executeMessage.selector, payLoad)
+    );
+		assertEq(orchestrator.owner(), newOwner);
 		vm.stopPrank();
   }
 
 	function testNewOwnerCanMakeCalls() public {
 		vm.startPrank(AddressAliasHelper.applyL1ToL2Alias(address(user)));
-
-		// Update owner
-		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor();
-		newL2MessageExecutor.initialize(user);
+		address newOwner = user2;
 		bytes memory callData = abi.encodeWithSelector(
       orchestrator.transferOwnership.selector,
-      address(newL2MessageExecutor)
+      newOwner
     );
     bytes memory payLoad = abi.encode(address(orchestrator), callData);
-		l2MessageExecutor.executeMessage(payLoad);
-		assertEq(orchestrator.owner(), address(newL2MessageExecutor));
-
-		// Make calls to orchestrator wurg bew owner
-		callData = abi.encodeWithSelector(
-      orchestrator.setGuardian.selector,
-      user2
+		Address.functionCall(
+      address(proxy),
+      abi.encodeWithSelector(l2MessageExecutor.executeMessage.selector, payLoad)
     );
-    payLoad = abi.encode(address(orchestrator), callData);
-		assertEq(orchestrator.guardian(), user);
-		newL2MessageExecutor.executeMessage(payLoad);
-		assertEq(orchestrator.guardian(), user2);
+		assertEq(orchestrator.owner(), newOwner);
+		vm.stopPrank();
 
+		//check new owner can make calls
+		assertEq(orchestrator.guardian(), user);
+		vm.startPrank(newOwner);
+		orchestrator.setGuardian(user2);
+		assertEq(orchestrator.guardian(), user2);
 		vm.stopPrank();
 	}
 
 	function testRenounceOwnershipShouldRevert() public {
 		vm.startPrank(AddressAliasHelper.applyL1ToL2Alias(address(user)));
 
-		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor();
-		newL2MessageExecutor.initialize(user);
 		bytes memory callData = abi.encodeWithSelector(
       orchestrator.renounceOwnership.selector
     );
@@ -78,7 +84,10 @@ contract ArbitrumOrchestratorTest is Test {
 		vm.expectRevert(
       "L2MessageExecutor::executeMessage: Message execution reverted."
     );
-		l2MessageExecutor.executeMessage(payLoad);
+		Address.functionCall(
+      address(proxy),
+      abi.encodeWithSelector(l2MessageExecutor.executeMessage.selector, payLoad)
+    );
 		vm.stopPrank();
 	}
 

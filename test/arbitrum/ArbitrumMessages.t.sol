@@ -1,20 +1,25 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.5;
 
+import "@openzeppelin/contracts/utils/Address.sol";
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
 import "../../contracts/arbitrum/L1MessageRelayer.sol";
 import "../../contracts/arbitrum/L2MessageExecutor.sol";
+import "../../contracts/arbitrum/L2MessageExecutorProxy.sol";
 import "../../contracts/arbitrum/AddressAliasHelper.sol";
 import "../../contracts/mocks/Greeter.sol";
 import "./mocks/MockInbox.sol";
 
+
 contract ArbitrumMessages is Test {
-  address user = address(0x1);
+  address user = address(0x51);
+	address adminProxy = address(0x52);
 
   L1MessageRelayer l1MessageRelayer;
   L2MessageExecutor l2MessageExecutor;
+	L2MessageExecutorProxy proxy;
   Greeter greeter;
   MockInbox inbox;
 
@@ -23,7 +28,11 @@ contract ArbitrumMessages is Test {
     inbox = new MockInbox();
     l1MessageRelayer = new L1MessageRelayer(user, address(inbox));
     l2MessageExecutor = new L2MessageExecutor();
-		l2MessageExecutor.initialize(address(l1MessageRelayer));
+		bytes memory callData = abi.encodeWithSelector(
+				l2MessageExecutor.initialize.selector,
+				address(l1MessageRelayer)
+		);
+		proxy = new L2MessageExecutorProxy(address(l2MessageExecutor), adminProxy, callData);
     greeter = new Greeter("First Message");
     vm.stopPrank();
   }
@@ -37,7 +46,10 @@ contract ArbitrumMessages is Test {
     bytes memory payLoad = abi.encode(address(greeter), callData);
     vm.startPrank(AddressAliasHelper.applyL1ToL2Alias(address(l1MessageRelayer)));
     assertEq(greeter.greet(), "First Message");
-    l2MessageExecutor.executeMessage(payLoad);
+		Address.functionCall(
+      address(proxy),
+      abi.encodeWithSelector(l2MessageExecutor.executeMessage.selector, payLoad)
+    );
     assertEq(greeter.greet(), "Second Message");
   }
 
@@ -51,7 +63,7 @@ contract ArbitrumMessages is Test {
     bytes memory _payLoad = abi.encode(address(greeter), _callData);
     vm.startPrank(user);
     l1MessageRelayer.relayMessage(
-			address(l2MessageExecutor),
+			address(proxy),
 			abi.encodeWithSignature("executeMessage(bytes)", _payLoad),
 			21000 * 5,
 			21000 * 5,
@@ -94,10 +106,14 @@ contract ArbitrumMessages is Test {
 
 	function testRevertForZeroL1MessageRelayerAddress() public {
 		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor();
+		bytes memory callData = abi.encodeWithSelector(
+				l2MessageExecutor.initialize.selector,
+				address(0)
+		);
 		vm.expectRevert(
       "_l1MessageRelayer can't be the zero address"
     );
-		newL2MessageExecutor.initialize(address(0));
+		proxy = new L2MessageExecutorProxy(address(newL2MessageExecutor), adminProxy, callData);
 	}
 
 	function testRevertWhenZeroTargetAddress() public {
@@ -110,7 +126,10 @@ contract ArbitrumMessages is Test {
 		vm.expectRevert(
       "target can't be the zero address"
     );
-    l2MessageExecutor.executeMessage(payLoad);
+		Address.functionCall(
+      address(proxy),
+      abi.encodeWithSelector(l2MessageExecutor.executeMessage.selector, payLoad)
+    );
   }
 
 	function testL1MessageRelayerRenounceOwnership() public {
@@ -122,9 +141,13 @@ contract ArbitrumMessages is Test {
 	}
 
 	function testL2MessageExecutorInializedOnlyOnce() public {
-		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor();
-		newL2MessageExecutor.initialize(user);
 		vm.expectRevert("Contract is already initialized!");
-		newL2MessageExecutor.initialize(address(l1MessageRelayer));
+		l2MessageExecutor.initialize(address(l1MessageRelayer));
+	}
+
+	function testL2MessageExecutorCannotBeExternallyInialized() public {
+		L2MessageExecutor newL2MessageExecutor = new L2MessageExecutor();
+		vm.expectRevert("Contract is already initialized!");
+		l2MessageExecutor.initialize(address(l1MessageRelayer));
 	}
 }
