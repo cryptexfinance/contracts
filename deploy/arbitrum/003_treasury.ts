@@ -2,7 +2,7 @@ import hre, { deployments, hardhatArguments } from "hardhat";
 const timelockAddress = process.env.GOERLI_TIMELOCK_ADDRESS as string
 
 module.exports = async ({ getNamedAccounts, deployments }: any) => {
-	if (hardhatArguments.network !== "arbitrumGoerli")
+	if (hardhatArguments.network !== "arbitrum")
 		return;
 
 	const { deployIfDifferent, log } = deployments;

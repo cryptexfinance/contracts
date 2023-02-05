@@ -15,7 +15,7 @@ module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 	if (hardhatArguments.network !== "arbitrumGoerli") {
 		return
 	}
-	requireEnvVariables(["GOERLI_ARBITRUM_MESSAGE_RELAYER_ADDRESS", "GOERLI_TIMELOCK_ADDRESS"]);
+	requireEnvVariables(["GOERLI_ARBITRUM_MESSAGE_RELAYER_ADDRESS"]);
 
 	const { log } = deployments;
 	const namedAccounts = await getNamedAccounts();

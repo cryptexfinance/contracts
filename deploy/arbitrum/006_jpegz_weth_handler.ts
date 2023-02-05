@@ -3,7 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { deployments } from "hardhat";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
-  if (hardhatArguments.network === "arbitrumGoerli") {
+  if (hardhatArguments.network === "arbitrum") {
     const { log } = deployments;
     const namedAccounts = await hre.getNamedAccounts();
     const deployer = namedAccounts.deployer;

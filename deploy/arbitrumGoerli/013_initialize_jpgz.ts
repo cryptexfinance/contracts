@@ -6,6 +6,7 @@ module.exports = async ({ deployments }: any) => {
         let jWETHHandler = await deployments.get("jWETHVaultHandler");
         let OrchestratorDeployment = await deployments.get("ArbitrumOrchestrator");
         let jpegz = await deployments.get("JPEGZ");
+        const l2MessageExecutorProxyDeployResult = await deployments.get("L2MessageExecutorProxy");
 
         let orchestrator = await ethershardhat.getContractAt(
             "ArbitrumOrchestrator",
@@ -13,7 +14,15 @@ module.exports = async ({ deployments }: any) => {
         );
 
         console.log("Adding jpegz vault Handlers");
-        await orchestrator.addTCAPVault(jpegz.address, jWETHHandler.address);
+        let tx = await orchestrator.addTCAPVault(jpegz.address, jWETHHandler.address);
+				await tx.wait();
+				console.log("Added vault Handlers");
+				//         Transfer Orchestrator Ownership to the DAO
+				tx = await orchestrator.transferOwnership(
+					l2MessageExecutorProxyDeployResult.address
+				);
+				await tx.wait();
+				console.log("Transferred Ownership to DAO");
     }
 };
 
