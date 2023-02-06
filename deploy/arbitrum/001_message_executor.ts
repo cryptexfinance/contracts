@@ -16,11 +16,11 @@ module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 		return
 	}
 
-    const arbitrumMessageRelayer = null;
-    const timelock = "0xa54074b2cc0e96a43048d4a68472F7F046aC0DA8";
+    const mainnetMessageRelayer = "0x209c23db16298504354112fa4210d368e1d564da";
 
 	const { log } = deployments;
 	const namedAccounts = await getNamedAccounts();
+
 
 	const l2MessageExecutorDeployment = await deployments.deploy("L2MessageExecutor", {
 		from: namedAccounts.deployer,
@@ -33,11 +33,20 @@ module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 		for ${l2MessageExecutorDeployment.receipt?.gasUsed}`
 	);
 
+    const l2AdminProxyDeployment = await deployments.deploy("L2AdminProxy", {
+		from: namedAccounts.deployer,
+		skipIfAlreadyDeployed: true,
+		log: true,
+		args: [
+			mainnetMessageRelayer
+		]
+	});
+
 	let ABI = ["function initialize(address)"];
 	let iface = new ethers.utils.Interface(ABI);
 	let callData = iface.encodeFunctionData(
 		"initialize",
-		[arbitrumMessageRelayer]
+		[mainnetMessageRelayer]
 	);
 
 	const l2MessageExecutorProxyDeployment = await deployments.deploy("L2MessageExecutorProxy", {
@@ -46,7 +55,7 @@ module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 		log: true,
 		args: [
 			l2MessageExecutorDeployment.address,
-			timelock,
+			l2AdminProxyDeployment.address,
 			callData
 		]
 	});
