@@ -18,6 +18,8 @@ module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 			timelock,
 			inboxAddress
 		],
+        skipIfAlreadyDeployed: true,
+        log: true,
 	});
 
 	log(

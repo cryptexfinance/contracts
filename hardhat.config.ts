@@ -81,6 +81,10 @@ const config: HardhatUserConfig = {
 		arbitrumGoerli: {
 			url: process.env.ARBITRUM_GOERLI_API_URL,
 			accounts: { mnemonic: mnemonic },
+		},
+        arbitrum: {
+			url: process.env.ARBITRUM_API_URL,
+			accounts: { mnemonic: mnemonic },
 		}
 	},
 	etherscan: {

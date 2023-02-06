@@ -14,7 +14,7 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
     let handlerContract;
     let orchestrator = await deployments.get("ArbitrumOrchestrator");
     try {
-      handlerContract = await deployments.get("jpgzDAIVaultHandler");
+      handlerContract = await deployments.get("jpegzDAIVaultHandler");
     } catch (error: any) {
       log(error.message);
       try {
@@ -33,9 +33,9 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
         let priceFeedETH = await deployments.get("WETHOracle");
         let daiOracle = await deployments.get("DAIOracle");
 
-        const deployResult = await deployments.deploy("jpgzDAIVaultHandler", {
+        const deployResult = await deployments.deploy("jpegzDAIVaultHandler", {
           from: deployer,
-          contract: "ETHVaultHandler",
+          contract: "ERC20VaultHandler",
           args: [
             orchestrator.address,
             divisor,
@@ -52,10 +52,10 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
             cap,
           ],
         });
-        handlerContract = await deployments.get("jpgzDAIVaultHandler");
+        handlerContract = await deployments.get("jpegzDAIVaultHandler");
         if (deployResult.newlyDeployed) {
           log(
-            `jpgzDAIVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt?.gasUsed}`
+            `jpegzDAIVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt?.gasUsed}`
           );
         }
       } catch (error: any) {

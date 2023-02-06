@@ -6,7 +6,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 			return;
 	const { deployIfDifferent, log } = deployments;
 	// const { deployer } = await getNamedAccounts();
-	const l2MessageExecutorProxyDeployResult = await deployments.get("L2MessageExecutorProxy");
+	// const l2MessageExecutorProxyDeployResult = await deployments.get("L2MessageExecutorProxy");
 
     // Params
     const owner = deployer;

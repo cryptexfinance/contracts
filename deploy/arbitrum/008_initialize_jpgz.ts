@@ -6,6 +6,7 @@ module.exports = async ({ deployments }: any) => {
         let jpgzWETHVaultHandler = await deployments.get("jpgzWETHVaultHandler");
         let jpgzDAIVaultHandler = await deployments.get("jpgzDAIVaultHandler");
         let OrchestratorDeployment = await deployments.get("ArbitrumOrchestrator");
+        let l2MessageExecutorProxy = await deployments.get("L2MessageExecutorProxy");
         let jpegz = await deployments.get("JPEGZ");
 
         let orchestrator = await ethershardhat.getContractAt(
@@ -16,6 +17,7 @@ module.exports = async ({ deployments }: any) => {
         console.log("Adding jpegz vault Handlers");
         await orchestrator.addTCAPVault(jpegz.address, jpgzWETHVaultHandler.address);
         await orchestrator.addTCAPVault(jpegz.address, jpgzDAIVaultHandler.address);
+        await orchestrator.transferOwnership(l2MessageExecutorProxy.address);
     }
 };
 

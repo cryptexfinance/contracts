@@ -8,7 +8,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
     let JPEGZOracle, WETHOracle, DAIOracle;
 
     //params
-    const l2MessageExecutor = await deployments.get("L2MessageExecutor");
+    const l2MessageExecutorProxy = await deployments.get("L2MessageExecutorProxy");
     const daiAggregator = "0xc5C8E77B397E531B8EC06BFb0048328B30E9eCfB";
     const jpegzAggregator = "0x8D0e319eBAA8DF32e088e469062F85abF2eBe599";
     const ethAggregator = "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612";
@@ -23,7 +23,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
         contract: "ChainlinkOracle",
         skipIfAlreadyDeployed: true,
         log: true,
-        args: [daiAggregator, l2MessageExecutor.address],
+        args: [daiAggregator, l2MessageExecutorProxy.address],
       });
 
       DAIOracle = await deployments.get("DAIOracle");
@@ -44,7 +44,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
         contract: "ChainlinkOracle",
         skipIfAlreadyDeployed: true,
         log: true,
-        args: [ethAggregator, l2MessageExecutor.address],
+        args: [ethAggregator, l2MessageExecutorProxy.address],
       });
       WETHOracle = await deployments.get("WETHOracle");
       if (deployResult.newlyDeployed) {
@@ -64,7 +64,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
         contract: "ChainlinkOracle",
         skipIfAlreadyDeployed: true,
         log: true,
-        args: [jpegzAggregator, l2MessageExecutor.address],
+        args: [jpegzAggregator, l2MessageExecutorProxy.address],
       });
 
       JPEGZOracle = await deployments.get("JPEGZOracle");
