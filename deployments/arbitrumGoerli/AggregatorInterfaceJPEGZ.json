@@ -1,0 +1,165 @@
+{
+  "address": "0xa7d31bDF09fC917b4DFc4a0c94A1B396121F87D8",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "int256",
+          "name": "current",
+          "type": "int256"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "roundId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "AnswerUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "roundId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "startedBy",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "startedAt",
+          "type": "uint256"
+        }
+      ],
+      "name": "NewRound",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "latestAnswer",
+      "outputs": [
+        {
+          "internalType": "int256",
+          "name": "",
+          "type": "int256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "latestRoundData",
+      "outputs": [
+        {
+          "internalType": "uint80",
+          "name": "",
+          "type": "uint80"
+        },
+        {
+          "internalType": "int256",
+          "name": "",
+          "type": "int256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint80",
+          "name": "",
+          "type": "uint80"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "int256",
+          "name": "_tcap",
+          "type": "int256"
+        }
+      ],
+      "name": "setLatestAnswer",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xf78c9e3e7bbb969de6d04dc651d18fab370a310c54577682aa3fdd9d4555cafa",
+  "receipt": {
+    "to": null,
+    "from": "0x570f581D23a2AB09FD1990279D9DB6f5DcE18F4A",
+    "contractAddress": "0xa7d31bDF09fC917b4DFc4a0c94A1B396121F87D8",
+    "transactionIndex": 1,
+    "gasUsed": "137703",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x509f1d0b69ab98be2b6559170e4a4cef59e4dcbbb05d735a8a054fd6210f172d",
+    "transactionHash": "0xf78c9e3e7bbb969de6d04dc651d18fab370a310c54577682aa3fdd9d4555cafa",
+    "logs": [],
+    "blockNumber": 6895265,
+    "cumulativeGasUsed": "137703",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "c075f2fb203ee83a0a3d7cfc802c17e7",
+  "metadata": "{\"compiler\":{\"version\":\"0.7.5+commit.eb77ed08\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"int256\",\"name\":\"current\",\"type\":\"int256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"roundId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"}],\"name\":\"AnswerUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"roundId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"startedBy\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"startedAt\",\"type\":\"uint256\"}],\"name\":\"NewRound\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"latestAnswer\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"\",\"type\":\"int256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestRoundData\",\"outputs\":[{\"internalType\":\"uint80\",\"name\":\"\",\"type\":\"uint80\"},{\"internalType\":\"int256\",\"name\":\"\",\"type\":\"int256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint80\",\"name\":\"\",\"type\":\"uint80\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"int256\",\"name\":\"_tcap\",\"type\":\"int256\"}],\"name\":\"setLatestAnswer\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/mocks/AggregatorInterfaceJPEGZ.sol\":\"AggregatorInterfaceJPEGZ\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/mocks/AggregatorInterfaceJPEGZ.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.7.5;\\n\\ncontract AggregatorInterfaceJPEGZ {\\n  int256 value = 280462775339973792;\\n\\n  function latestAnswer() public view virtual returns (int256) {\\n    return value;\\n  }\\n\\n  function latestRoundData()\\n    public\\n    view\\n    virtual\\n    returns (\\n      uint80,\\n      int256,\\n      uint256,\\n      uint256,\\n      uint80\\n    )\\n  {\\n    return (\\n\\t\\t280462775339973792,\\n      value,\\n\\t\\t1636560798,\\n\\t\\t1636560798,\\n\\t\\t280462775339973792\\n    );\\n  }\\n\\n  function setLatestAnswer(int256 _tcap) public {\\n    value = _tcap;\\n  }\\n\\n  event AnswerUpdated(\\n    int256 indexed current,\\n    uint256 indexed roundId,\\n    uint256 timestamp\\n  );\\n  event NewRound(\\n    uint256 indexed roundId,\\n    address indexed startedBy,\\n    uint256 startedAt\\n  );\\n}\\n\",\"keccak256\":\"0xd5e9c4f43092f5270ed7bf1cd71bcad87a19804af732c6462c4bb71c93d6724f\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60806040526703e4676880dbfca060005534801561001c57600080fd5b5061011f8061002c6000396000f3fe6080604052348015600f57600080fd5b5060043610603c5760003560e01c806304ea97b014604157806350d25bcd14605d578063feaf968c146075575b600080fd5b605b60048036036020811015605557600080fd5b503560c5565b005b606360ca565b60408051918252519081900360200190f35b607b60d0565b604051808669ffffffffffffffffffff1681526020018581526020018481526020018381526020018269ffffffffffffffffffff1681526020019550505050505060405180910390f35b600055565b60005490565b6000546703e4676880dbfca09163618bef9e908190849056fea2646970667358221220dbb5e9b1f2dd6d73e7841a430045a1d15631f6e9fdaf7fb73fad9d8ff86aeacd64736f6c63430007050033",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b5060043610603c5760003560e01c806304ea97b014604157806350d25bcd14605d578063feaf968c146075575b600080fd5b605b60048036036020811015605557600080fd5b503560c5565b005b606360ca565b60408051918252519081900360200190f35b607b60d0565b604051808669ffffffffffffffffffff1681526020018581526020018481526020018381526020018269ffffffffffffffffffff1681526020019550505050505060405180910390f35b600055565b60005490565b6000546703e4676880dbfca09163618bef9e908190849056fea2646970667358221220dbb5e9b1f2dd6d73e7841a430045a1d15631f6e9fdaf7fb73fad9d8ff86aeacd64736f6c63430007050033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 4,
+        "contract": "contracts/mocks/AggregatorInterfaceJPEGZ.sol:AggregatorInterfaceJPEGZ",
+        "label": "value",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_int256"
+      }
+    ],
+    "types": {
+      "t_int256": {
+        "encoding": "inplace",
+        "label": "int256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}
