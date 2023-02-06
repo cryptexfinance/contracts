@@ -6,8 +6,8 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
     const { deployer } = await getNamedAccounts();
 
     // params
-    const name = "JPGEZ Token";
-    const symbol = "JPGEZ";
+    const name = "Total NFT Market Cap";
+    const symbol = "JPEGz";
     const cap = 0;
     let orchestrator = await deployments.get("ArbitrumOrchestrator");
 

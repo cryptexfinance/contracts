@@ -10,7 +10,7 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 
     // Params
     const owner = deployer;
-    const guardian = "0xa70b638B70154EdfCbb8DbbBd04900F328F32c35"; //TODO: deploy safe in arbitrum
+    const guardian = "0x8705b41F9193f05ba166a1D5C0771E9cB2Ca0aa3"; //Arbitrum Multisig
 
 	const orchestratorDeployResult = await deployments.deploy("ArbitrumOrchestrator", {
 		from: deployer,
