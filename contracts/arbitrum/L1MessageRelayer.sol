@@ -10,9 +10,6 @@ contract L1MessageRelayer is Ownable {
   /// @notice Address of the governance TimeLock contract.
   address public timeLock;
 
-  /// @notice Address of the L2MessageExecutorProxy contract on arbitrum.
-  address public l2MessageExecutorProxy;
-
   /// @notice Address of arbitrum's L1 inbox contract.
   IInbox public inbox;
 
@@ -35,64 +32,38 @@ contract L1MessageRelayer is Ownable {
     inbox = IInbox(_inbox);
   }
 
-  /**
-   * @dev Initialises the address of the l2MessageExecutorProxy contract.
-   * @param _l2MessageExecutorProxy the address of L2 contract used to relay L1 messages.
-   **/
-  function setL2MessageExecutorProxy(address _l2MessageExecutorProxy) external onlyOwner {
-    require(
-      l2MessageExecutorProxy == address(0x0),
-      "L1MessageRelayer::setL2MessageExecutorProxy: l2MessageExecutorProxy is already set"
-    );
-    l2MessageExecutorProxy = _l2MessageExecutorProxy;
-  }
-
-	/// @notice renounceOwnership has been disabled so that the contract is never left without a onwer
+  /// @notice renounceOwnership has been disabled so that the contract is never left without a onwer
   /// @inheritdoc Ownable
   function renounceOwnership() public override onlyOwner {
     revert("function disabled");
   }
 
   /**
-   * @dev Update the address of the L2MessageExecutorProxy contract.
-   * @param _l2MessageExecutorProxy the address of L2 contract used to relay L1 messages.
-   **/
-  function updateL2MessageExecutorProxy(address _l2MessageExecutorProxy)
-    external
-    onlyTimeLock
-  {
-    require(
-      _l2MessageExecutorProxy != address(0),
-      "L1MessageRelayer::updateL2MessageExecutorProxy _l2MessageExecutorProxy is the zero address"
-    );
-    l2MessageExecutorProxy = _l2MessageExecutorProxy;
-  }
-
-  /**
    * @notice sends message received from timeLock to L2MessageExecutorProxy.
-   * @param payLoad message received from L1 that needs to be executed.
+   * @param target address of the target contract on arbitrum.
+   * @param payLoad message calldata that will be executed by l2MessageExecutorProxy.
+   * @param maxSubmissionCost same as maxSubmissionCost parameter of inbox.createRetryableTicket
+   * @param maxGas same as maxGas parameter of inbox.createRetryableTicket
+   * @param gasPriceBid same as gasPriceBid parameter of inbox.createRetryableTicket
    **/
   function relayMessage(
-    bytes calldata payLoad,
+    address target,
+    bytes memory payLoad,
     uint256 maxSubmissionCost,
     uint256 maxGas,
     uint256 gasPriceBid
   ) external payable onlyTimeLock returns (uint256) {
     require(maxGas != 1, "maxGas can't be 1");
     require(gasPriceBid != 1, "gasPriceBid can't be 1");
-    bytes memory data = abi.encodeWithSelector(
-      L2MessageExecutor.executeMessage.selector,
-      payLoad
-    );
     uint256 ticketID = inbox.createRetryableTicket{value: msg.value}(
-      l2MessageExecutorProxy,
+      target,
       0,
       maxSubmissionCost,
       msg.sender,
       msg.sender,
       maxGas,
       gasPriceBid,
-      data
+      payLoad
     );
     emit RetryableTicketCreated(ticketID);
     return ticketID;

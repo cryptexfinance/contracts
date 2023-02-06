@@ -16,6 +16,12 @@ contract L2MessageExecutor is ReentrancyGuard {
   /// @dev flag to make sure that the initialize function is only called once
   bool private isInitialized = false;
 
+  constructor() {
+		// Disable initialization for external users.
+		// Only proxies should be able to initialize this contract.
+    isInitialized = true;
+  }
+
   function initialize(address _l1MessageRelayer) external {
     require(!isInitialized, "Contract is already initialized!");
     isInitialized = true;
@@ -24,17 +30,6 @@ contract L2MessageExecutor is ReentrancyGuard {
       "_l1MessageRelayer can't be the zero address"
     );
     l1MessageRelayer = _l1MessageRelayer;
-  }
-
-  /**
-   * @notice Throws if called by any account other than this contract.
-   **/
-  modifier onlyThis() {
-    require(
-      msg.sender == address(this),
-      "L2MessageExecutor: Unauthorized message sender"
-    );
-    _;
   }
 
   /**

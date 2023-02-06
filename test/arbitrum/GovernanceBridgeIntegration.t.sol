@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.5;
 
+import "@openzeppelin/contracts/utils/Address.sol";
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
@@ -8,6 +9,7 @@ import "../../contracts/governance/Ctx.sol";
 import "../../contracts/governance/GovernorBeta.sol";
 import "../../contracts/governance/Timelock.sol";
 import "../../contracts/arbitrum/L1MessageRelayer.sol";
+import "../../contracts/arbitrum/L2AdminProxy.sol";
 import "../../contracts/arbitrum/L2MessageExecutor.sol";
 import "../../contracts/arbitrum/L2MessageExecutorProxy.sol";
 import "../../contracts/arbitrum/AddressAliasHelper.sol";
@@ -18,7 +20,9 @@ import "../../contracts/mocks/AggregatorInterfaceTCAP.sol";
 import "../../contracts/mocks/AggregatorInterface.sol";
 import "../../contracts/mocks/WETH.sol";
 import "../../contracts/TCAP.sol";
+import "../../contracts/mocks/Greeter.sol";
 import "./mocks/MockInbox.sol";
+
 
 pragma experimental ABIEncoderV2;
 
@@ -34,10 +38,11 @@ contract GovernanceBridgeIntegration is Test {
     Executed
   }
 
-  address user = address(0x1);
-  address user1 = address(0x2);
+  address user = address(0x51);
+  address user1 = address(0x52);
 
   L1MessageRelayer l1MessageRelayer;
+	L2AdminProxy l2AdminProxy;
   L2MessageExecutor l2MessageExecutor;
 	L2MessageExecutorProxy proxy;
   MockInbox inbox;
@@ -59,7 +64,7 @@ contract GovernanceBridgeIntegration is Test {
   uint256 burnFee = 50;
   uint256 mintFee =50;
   uint256 liquidationPenalty = 5;
-  address treasury = address(0x3);
+  address treasury = address(0x53);
 
   function setUp() public {
     vm.startPrank(address(user));
@@ -71,13 +76,13 @@ contract GovernanceBridgeIntegration is Test {
       address(timeLock),
       address(inbox)
     );
+		l2AdminProxy = new L2AdminProxy(address(l1MessageRelayer));
 		l2MessageExecutor = new L2MessageExecutor();
 		bytes memory data = abi.encodeWithSelector(
       l2MessageExecutor.initialize.selector,
 			address(l1MessageRelayer)
     );
-		proxy = new L2MessageExecutorProxy(address(l2MessageExecutor), address(timeLock), data);
-    l1MessageRelayer.setL2MessageExecutorProxy(address(proxy));
+		proxy = new L2MessageExecutorProxy(address(l2MessageExecutor), address(l2AdminProxy), data);
     ctx.delegate(user);
 
     orchestrator = new Orchestrator(user);
@@ -173,9 +178,10 @@ contract GovernanceBridgeIntegration is Test {
     bytes[] memory calldatas = new bytes[](1);
     targets[0] = address(l1MessageRelayer);
     values[0] = 0;
-    signatures[0] = "relayMessage(bytes,uint256,uint256,uint256)";
+    signatures[0] = "relayMessage(address,bytes,uint256,uint256,uint256)";
     calldatas[0] = abi.encode(
-      _payLoad,
+			address(proxy),
+			abi.encodeWithSelector(l2MessageExecutor.executeMessage.selector, _payLoad),
       uint256(21000 * 5),
       uint256(21000 * 5),
       uint256(21000 * 5)
@@ -187,4 +193,56 @@ contract GovernanceBridgeIntegration is Test {
 
     assertEq(tcap.vaultHandlers(address(ethVault)), true);
   }
+
+	function testUpgradeProxyImplementation() external {
+		Greeter greeter = new Greeter("");
+
+    address[] memory targets = new address[](1);
+    uint256[] memory values = new uint256[](1);
+    string[] memory signatures = new string[](1);
+    bytes[] memory calldatas = new bytes[](1);
+    targets[0] = address(l1MessageRelayer);
+    values[0] = 0;
+    signatures[0] = "relayMessage(address,bytes,uint256,uint256,uint256)";
+    calldatas[0] = abi.encode(
+			address(l2AdminProxy),
+			abi.encodeWithSignature(
+				"upgradeAndCall(address,address,bytes)",
+				address(proxy),
+				address(greeter),
+				abi.encodeWithSelector(greeter.setGreeting.selector, "Governance Test 1")
+			),
+      uint256(21000 * 5),
+      uint256(21000 * 5),
+      uint256(21000 * 5)
+    );
+		createAndExecuteGovernanceProposal(targets, values, signatures, calldatas);
+
+		bytes memory message = Address.functionCall(
+      address(proxy),
+      abi.encodeWithSelector(greeter.greet.selector)
+    );
+		assertEq(abi.decode(message, (string)), "Governance Test 1");
+
+		// update message
+		calldatas[0] = abi.encode(
+			address(l2AdminProxy),
+			abi.encodeWithSignature(
+				"upgradeAndCall(address,address,bytes)",
+				address(proxy),
+				address(greeter),
+				abi.encodeWithSelector(greeter.setGreeting.selector, "Governance Test 2")
+			),
+      uint256(21000 * 5),
+      uint256(21000 * 5),
+      uint256(21000 * 5)
+    );
+		createAndExecuteGovernanceProposal(targets, values, signatures, calldatas);
+
+		message = Address.functionCall(
+      address(proxy),
+      abi.encodeWithSelector(greeter.greet.selector)
+    );
+		assertEq(abi.decode(message, (string)), "Governance Test 2");
+	}
 }
