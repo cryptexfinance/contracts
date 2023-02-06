@@ -10,11 +10,12 @@ module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 	const { log } = deployments;
 	const namedAccounts = await getNamedAccounts();
 	const inboxAddress = "0x6BEbC4925716945D46F0Ec336D5C2564F419682C";
+	const timeLock = await deployments.get("Timelock");
 
 	const l1MessageRelayerDeployment = await deployments.deploy("L1MessageRelayer", {
 		from: namedAccounts.deployer,
 		args: [
-			namedAccounts.deployer,
+			timeLock.address,
 			inboxAddress
 		],
 	});

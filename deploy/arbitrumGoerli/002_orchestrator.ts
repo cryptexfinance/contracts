@@ -26,3 +26,5 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
 	);
 
 }
+
+module.exports.tags = ["ArbitrumOrchestrator"];

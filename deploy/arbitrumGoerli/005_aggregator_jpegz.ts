@@ -31,3 +31,4 @@ const AggregatorInterfaceJPEGZ: DeployFunction = async function (
 };
 
 export default AggregatorInterfaceJPEGZ;
+module.exports.dependencies = ["ArbitrumOrchestrator"];

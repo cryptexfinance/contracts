@@ -31,3 +31,4 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
   }
 };
 module.exports.tags = ["JPEGZ"];
+module.exports.dependencies = ["ArbitrumOrchestrator"];

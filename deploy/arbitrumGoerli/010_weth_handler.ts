@@ -22,11 +22,11 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 
         let WETHContract = await deployments.get("WETH");
 
-        let divisor = 10000000000;
-        let ratio = 200;
-        let burnFee = 15;
-        let mintFee = 15;
-        let liquidationPenalty = 10;
+        let divisor = 1000000000;
+        let ratio = 150;
+        let burnFee = 150;
+        let mintFee = 150;
+        let liquidationPenalty = 20;
 
         let tcapOracle = await deployments.get("TCAPOracle");
         let l2MessageExecutor = await deployments.get("L2MessageExecutor");
@@ -49,7 +49,7 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
             priceFeedETH.address,
             priceFeedETH.address,
             deployer,
-            "20000000000000000000",
+            "0",
           ],
         });
         handlerContract = await deployments.get("WETHVaultHandler");

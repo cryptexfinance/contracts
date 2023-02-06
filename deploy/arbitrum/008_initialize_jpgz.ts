@@ -2,7 +2,7 @@ import { ethers as ethershardhat, hardhatArguments } from "hardhat";
 require("dotenv").config();
 
 module.exports = async ({ deployments }: any) => {
-    if (hardhatArguments.network === "arbitrumGoerli") {
+    if (hardhatArguments.network === "arbitrum") {
         let jpgzWETHVaultHandler = await deployments.get("jpgzWETHVaultHandler");
         let jpgzDAIVaultHandler = await deployments.get("jpgzDAIVaultHandler");
         let OrchestratorDeployment = await deployments.get("ArbitrumOrchestrator");
