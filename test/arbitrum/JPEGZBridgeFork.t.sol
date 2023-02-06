@@ -112,11 +112,25 @@ contract JPEGZBridgeFork is Test {
 	}
 
 	function createAndExecuteGovernanceProposal(
-    address[] memory targets,
-    uint256[] memory values,
-    string[] memory signatures,
-    bytes[] memory calldatas
+    bytes memory _payLoad
   ) public {
+
+		address[] memory targets = new address[](1);
+    uint256[] memory values = new uint256[](1);
+    string[] memory signatures = new string[](1);
+    bytes[] memory calldatas = new bytes[](1);
+    targets[0] = address(l1MessageRelayer);
+    values[0] = 6105111510400;
+    signatures[0] = "relayMessage(address,bytes,uint256,uint256,uint256)";
+    calldatas[0] = abi.encode(
+			address(l2MessageExecutorProxy),
+			abi.encodeWithSelector(l2MessageExecutor.executeMessage.selector, _payLoad),
+      uint256(166811510400),
+      uint256(59383),
+      uint256(100000000)
+    );
+
+		vm.selectFork(mainnetFork);
     vm.startPrank(user);
     vm.roll(block.number + 100);
     governorBeta.propose(targets, values, signatures, calldatas, "");
@@ -142,7 +156,6 @@ contract JPEGZBridgeFork is Test {
   }
 
 	function testSetMintFee() external {
-		vm.selectFork(mainnetFork);
 		uint256 newMintFee = 205;
 		bytes memory _callData = abi.encodeWithSelector(
       orchestrator.setMintFee.selector,
@@ -150,27 +163,12 @@ contract JPEGZBridgeFork is Test {
 			newMintFee
     );
     bytes memory _payLoad = abi.encode(address(orchestrator), _callData);
-    address[] memory targets = new address[](1);
-    uint256[] memory values = new uint256[](1);
-    string[] memory signatures = new string[](1);
-    bytes[] memory calldatas = new bytes[](1);
-    targets[0] = address(l1MessageRelayer);
-    values[0] = 6105111510400;
-    signatures[0] = "relayMessage(address,bytes,uint256,uint256,uint256)";
-    calldatas[0] = abi.encode(
-			address(l2MessageExecutorProxy),
-			abi.encodeWithSelector(l2MessageExecutor.executeMessage.selector, _payLoad),
-      uint256(166811510400),
-      uint256(59383),
-      uint256(100000000)
-    );
-		createAndExecuteGovernanceProposal(targets, values, signatures, calldatas);
+		createAndExecuteGovernanceProposal(_payLoad);
 		vm.selectFork(arbitrumFork);
 		assertEq(ethVault.mintFee(), newMintFee);
 	}
 
 	function testSetRatio() external {
-		vm.selectFork(mainnetFork);
 		uint256 newVaultRatio = 500;
 		bytes memory _callData = abi.encodeWithSelector(
       orchestrator.setRatio.selector,
@@ -178,23 +176,46 @@ contract JPEGZBridgeFork is Test {
 			newVaultRatio
     );
     bytes memory _payLoad = abi.encode(address(orchestrator), _callData);
-    address[] memory targets = new address[](1);
-    uint256[] memory values = new uint256[](1);
-    string[] memory signatures = new string[](1);
-    bytes[] memory calldatas = new bytes[](1);
-    targets[0] = address(l1MessageRelayer);
-    values[0] = 6105111510400;
-    signatures[0] = "relayMessage(address,bytes,uint256,uint256,uint256)";
-    calldatas[0] = abi.encode(
-			address(l2MessageExecutorProxy),
-			abi.encodeWithSelector(l2MessageExecutor.executeMessage.selector, _payLoad),
-      uint256(166811510400),
-      uint256(59383),
-      uint256(100000000)
-    );
-		createAndExecuteGovernanceProposal(targets, values, signatures, calldatas);
+		createAndExecuteGovernanceProposal(_payLoad);
 		vm.selectFork(arbitrumFork);
 		assertEq(ethVault.ratio(), newVaultRatio);
 	}
 
+	function testSetGuardian() external {
+		bytes memory _callData = abi.encodeWithSelector(
+      orchestrator.setGuardian.selector,
+			user
+    );
+    bytes memory _payLoad = abi.encode(address(orchestrator), _callData);
+		vm.selectFork(arbitrumFork);
+		assertEq(orchestrator.guardian(), deployer);
+		createAndExecuteGovernanceProposal(_payLoad);
+		assertEq(orchestrator.guardian(), user);
+	}
+
+	function testSetBurnFee() external {
+		uint256 newBurnFee = 317;
+		bytes memory _callData = abi.encodeWithSelector(
+      orchestrator.setBurnFee.selector,
+      address(ethVault),
+			newBurnFee
+    );
+    bytes memory _payLoad = abi.encode(address(orchestrator), _callData);
+		createAndExecuteGovernanceProposal(_payLoad);
+		vm.selectFork(arbitrumFork);
+		assertEq(ethVault.burnFee(), newBurnFee);
+	}
+
+	function testSetLiquidationPenalty() external {
+		uint256 liquidationPenalty = 23;
+		bytes memory _callData = abi.encodeWithSelector(
+      orchestrator.setLiquidationPenalty.selector,
+      address(ethVault),
+			liquidationPenalty
+    );
+    bytes memory _payLoad = abi.encode(address(orchestrator), _callData);
+		createAndExecuteGovernanceProposal(_payLoad);
+		vm.selectFork(arbitrumFork);
+		assertEq(ethVault.liquidationPenalty(), liquidationPenalty);
+	}
 }
