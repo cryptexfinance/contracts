@@ -1,8 +1,7 @@
 import { hardhatArguments } from "hardhat";
 require("dotenv").config();
 module.exports = async ({ getNamedAccounts, deployments }: any) => {
-	let initial_run = process.env.INITIAL_RUN == "true" ? true : false;
-	if (hardhatArguments.network === "goerli" && initial_run) {
+	if (hardhatArguments.network === "goerli") {
 		const { deployIfDifferent, log } = deployments;
 		const { deployer } = await getNamedAccounts();
 		const name = process.env.NAME;

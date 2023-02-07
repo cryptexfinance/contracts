@@ -81,6 +81,10 @@ const config: HardhatUserConfig = {
 		arbitrumGoerli: {
 			url: process.env.ARBITRUM_GOERLI_API_URL,
 			accounts: { mnemonic: mnemonic },
+		},
+        arbitrum: {
+			url: process.env.ARBITRUM_API_URL,
+			accounts: { mnemonic: mnemonic },
 		}
 	},
 	etherscan: {
@@ -95,6 +99,11 @@ const config: HardhatUserConfig = {
 	mocha: {
 		timeout: 100000,
 	},
+    verify: {
+        etherscan: {
+            apiKey: process.env.ETHERSCAN_API_KEY as string,
+        }
+    }
 };
 
 export default config;

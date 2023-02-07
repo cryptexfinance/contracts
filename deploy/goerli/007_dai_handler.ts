@@ -3,8 +3,7 @@ import { deployments } from "hardhat";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
-	let initial_run = process.env.INITIAL_RUN == "true" ? true : false;
-	if (hardhatArguments.network === "goerli" && initial_run) {
+	if (hardhatArguments.network === "goerli") {
 		const { log } = deployments;
 		const namedAccounts = await hre.getNamedAccounts();
 		const deployer = namedAccounts.deployer;
@@ -22,10 +21,10 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 
 				let DAIContract = await deployments.get("DAI");
 
-				let divisor = process.env.DIVISOR as string;
-				let ratio = process.env.RATIO as string;
-				let burnFee = process.env.BURN_FEE as string;
-				let liquidationPenalty = process.env.LIQUIDATION_PENALTY as string;
+				let divisor =  "10000000000";
+				let ratio = "200";
+				let burnFee = "1";
+				let liquidationPenalty = "10";
 
 				let tcapOracle = await deployments.get("TCAPOracle");
 				let priceFeedETH = await deployments.get("WETHOracle");
@@ -56,8 +55,8 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						DAIContract.address,
 						priceFeedDAI.address,
 						priceFeedETH.address,
-						rewardAddress,
-						timelock.address,
+						namedAccounts.deployer,
+						0
 					],
 				});
 				handlerContract = await deployments.get("DAIVaultHandler");
@@ -66,14 +65,6 @@ const DAIVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						`DAIVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt?.gasUsed}`
 					);
 				}
-				const rewardDeployment = await deployments.deploy("DAIRewardHandler", {
-					contract: "RewardHandler",
-					from: deployer,
-					args: [orchestrator.address, ctx.address, vaultAddress],
-				});
-				log(
-					`Reward Handler deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
-				);
 			} catch (error: any) {
 				log(error.message);
 			}

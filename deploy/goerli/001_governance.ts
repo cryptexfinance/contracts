@@ -9,7 +9,8 @@ module.exports = async ({ ethers, getNamedAccounts, deployments }: any) => {
 
 		const { log } = deployments;
 		const namedAccounts = await getNamedAccounts();
-		const oneYear = 1675175407; // Mon, January 24 2023
+        console.log(namedAccounts.deployerforge);
+		const oneYear = 1707216035; // Mon, Feb 06 2024
 		const threeDays = 259200;
 		const [owner] = await ethers.getSigners();
 

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.5;
+pragma abicoder v2;
 
 import "forge-std/Test.sol";
 import "../contracts/ETHVaultHandler.sol";
@@ -36,6 +37,7 @@ contract VaultDisablingTest is Test {
   uint256 divisor = 10000000000;
   uint256 ratio = 110;
   uint256 burnFee = 50;
+  uint256 mintFee = 50;
   uint256 liquidationPenalty = 5;
   address treasury = address(0x3);
 
@@ -45,6 +47,7 @@ contract VaultDisablingTest is Test {
       divisor,
       ratio,
       burnFee,
+      mintFee,
       liquidationPenalty,
       address(tcapOracle),
       tcap,
@@ -348,16 +351,17 @@ contract VaultDisablingTest is Test {
   function testMint_ShouldRevert_WhenIsDisabled() public {
     //setup
     uint256 amount = 1 ether;
+    uint256 mfee = ethVault.getMintFee(amount);
     vm.prank(address(orchestrator));
     ethVault.toggleFunction(IVaultHandler.FunctionChoices.Mint, true);
     vm.startPrank(user);
-    vm.deal(user, amount);
+    vm.deal(user, amount + mfee);
     ethVault.createVault();
     ethVault.addCollateralETH{value: amount}();
     vm.expectRevert("VaultHandler:: function disabled");
 
     //execution
-    ethVault.mint(1 ether);
+    ethVault.mint{value: mfee}(1 ether);
 
     //assert
     (uint256 id, uint256 collateral, uint256 debt, address owner) = ethVault
@@ -372,21 +376,22 @@ contract VaultDisablingTest is Test {
   function testMint_ShouldWork_WhenToogleDisabledFalse() public {
     //setup
     uint256 amount = 1 ether;
+    uint256 mfee = ethVault.getMintFee(amount);
     vm.prank(address(orchestrator));
     ethVault.toggleFunction(IVaultHandler.FunctionChoices.Mint, true);
     vm.startPrank(user);
-    vm.deal(user, amount);
+    vm.deal(user, amount + mfee);
     ethVault.createVault();
     ethVault.addCollateralETH{value: amount}();
     vm.expectRevert("VaultHandler:: function disabled");
-    ethVault.mint(1 ether);
+    ethVault.mint{value: mfee}(1 ether);
     vm.stopPrank();
     vm.prank(address(orchestrator));
     ethVault.toggleFunction(IVaultHandler.FunctionChoices.Mint, false);
 
     //execution
     vm.prank(user);
-    ethVault.mint(1 ether);
+    ethVault.mint{value: mfee}(1 ether);
 
     //assert
     (uint256 id, uint256 collateral, uint256 debt, address owner) = ethVault
@@ -401,14 +406,15 @@ contract VaultDisablingTest is Test {
   function testBurn_ShouldNotBurn_WhenIsDisabled() public {
     //setup
     uint256 amount = 1 ether;
+    uint256 mfee = ethVault.getMintFee(amount);
     vm.prank(address(orchestrator));
     ethVault.toggleFunction(IVaultHandler.FunctionChoices.Burn, true);
     vm.startPrank(user);
     vm.deal(user, amount * 2);
     ethVault.createVault();
     ethVault.addCollateralETH{value: amount}();
-    ethVault.mint(1 ether);
-    uint256 fee = ethVault.getFee(amount);
+    ethVault.mint{value: mfee}(1 ether);
+    uint256 fee = ethVault.getBurnFee(amount);
 
     //execution
     vm.expectRevert("VaultHandler:: function disabled");
@@ -427,14 +433,15 @@ contract VaultDisablingTest is Test {
   function testBurn_ShouldWork_WhenToogleDisabledFalse() public {
     //setup
     uint256 amount = 1 ether;
+    uint256 mfee = ethVault.getMintFee(amount);
     vm.prank(address(orchestrator));
     ethVault.toggleFunction(IVaultHandler.FunctionChoices.Burn, true);
     vm.startPrank(user);
-    vm.deal(user, amount * 2);
+    vm.deal(user, mfee + amount * 2);
     ethVault.createVault();
     ethVault.addCollateralETH{value: amount}();
-    ethVault.mint(1 ether);
-    uint256 fee = ethVault.getFee(amount);
+    ethVault.mint{value: mfee}(1 ether);
+    uint256 fee = ethVault.getBurnFee(amount);
     vm.expectRevert("VaultHandler:: function disabled");
     ethVault.burn{value: fee}(1 ether);
     vm.stopPrank();
@@ -458,15 +465,16 @@ contract VaultDisablingTest is Test {
   function testLiquidateVault_ShouldNotLiquidate_WhenIsDisabled() public {
     //setup
     uint256 amount = 1 ether;
+    uint256 mfee = ethVault.getMintFee(amount);
     vm.prank(address(orchestrator));
     ethVault.toggleFunction(IVaultHandler.FunctionChoices.LiquidateVault, true);
     vm.startPrank(user);
-    vm.deal(user, amount);
+    vm.deal(user, mfee + amount);
     vm.deal(user2, amount * 2);
     ethVault.createVault();
     ethVault.addCollateralETH{value: amount}();
-    ethVault.mint(1 ether);
-    uint256 fee = ethVault.getFee(amount);
+    ethVault.mint{value: mfee}(1 ether);
+    uint256 fee = ethVault.getBurnFee(amount);
     vm.stopPrank();
 
     //execution
@@ -487,16 +495,18 @@ contract VaultDisablingTest is Test {
   function testLiquidateVault_ShouldWork_WhenToogleDisabledFalse() public {
     //setup
     uint256 amount = 1 ether;
+    uint256 mfee = ethVault.getMintFee(amount);
+    uint256 mfeeHigh = ethVault.getMintFee(9 ether);
     vm.prank(address(orchestrator));
     ethVault.toggleFunction(IVaultHandler.FunctionChoices.LiquidateVault, true);
     vm.startPrank(user);
-    vm.deal(user, amount);
-    vm.deal(user2, amount * 2);
+    vm.deal(user,mfeeHigh+ amount + mfee);
+    vm.deal(user2, ( amount) * 2);
     ethVault.createVault();
     ethVault.addCollateralETH{value: amount}();
-    ethVault.mint(9 ether);
-    tcap.transfer(user2, 9 ether);
-    uint256 fee = ethVault.getFee(amount);
+    ethVault.mint{value: mfeeHigh}(3 ether);
+    tcap.transfer(user2, 3 ether);
+    uint256 fee = ethVault.getBurnFee(amount);
     vm.stopPrank();
     vm.expectRevert("VaultHandler:: function disabled");
     vm.prank(user2);
@@ -506,8 +516,8 @@ contract VaultDisablingTest is Test {
       IVaultHandler.FunctionChoices.LiquidateVault,
       false
     );
-    tcapAggregator.setLatestAnswer(50129732288636297500);
-    fee = ethVault.getFee(9 ether);
+    tcapAggregator.setLatestAnswer(143129732288636297500);
+    fee = ethVault.getBurnFee(9 ether);
 
     //execution
     vm.prank(user2);

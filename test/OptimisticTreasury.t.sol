@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.5;
+pragma abicoder v2;
 
 import "forge-std/Test.sol";
 import "../contracts/optimism/OptimisticTreasury.sol";
@@ -96,7 +97,7 @@ contract OptimisticTreasuryTest is Test {
     oTreasury.executeTransaction(address(dai), value, signature, data);
 
     // Empty address
-    vm.expectRevert("ITreasury::executeTransaction: target can't be zero");
+    vm.expectRevert("BaseTreasury::executeTransaction: target can't be zero");
     ol2.executeTransaction(oTreasury, address(0), value, signature, data);
 
     ol2.executeTransaction(oTreasury, address(dai), value, signature, data);

@@ -3,8 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { deployments } from "hardhat";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
-	let initial_run = process.env.INITIAL_RUN == "true" ? true : false;
-	if (hardhatArguments.network === "goerli" && initial_run) {
+	if (hardhatArguments.network === "goerli") {
 		const { log } = deployments;
 		const namedAccounts = await hre.getNamedAccounts();
 		const deployer = namedAccounts.deployer;
@@ -24,10 +23,10 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 
 				let WETHContract = await deployments.get("WETH");
 
-				let divisor = process.env.DIVISOR as string;
-				let ratio = process.env.RATIO as string;
-				let burnFee = process.env.BURN_FEE as string;
-				let liquidationPenalty = process.env.LIQUIDATION_PENALTY as string;
+				let divisor =  "10000000000";
+				let ratio = "200";
+				let burnFee = "1";
+				let liquidationPenalty = "10";
 
 				let tcapOracle = await deployments.get("TCAPOracle");
 				let priceFeedETH = await deployments.get("WETHOracle");
@@ -57,8 +56,8 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						WETHContract.address,
 						priceFeedETH.address,
 						priceFeedETH.address,
-						rewardAddress,
-						timelock.address,
+						namedAccounts.deployer,
+						0
 					],
 				});
 				handlerContract = await deployments.get("WETHVaultHandler");
@@ -67,14 +66,6 @@ const WETHVaultHandler = async (hre: HardhatRuntimeEnvironment) => {
 						`WETHVaultHandler deployed at ${handlerContract.address} for ${deployResult.receipt?.gasUsed}`
 					);
 				}
-				const rewardDeployment = await deployments.deploy("WETHRewardHandler", {
-					contract: "RewardHandler",
-					from: deployer,
-					args: [orchestrator.address, ctx.address, vaultAddress],
-				});
-				log(
-					`Reward Handler deployed at ${rewardDeployment.address} for ${rewardDeployment.receipt?.gasUsed}`
-				);
 			} catch (error: any) {
 				log(error.message);
 			}
