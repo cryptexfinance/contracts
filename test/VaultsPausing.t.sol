@@ -30,8 +30,8 @@ contract VaultDisablingTest is Test {
   ChainlinkOracle ethOracle =
     new ChainlinkOracle(address(ethAggregator), address(this));
   WETH weth = new WETH();
-  address user = address(0x1);
-  address user2 = address(0x2);
+  address user = address(0x51);
+  address user2 = address(0x52);
 
   //// Params
   uint256 divisor = 10000000000;
@@ -39,7 +39,7 @@ contract VaultDisablingTest is Test {
   uint256 burnFee = 50;
   uint256 mintFee = 50;
   uint256 liquidationPenalty = 5;
-  address treasury = address(0x3);
+  address treasury = address(0x53);
 
   function setUp() public {
     ethVault = new ETHVaultHandler(
