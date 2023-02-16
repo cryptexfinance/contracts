@@ -39,7 +39,7 @@ describe("MATIC Vault", async function () {
         await orchestratorInstance.deployed();
         expect(orchestratorInstance.address).properAddress;
 
-        const TCAP = await ethers.getContractFactory("TCAP");
+        const TCAP = await ethers.getContractFactory("IndexToken");
         tcapInstance = await TCAP.deploy(
             "Total Market Cap Token",
             "TCAP",
@@ -79,7 +79,7 @@ describe("MATIC Vault", async function () {
         await maticTokenHandler.deployed();
         expect(maticTokenHandler.address).properAddress;
 
-        await orchestratorInstance.addTCAPVault(tcapInstance.address, maticTokenHandler.address);
+        await orchestratorInstance.addIndexVault(tcapInstance.address, maticTokenHandler.address);
     });
 
     it("...should allow the owner to set the treasury address", async () => {
@@ -104,7 +104,7 @@ describe("MATIC Vault", async function () {
     });
 
     it("...should return the token price", async () => {
-        let tcapPrice = await maticTokenHandler.TCAPPrice();
+        let tcapPrice = await maticTokenHandler.indexPrice();
         let totalMarketCap = (await tcapOracleInstance.getLatestAnswer()).mul(10000000000);
         let result = totalMarketCap.div(divisor);
         expect(tcapPrice).to.eq(result);
@@ -307,7 +307,7 @@ describe("MATIC Vault", async function () {
         let amount = ethers.utils.parseEther("1");
         const reqAmount = await maticTokenHandler.requiredCollateral(amount);
         const ethPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
-        const tcapPrice = await maticTokenHandler.TCAPPrice();
+        const tcapPrice = await maticTokenHandler.indexPrice();
         const ratio = await maticTokenHandler.ratio();
         let result = tcapPrice.mul(amount).mul(ratio).div(100).div(ethPrice);
         expect(reqAmount).to.eq(result);
@@ -364,7 +364,7 @@ describe("MATIC Vault", async function () {
     it("...should calculate the burn fee", async () => {
         let amount = ethers.utils.parseEther("10");
         let divisor = 10000;
-        let tcapPrice = await maticTokenHandler.TCAPPrice();
+        let tcapPrice = await maticTokenHandler.indexPrice();
         let ethPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
         let result = tcapPrice.mul(amount).div(divisor).div(ethPrice);
         let fee = await maticTokenHandler.getBurnFee(amount);
@@ -447,11 +447,11 @@ describe("MATIC Vault", async function () {
     });
 
     it("...should get the required collateral for liquidation", async () => {
-        let reqLiquidation = await maticTokenHandler.requiredLiquidationTCAP(2);
+        let reqLiquidation = await maticTokenHandler.requiredLiquidationIndex(2);
         let liquidationPenalty = await maticTokenHandler.liquidationPenalty();
         let ratio = await maticTokenHandler.ratio();
         let collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
-        let tcapPrice = await maticTokenHandler.TCAPPrice();
+        let tcapPrice = await maticTokenHandler.indexPrice();
         let vault = await maticTokenHandler.getVault(2);
         let collateralTcap = vault[1].mul(collateralPrice).div(tcapPrice);
         let reqDividend = vault[3].mul(ratio).div(100).sub(collateralTcap).mul(100);
@@ -461,11 +461,11 @@ describe("MATIC Vault", async function () {
     });
 
     it("...should get the liquidation reward", async () => {
-        let reqLiquidation = await maticTokenHandler.requiredLiquidationTCAP(2);
+        let reqLiquidation = await maticTokenHandler.requiredLiquidationIndex(2);
         let liquidationReward = await maticTokenHandler.liquidationReward(2);
         let liquidationPenalty = await maticTokenHandler.liquidationPenalty();
         let collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
-        let tcapPrice = await maticTokenHandler.TCAPPrice();
+        let tcapPrice = await maticTokenHandler.indexPrice();
 
         let result = reqLiquidation.mul(liquidationPenalty.add(100)).div(100);
         result = result.mul(tcapPrice).div(collateralPrice);
@@ -475,8 +475,8 @@ describe("MATIC Vault", async function () {
     it("...should allow liquidators to return profits", async () => {
         const divisor = ethers.utils.parseEther("1");
         const liquidationReward = await maticTokenHandler.liquidationReward(2);
-        const reqLiquidation = await maticTokenHandler.requiredLiquidationTCAP(2);
-        const tcapPrice = await maticTokenHandler.TCAPPrice();
+        const reqLiquidation = await maticTokenHandler.requiredLiquidationIndex(2);
+        const tcapPrice = await maticTokenHandler.indexPrice();
         const collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
         const rewardUSD = liquidationReward.mul(collateralPrice).div(divisor);
         const collateralUSD = reqLiquidation.mul(tcapPrice).div(divisor);
@@ -505,7 +505,7 @@ describe("MATIC Vault", async function () {
         await maticTokenHandler.connect(addr3).mint(liquidatorAmount, { value: mintFee });
 
         let liquidationReward = await maticTokenHandler.liquidationReward(2);
-        let reqLiquidation = await maticTokenHandler.requiredLiquidationTCAP(2);
+        let reqLiquidation = await maticTokenHandler.requiredLiquidationIndex(2);
         let tcapBalance = await tcapInstance.balanceOf(accounts[3]);
         let collateralBalance = await wmaticTokenInstance.balanceOf(accounts[3]);
         let vault = await maticTokenHandler.getVault(2);

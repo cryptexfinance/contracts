@@ -44,7 +44,7 @@ describe("ERC20 Vault", async function () {
         const timelock = await ethers.getContractFactory("Timelock");
         const timelockInstance = await timelock.deploy(orchestratorInstance.address, threeDays);
 
-        const TCAP = await ethers.getContractFactory("TCAP");
+        const TCAP = await ethers.getContractFactory("IndexToken");
         tcapInstance = await TCAP.deploy(
             "Total Market Cap Token",
             "TCAP",
@@ -88,7 +88,7 @@ describe("ERC20 Vault", async function () {
         await ercTokenHandler.deployed();
         expect(ercTokenHandler.address).properAddress;
 
-        await orchestratorInstance.addTCAPVault(tcapInstance.address, ercTokenHandler.address);
+        await orchestratorInstance.addIndexVault(tcapInstance.address, ercTokenHandler.address);
     });
 
     it("...should allow the owner to set the treasury address", async () => {
@@ -113,7 +113,7 @@ describe("ERC20 Vault", async function () {
     });
 
     it("...should return the token price", async () => {
-        let tcapPrice = await ercTokenHandler.TCAPPrice();
+        let tcapPrice = await ercTokenHandler.indexPrice();
         let totalMarketCap = await tcapOracleInstance.getLatestAnswer();
         let result = totalMarketCap.mul(10000000000).div(divisor);
         expect(tcapPrice).to.eq(result);
@@ -238,7 +238,7 @@ describe("ERC20 Vault", async function () {
         let amount = ethersProvider.utils.parseEther("1");
         const reqAmount = await ercTokenHandler.requiredCollateral(amount);
         const ethPrice = await priceOracleInstance.getLatestAnswer();
-        const tcapPrice = await ercTokenHandler.TCAPPrice();
+        const tcapPrice = await ercTokenHandler.indexPrice();
         const ratio = await ercTokenHandler.ratio();
         let result = tcapPrice.mul(amount).mul(ratio).div(100).div(ethPrice.mul(10000000000));
         expect(reqAmount).to.eq(result);
@@ -257,14 +257,14 @@ describe("ERC20 Vault", async function () {
         let enableHash = ethers.utils.solidityKeccak256(["bool"], [enableCap]);
 
         let tcapCap = 1;
-        await orchestratorInstance.enableTCAPCap(tcapInstance.address, enableCap);
-        await orchestratorInstance.setTCAPCap(tcapInstance.address, tcapCap);
+        await orchestratorInstance.enableIndexCap(tcapInstance.address, enableCap);
+        await orchestratorInstance.setIndexCap(tcapInstance.address, tcapCap);
         await expect(ercTokenHandler.connect(addr1).mint(reqAmount, { value: mintFee })).to.be.revertedWith(
-            "TCAP::Transfer: TCAP cap exceeded"
+            "IndexToken::Transfer: cap exceeded"
         );
         // Remove Cap
         enableCap = false;
-        await orchestratorInstance.enableTCAPCap(tcapInstance.address, enableCap);
+        await orchestratorInstance.enableIndexCap(tcapInstance.address, enableCap);
     });
 
     it("...should allow user to mint tokens", async () => {
@@ -315,7 +315,7 @@ describe("ERC20 Vault", async function () {
         let tcapBalance = await tcapInstance.balanceOf(accounts[1]);
         await expect(
             tcapInstance.connect(addr1).transfer(tcapInstance.address, tcapBalance)
-        ).to.be.revertedWith("TCAP::transfer: can't transfer to TCAP contract");
+        ).to.be.revertedWith("IndexToken::transfer: can't transfer to the Index Token contract");
     });
 
     it("...should allow users to get collateral ratio", async () => {
@@ -335,7 +335,7 @@ describe("ERC20 Vault", async function () {
     it("...should calculate the burn fee", async () => {
         let amount = ethersProvider.utils.parseEther("10");
         let divisor = 10000;
-        let tcapPrice = await ercTokenHandler.TCAPPrice();
+        let tcapPrice = await ercTokenHandler.indexPrice();
         let ethPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
         let result = tcapPrice.mul(amount).div(divisor).div(ethPrice);
         let fee = await ercTokenHandler.getBurnFee(amount);
@@ -429,11 +429,11 @@ describe("ERC20 Vault", async function () {
     });
 
     it("...should get the required collateral for liquidation", async () => {
-        let reqLiquidation = await ercTokenHandler.requiredLiquidationTCAP(2);
+        let reqLiquidation = await ercTokenHandler.requiredLiquidationIndex(2);
         let liquidationPenalty = await ercTokenHandler.liquidationPenalty();
         let ratio = await ercTokenHandler.ratio();
         let collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
-        let tcapPrice = await ercTokenHandler.TCAPPrice();
+        let tcapPrice = await ercTokenHandler.indexPrice();
         let vault = await ercTokenHandler.getVault(2);
         let collateralTcap = vault[1].mul(collateralPrice).div(tcapPrice);
         let reqDividend = vault[3].mul(ratio).div(100).sub(collateralTcap).mul(100);
@@ -443,11 +443,11 @@ describe("ERC20 Vault", async function () {
     });
 
     it("...should get the liquidation reward", async () => {
-        let reqLiquidation = await ercTokenHandler.requiredLiquidationTCAP(2);
+        let reqLiquidation = await ercTokenHandler.requiredLiquidationIndex(2);
         let liquidationReward = await ercTokenHandler.liquidationReward(2);
         let liquidationPenalty = await ercTokenHandler.liquidationPenalty();
         let collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
-        let tcapPrice = await ercTokenHandler.TCAPPrice();
+        let tcapPrice = await ercTokenHandler.indexPrice();
 
         let result = reqLiquidation.mul(liquidationPenalty.add(100)).div(100);
         result = result.mul(tcapPrice).div(collateralPrice);
@@ -457,8 +457,8 @@ describe("ERC20 Vault", async function () {
     it("...should allow liquidators to return profits", async () => {
         const divisor = ethersProvider.utils.parseEther("1");
         const liquidationReward = await ercTokenHandler.liquidationReward(2);
-        const reqLiquidation = await ercTokenHandler.requiredLiquidationTCAP(2);
-        const tcapPrice = await ercTokenHandler.TCAPPrice();
+        const reqLiquidation = await ercTokenHandler.requiredLiquidationIndex(2);
+        const tcapPrice = await ercTokenHandler.indexPrice();
         const collateralPrice = (await priceOracleInstance.getLatestAnswer()).mul(10000000000);
         const rewardUSD = liquidationReward.mul(collateralPrice).div(divisor);
         const collateralUSD = reqLiquidation.mul(tcapPrice).div(divisor);
@@ -485,7 +485,7 @@ describe("ERC20 Vault", async function () {
         await ercTokenHandler.connect(addr3).mint(liquidatorAmount, { value: mintFee });
 
         let liquidationReward = await ercTokenHandler.liquidationReward(2);
-        let reqLiquidation = await ercTokenHandler.requiredLiquidationTCAP(2);
+        let reqLiquidation = await ercTokenHandler.requiredLiquidationIndex(2);
         let aboveReqLiquidation = reqLiquidation.add(liquidatorAmount);
 
         let tcapBalance = await tcapInstance.balanceOf(accounts[3]);
