@@ -4,6 +4,7 @@ pragma abicoder v2;
 
 import "forge-std/Test.sol";
 import "../../contracts/ETHVaultHandler.sol";
+import "../../contracts/ERC20VaultHandler.sol";
 import "../../contracts/TCAP.sol";
 import "../../contracts/governance/GovernorBeta.sol";
 import "../../contracts/governance/Timelock.sol";
@@ -16,9 +17,8 @@ import "../../contracts/arbitrum/L2MessageExecutorProxy.sol";
 import "../../contracts/arbitrum/L2MessageExecutor.sol";
 import "../../contracts/arbitrum/L2AdminProxy.sol";
 
-
 contract JPEGZBridgeFork is Test {
-	enum ProposalState {
+  enum ProposalState {
     Pending,
     Active,
     Canceled,
@@ -29,108 +29,154 @@ contract JPEGZBridgeFork is Test {
     Executed
   }
 
-	  // Setup
-	address user = address(0x51);
-	address deployer = 0x570f581D23a2AB09FD1990279D9DB6f5DcE18F4A;
-	address guardian = deployer;
-	address arbitrumInbox = 0x6BEbC4925716945D46F0Ec336D5C2564F419682C;
-  ETHVaultHandler ethVault = ETHVaultHandler(0x4bF5E0cdfC4F9fa542d63ff2020209c427bbD046);
-  ArbitrumOrchestrator orchestrator = ArbitrumOrchestrator(0xb9CcDF5d90C461557DC3C0D8Fd7A782978FB8b4F);
-	ArbitrumTreasury treasury = ArbitrumTreasury(0x464e8536e552Be1a969d6334D0A317C1e022abbb);
-  TCAP jpegz = TCAP(0xf9DC37960adC96f347A55Aed9FB92Cb13eDe925b);
-	GovernorBeta governorBeta = GovernorBeta(0xB1B50029de9deFC4ebE6ac1BAeB8fF15d1e46a02);
-	Timelock timeLock = Timelock(0x6A56BbF8823794C1841c02061627E6349288403E);
-	Ctx ctx = Ctx(0xec1a9F7B260BEA534B5e407Cc48ec1aEC2b65ad2);
-	L1MessageRelayer l1MessageRelayer = L1MessageRelayer(0x30743989937AFCF2Ccd9205046289Fa67524bef8);
-	L2MessageExecutor l2MessageExecutor = L2MessageExecutor(0x9a0A963ce5CD1C9e5Ef5df862b42143E82f6412C);
-	L2MessageExecutorProxy l2MessageExecutorProxy = L2MessageExecutorProxy(0x4D51f466D4c6072d6F07A082ffD476bafB110Faf);
-	L2AdminProxy l2AdminProxy = L2AdminProxy(0xD798E04687af04a4611727A69390b27De7633625);
-	uint256 mainnetFork;
-	uint256 arbitrumFork;
+  // Setup
+  address user = address(0x51);
+  address deployer = 0x9D1A807355056442F878F3bBC22054a0677e7995;
+  address guardian = 0x8705b41F9193f05ba166a1D5C0771E9cB2Ca0aa3;
+  address arbitrumInbox = 0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f;
+  ETHVaultHandler ethVault =
+    ETHVaultHandler(0xe30C148Ca3cCe47341aB9bEbD7A8db031aB207D0);
+  ERC20VaultHandler daiVault =
+    ERC20VaultHandler(0x76fD6b835d21E1e411F5927950Ec9A0146cDB54B);
+  ArbitrumOrchestrator orchestrator =
+    ArbitrumOrchestrator(0x60f5C89C26cd424DF5E8513FDe150D2CA8F0eB9f);
+  ArbitrumTreasury treasury =
+    ArbitrumTreasury(0x9474B771Fb46E538cfED114Ca816A3e25Bb346CF);
+  TCAP jpegz = TCAP(0xD5536c80191c624F6bFD5590A45b9E93B16DEA97);
+  GovernorBeta governorBeta =
+    GovernorBeta(0x874C5D592AfC6803c3DD60d6442357879F196d5b);
+  Timelock timeLock = Timelock(0xa54074b2cc0e96a43048d4a68472F7F046aC0DA8);
+  Ctx ctx = Ctx(0x321C2fE4446C7c963dc41Dd58879AF648838f98D);
+  L1MessageRelayer l1MessageRelayer =
+    L1MessageRelayer(0x209c23DB16298504354112fa4210d368e1d564dA);
+  L2MessageExecutor l2MessageExecutor =
+    L2MessageExecutor(0x4a6BA90F6938c769816c1B6808EF02Dc98531983);
+  L2MessageExecutorProxy l2MessageExecutorProxy =
+    L2MessageExecutorProxy(0x3769b6aA269995297a539BEd7a463105466733A5);
+  L2AdminProxy l2AdminProxy =
+    L2AdminProxy(0x7877f3C9c57467b1ad92D27608E706CD277c7817);
+  uint256 mainnetFork;
+  uint256 arbitrumFork;
 
-	function setUp() external {
-		string memory MAINNET_RPC_URL = vm.envString("MAINNET_RPC_URL");
+  function setUp() external {
+    string memory MAINNET_RPC_URL = vm.envString("MAINNET_RPC_URL");
     string memory ARBITRUM_RPC_URL = vm.envString("ARBITRUM_RPC_URL");
-		mainnetFork = vm.createFork(MAINNET_RPC_URL);
-		arbitrumFork = vm.createFork(ARBITRUM_RPC_URL);
-		vm.selectFork(mainnetFork);
-		deal(address(timeLock), 100 ether);
-		deal(user, 100 ether);
-		deal({token: address(ctx), to: user, give: 500_000e18});
-		vm.prank(user);
-		ctx.delegate(user);
-	}
+    mainnetFork = vm.createFork(MAINNET_RPC_URL);
+    arbitrumFork = vm.createFork(ARBITRUM_RPC_URL);
+    vm.selectFork(mainnetFork);
+    deal(address(timeLock), 100 ether);
+    deal(user, 100 ether);
+    deal({token: address(ctx), to: user, give: 500_000e18});
+    vm.prank(user);
+    ctx.delegate(user);
+  }
 
-	function testRelayerTimelockAddress() external {
-		vm.selectFork(mainnetFork);
-		assertEq(l1MessageRelayer.timeLock(), address(timeLock));
-	}
+  function testRelayerTimelockAddress() external {
+    vm.selectFork(mainnetFork);
+    assertEq(l1MessageRelayer.timeLock(), address(timeLock));
+  }
 
-	function testRelayerOwner() external {
-		vm.selectFork(mainnetFork);
-		assertEq(l1MessageRelayer.owner(), deployer);
-	}
+  function testRelayerOwner() external {
+    vm.selectFork(mainnetFork);
+    assertEq(l1MessageRelayer.owner(), deployer);
+  }
 
-	function testRelayerInboxAddress() external {
-		vm.selectFork(mainnetFork);
-		assertEq(address(l1MessageRelayer.inbox()), arbitrumInbox);
-	}
+  function testRelayerInboxAddress() external {
+    vm.selectFork(mainnetFork);
+    assertEq(address(l1MessageRelayer.inbox()), arbitrumInbox);
+  }
 
-	function testAdminProxyOwner() external {
-		vm.selectFork(arbitrumFork);
-		assertEq(l2AdminProxy.owner(), AddressAliasHelper.applyL1ToL2Alias(address(l1MessageRelayer)));
-	}
+  function testAdminProxyOwner() external {
+    vm.selectFork(arbitrumFork);
+    assertEq(
+      l2AdminProxy.owner(),
+      AddressAliasHelper.applyL1ToL2Alias(address(l1MessageRelayer))
+    );
+  }
 
-	function testL2ExecutorProxyAdmin() external {
-		vm.selectFork(arbitrumFork);
-		vm.prank(address(l2AdminProxy));
-		assertEq(l2MessageExecutorProxy.admin(), address(l2AdminProxy));
-	}
+  function testL2ExecutorProxyAdmin() external {
+    vm.selectFork(arbitrumFork);
+    vm.prank(address(l2AdminProxy));
+    assertEq(l2MessageExecutorProxy.admin(), address(l2AdminProxy));
+  }
 
-	function testL2ExecutorProxyRelayer() external {
-		vm.selectFork(arbitrumFork);
-		bytes memory message = Address.functionCall(
+  function testL2ExecutorProxyRelayer() external {
+    vm.selectFork(arbitrumFork);
+    bytes memory message = Address.functionCall(
       address(l2MessageExecutorProxy),
       abi.encodeWithSelector(l2MessageExecutor.l1MessageRelayer.selector)
     );
-		assertEq(abi.decode(message, (address)), address(l1MessageRelayer));
-	}
+    assertEq(abi.decode(message, (address)), address(l1MessageRelayer));
+  }
 
-	function testOrchestratorOwner() external {
-		vm.selectFork(arbitrumFork);
-		assertEq(orchestrator.owner(), address(l2MessageExecutorProxy));
-	}
+  function testOrchestratorOwner() external {
+    vm.selectFork(arbitrumFork);
+    assertEq(orchestrator.owner(), address(l2MessageExecutorProxy));
+  }
 
-	function testOrchestratorGuardian() external {
-		vm.selectFork(arbitrumFork);
-		assertEq(orchestrator.guardian(), guardian);
-	}
+  function testOrchestratorGuardian() external {
+    vm.selectFork(arbitrumFork);
+    assertEq(orchestrator.guardian(), guardian);
+  }
 
-	function testTreasuryOwner() external {
-		vm.selectFork(arbitrumFork);
-		assertEq(treasury.owner(), address(l2MessageExecutorProxy));
-	}
+  function testTreasuryOwner() external {
+    vm.selectFork(arbitrumFork);
+    assertEq(treasury.owner(), address(l2MessageExecutorProxy));
+  }
 
-	function createAndExecuteGovernanceProposal(
+  function testETHVaultOwner() external {
+    vm.selectFork(arbitrumFork);
+    assertEq(ethVault.owner(), address(orchestrator));
+  }
+
+  function testDAIVaultOwner() external {
+    vm.selectFork(arbitrumFork);
+    assertEq(daiVault.owner(), address(orchestrator));
+  }
+
+  function testJPEGZOwner() external {
+    vm.selectFork(arbitrumFork);
+    assertEq(jpegz.owner(), address(orchestrator));
+  }
+
+  function createAndExecuteGovernanceMessageExecutorProposal(
     bytes memory _payLoad
   ) public {
+    _createAndExecuteGovernanceProposal(
+      address(l2MessageExecutorProxy),
+      abi.encodeWithSelector(
+        l2MessageExecutor.executeMessage.selector,
+        _payLoad
+      )
+    );
+  }
 
-		address[] memory targets = new address[](1);
+  function createAndExecuteGovernanceAdminProxyProposal(bytes memory _payLoad)
+    public
+  {
+    _createAndExecuteGovernanceProposal(address(l2AdminProxy), _payLoad);
+  }
+
+  function _createAndExecuteGovernanceProposal(
+    address target,
+    bytes memory _payLoad
+  ) public {
+    address[] memory targets = new address[](1);
     uint256[] memory values = new uint256[](1);
     string[] memory signatures = new string[](1);
     bytes[] memory calldatas = new bytes[](1);
     targets[0] = address(l1MessageRelayer);
-    values[0] = 6105111510400;
+    values[0] = 2694764530612800;
     signatures[0] = "relayMessage(address,bytes,uint256,uint256,uint256)";
     calldatas[0] = abi.encode(
-			address(l2MessageExecutorProxy),
-			abi.encodeWithSelector(l2MessageExecutor.executeMessage.selector, _payLoad),
-      uint256(166811510400),
-      uint256(59383),
+      target,
+      _payLoad,
+      uint256(2686308330612800),
+      uint256(84562),
       uint256(100000000)
     );
 
-		vm.selectFork(mainnetFork);
+    vm.selectFork(mainnetFork);
     vm.startPrank(user);
     vm.roll(block.number + 100);
     governorBeta.propose(targets, values, signatures, calldatas, "");
@@ -147,75 +193,135 @@ contract JPEGZBridgeFork is Test {
     );
     vm.stopPrank();
 
-		vm.selectFork(arbitrumFork);
-		vm.startPrank(AddressAliasHelper.applyL1ToL2Alias(address(l1MessageRelayer)));
-		(address target, bytes memory payload,,,) = abi.decode(calldatas[0], (address, bytes, uint256, uint256, uint256));
-		(bool success, ) = target.call(payload);
-		require(success, "tx to arbitrum failed");
-		vm.stopPrank();
+    vm.selectFork(arbitrumFork);
+    vm.startPrank(
+      AddressAliasHelper.applyL1ToL2Alias(address(l1MessageRelayer))
+    );
+    (address target, bytes memory payload, , , ) = abi.decode(
+      calldatas[0],
+      (address, bytes, uint256, uint256, uint256)
+    );
+    (bool success, ) = target.call(payload);
+    require(success, "tx to arbitrum failed");
+    vm.stopPrank();
   }
 
-	function testSetMintFee() external {
-		uint256 newMintFee = 205;
-		bytes memory _callData = abi.encodeWithSelector(
+  function testSetGuardian() external {
+    bytes memory _callData = abi.encodeWithSelector(
+      orchestrator.setGuardian.selector,
+      user
+    );
+    bytes memory _payLoad = abi.encode(address(orchestrator), _callData);
+    vm.selectFork(arbitrumFork);
+    assertEq(orchestrator.guardian(), guardian);
+    createAndExecuteGovernanceMessageExecutorProposal(_payLoad);
+    assertEq(orchestrator.guardian(), user);
+  }
+
+  function testSetMintFee() external {
+    uint256 newMintFee = 205;
+    bytes memory _callData = abi.encodeWithSelector(
       orchestrator.setMintFee.selector,
       address(ethVault),
-			newMintFee
+      newMintFee
     );
     bytes memory _payLoad = abi.encode(address(orchestrator), _callData);
-		createAndExecuteGovernanceProposal(_payLoad);
-		vm.selectFork(arbitrumFork);
-		assertEq(ethVault.mintFee(), newMintFee);
-	}
+    createAndExecuteGovernanceMessageExecutorProposal(_payLoad);
+    vm.selectFork(arbitrumFork);
+    assertEq(ethVault.mintFee(), newMintFee);
+  }
 
-	function testSetRatio() external {
-		uint256 newVaultRatio = 500;
-		bytes memory _callData = abi.encodeWithSelector(
+  function testEthVAultSetRatio() external {
+    uint256 newVaultRatio = 500;
+    bytes memory _callData = abi.encodeWithSelector(
       orchestrator.setRatio.selector,
       address(ethVault),
-			newVaultRatio
+      newVaultRatio
     );
     bytes memory _payLoad = abi.encode(address(orchestrator), _callData);
-		createAndExecuteGovernanceProposal(_payLoad);
-		vm.selectFork(arbitrumFork);
-		assertEq(ethVault.ratio(), newVaultRatio);
-	}
+    createAndExecuteGovernanceMessageExecutorProposal(_payLoad);
+    vm.selectFork(arbitrumFork);
+    assertEq(ethVault.ratio(), newVaultRatio);
+  }
 
-	function testSetGuardian() external {
-		bytes memory _callData = abi.encodeWithSelector(
-      orchestrator.setGuardian.selector,
-			user
+  function testDAISetRatio() external {
+    uint256 newVaultRatio = 500;
+    bytes memory _callData = abi.encodeWithSelector(
+      orchestrator.setRatio.selector,
+      address(daiVault),
+      newVaultRatio
     );
     bytes memory _payLoad = abi.encode(address(orchestrator), _callData);
-		vm.selectFork(arbitrumFork);
-		assertEq(orchestrator.guardian(), deployer);
-		createAndExecuteGovernanceProposal(_payLoad);
-		assertEq(orchestrator.guardian(), user);
-	}
+    createAndExecuteGovernanceMessageExecutorProposal(_payLoad);
+    vm.selectFork(arbitrumFork);
+    assertEq(daiVault.ratio(), newVaultRatio);
+  }
 
-	function testSetBurnFee() external {
-		uint256 newBurnFee = 317;
-		bytes memory _callData = abi.encodeWithSelector(
+  function testEthVaultSetBurnFee() external {
+    uint256 newBurnFee = 317;
+    bytes memory _callData = abi.encodeWithSelector(
       orchestrator.setBurnFee.selector,
       address(ethVault),
-			newBurnFee
+      newBurnFee
     );
     bytes memory _payLoad = abi.encode(address(orchestrator), _callData);
-		createAndExecuteGovernanceProposal(_payLoad);
-		vm.selectFork(arbitrumFork);
-		assertEq(ethVault.burnFee(), newBurnFee);
-	}
+    createAndExecuteGovernanceMessageExecutorProposal(_payLoad);
+    vm.selectFork(arbitrumFork);
+    assertEq(ethVault.burnFee(), newBurnFee);
+  }
 
-	function testSetLiquidationPenalty() external {
-		uint256 liquidationPenalty = 23;
-		bytes memory _callData = abi.encodeWithSelector(
+  function testDAIVaultSetBurnFee() external {
+    uint256 newBurnFee = 317;
+    bytes memory _callData = abi.encodeWithSelector(
+      orchestrator.setBurnFee.selector,
+      address(daiVault),
+      newBurnFee
+    );
+    bytes memory _payLoad = abi.encode(address(orchestrator), _callData);
+    createAndExecuteGovernanceMessageExecutorProposal(_payLoad);
+    vm.selectFork(arbitrumFork);
+    assertEq(daiVault.burnFee(), newBurnFee);
+  }
+
+  function testEthVaultSetLiquidationPenalty() external {
+    uint256 liquidationPenalty = 23;
+    bytes memory _callData = abi.encodeWithSelector(
       orchestrator.setLiquidationPenalty.selector,
       address(ethVault),
-			liquidationPenalty
+      liquidationPenalty
     );
     bytes memory _payLoad = abi.encode(address(orchestrator), _callData);
-		createAndExecuteGovernanceProposal(_payLoad);
-		vm.selectFork(arbitrumFork);
-		assertEq(ethVault.liquidationPenalty(), liquidationPenalty);
-	}
+    createAndExecuteGovernanceMessageExecutorProposal(_payLoad);
+    vm.selectFork(arbitrumFork);
+    assertEq(ethVault.liquidationPenalty(), liquidationPenalty);
+  }
+
+  function testDAIVaultSetLiquidationPenalty() external {
+    uint256 liquidationPenalty = 23;
+    bytes memory _callData = abi.encodeWithSelector(
+      orchestrator.setLiquidationPenalty.selector,
+      address(daiVault),
+      liquidationPenalty
+    );
+    bytes memory _payLoad = abi.encode(address(orchestrator), _callData);
+    createAndExecuteGovernanceMessageExecutorProposal(_payLoad);
+    vm.selectFork(arbitrumFork);
+    assertEq(daiVault.liquidationPenalty(), liquidationPenalty);
+  }
+
+  function testAdminProxyCanUpgrade() external {
+    bytes memory _payLoad = abi.encodeWithSignature(
+      "upgrade(address,address)",
+      address(l2MessageExecutorProxy),
+      // Implementation contract needs to be deployed on the network that is being tested.this
+      // Chose ethVault as a dummy implementation to check if the upgrade works
+      address(ethVault)
+    );
+    createAndExecuteGovernanceAdminProxyProposal(_payLoad);
+    bytes memory message = Address.functionCall(
+      address(l2MessageExecutorProxy),
+      abi.encodeWithSelector(ethVault.MAX_DECIMAL_PLACES.selector)
+    );
+    assertEq(uint256(abi.decode(message, (uint8))), 18);
+  }
 }

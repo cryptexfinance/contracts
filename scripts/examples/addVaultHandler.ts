@@ -18,22 +18,22 @@ function requireEnvVariables(envVars: string[]){
   }
 }
 
-requireEnvVariables(['ROPSTEN_PRIVATE_KEY', 'GOERLI_API_URL', 'ARBITRUM_GOERLI_API_URL'])
+requireEnvVariables(['ROPSTEN_PRIVATE_KEY'])
 
 /**
  * Set up: instantiate L1 / L2 wallets connected to providers
  */
 const walletPrivateKey = process.env.ROPSTEN_PRIVATE_KEY
 
-const l1Provider = new ethers.providers.JsonRpcProvider(process.env.GOERLI_API_URL)
-const l2Provider = new ethers.providers.JsonRpcProvider(process.env.ARBITRUM_GOERLI_API_URL)
+const l1Provider = new ethers.providers.JsonRpcProvider(process.env.MAINNET_RPC_URL)
+const l2Provider = new ethers.providers.JsonRpcProvider(process.env.ARBITRUM_RPC_URL)
 
 const l1Wallet = new ethers.Wallet(walletPrivateKey, l1Provider)
 const l2Wallet = new ethers.Wallet(walletPrivateKey, l2Provider)
 
-const WETH_VAULT_HANDLER_ADDRESS = "0x4bda6668Cc3680702ab937E278e2d40c5263a424"
-const ORCHESTRATOR_ADDRESS = "0x521c1911376950581f661d1Ee1422d2D892f1003"
-const TCAP_ADDRESS = "0xe5e50fb466237cEDc26443E7Dd59763CeC62A4E9"
+const WETH_VAULT_HANDLER_ADDRESS = "0xe30C148Ca3cCe47341aB9bEbD7A8db031aB207D0"
+const ORCHESTRATOR_ADDRESS = "0x60f5C89C26cd424DF5E8513FDe150D2CA8F0eB9f"
+const TCAP_ADDRESS = "0xD5536c80191c624F6bFD5590A45b9E93B16DEA97"
 
 const main = async () => {
   console.log('vault setter script');
@@ -56,14 +56,16 @@ const main = async () => {
     await hre.ethers.getContractFactory('L1MessageRelayer')
   ).connect(l1Wallet) //
   const l1MessageRelayer = L1MessageRelayer.attach(
-  	process.env.GOERLI_ARBITRUM_MESSAGE_RELAYER_ADDRESS
+  	"0x209c23DB16298504354112fa4210d368e1d564dA"
   )
 
-  const L2MessageExecutor = await (
-    await hre.ethers.getContractFactory('L2MessageExecutor')
+  let l2MessageExecutorProxyAddress = "0x3769b6aA269995297a539BEd7a463105466733A5";
+
+  const L2MessageExecutorProxy = await (
+    await hre.ethers.getContractFactory('L2MessageExecutorProxy')
   ).connect(l2Wallet)
-  const l2MessageExecutor = L2MessageExecutor.attach(
-  	process.env.GOERLI_ARBITRUM_MESSAGE_EXECUTOR_ADDRESS
+  const l2MessageExecutorProxy = L2MessageExecutorProxy.attach(
+  	l2MessageExecutorProxyAddress
   )
 
   const WETHVaultHandler = await (
@@ -154,7 +156,7 @@ const main = async () => {
   const maxGas = await l1ToL2MessageGasEstimate.estimateRetryableTicketGasLimit(
     {
       from: await l1MessageRelayer.address,
-      to: await l2MessageExecutor.address,
+      to: l2MessageExecutorProxyAddress,
       l2CallValue: 0,
       excessFeeRefundAddress: await l2Wallet.address,
       callValueRefundAddress: await l2Wallet.address,
@@ -170,6 +172,12 @@ const main = async () => {
   console.log(
     `Sending Message to L2 with ${callValue.toString()} callValue for L2 fees:`
   )
+
+  console.log("payLoad ", payLoad);
+  console.log("submissionPriceWei ", submissionPriceWei);
+  console.log("maxGas ", maxGas);
+  console.log("gasPriceBid ", gasPriceBid);
+  console.log("callValue ", callValue);
 
   const setMessageTx = await l1MessageRelayer.relayMessage(
     payLoad,
