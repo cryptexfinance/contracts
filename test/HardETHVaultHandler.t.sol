@@ -12,18 +12,18 @@ import "../contracts/mocks/WETH.sol";
 
 contract ETHVaultHandlerTest is Test {
   // events
-  event NewMinimumTCAP(address indexed _owner, uint256 _minimumTCAP);
+  event NewMinimumMint(address indexed _owner, uint256 _minimumMint);
   event NewMintFee(address indexed _owner, uint256 _mintFee);
   event NewBurnFee(address indexed _owner, uint256 _burnFee);
 
   // Setup
   ETHVaultHandler ethVault;
   Orchestrator orchestrator = new Orchestrator(address(this));
-  TCAP tcap =
-    new TCAP("Total Crypto Market Cap Token", "TCAP", 0, (orchestrator));
+  IndexToken tcap =
+    new IndexToken("Total Crypto Market Cap Token", "TCAP", 0, (orchestrator));
   AggregatorInterfaceTCAP tcapAggregator = new AggregatorInterfaceTCAP();
   AggregatorInterface ethAggregator = new AggregatorInterface();
-  ChainlinkOracle tcapOracle =
+  ChainlinkOracle indexOracle =
     new ChainlinkOracle(address(tcapAggregator), address(this));
   ChainlinkOracle ethOracle =
     new ChainlinkOracle(address(ethAggregator), address(this));
@@ -47,7 +47,7 @@ contract ETHVaultHandlerTest is Test {
       burnFee,
       mintFee,
       liquidationPenalty,
-      address(tcapOracle),
+      address(indexOracle),
       tcap,
       address(weth),
       address(ethOracle),
@@ -56,7 +56,7 @@ contract ETHVaultHandlerTest is Test {
       1 ether
     );
 
-    orchestrator.addTCAPVault(tcap, ethVault);
+    orchestrator.addIndexVault(tcap, ethVault);
   }
 
   function testConstructor_ShouldSetParams_WhenInitialized() public {
@@ -66,13 +66,13 @@ contract ETHVaultHandlerTest is Test {
     assertEq(burnFee, ethVault.burnFee());
     assertEq(burnFee, ethVault.mintFee());
     assertEq(liquidationPenalty, ethVault.liquidationPenalty());
-    assertEq(address(tcapOracle), address(ethVault.tcapOracle()));
-    assertEq(address(tcap), address(ethVault.TCAPToken()));
+    assertEq(address(indexOracle), address(ethVault.indexOracle()));
+    assertEq(address(tcap), address(ethVault.indexToken()));
     assertEq(address(weth), address(ethVault.collateralContract()));
     assertEq(address(ethOracle), address(ethVault.collateralPriceOracle()));
     assertEq(address(ethOracle), address(ethVault.ETHPriceOracle()));
     assertEq(treasury, ethVault.treasury());
-    assertEq(1 ether, ethVault.minimumTCAP());
+    assertEq(1 ether, ethVault.minimumMint());
   }
 
   function testConstructor_ShouldRevert_WhenBurnFeeIsHigh(uint256 _burnFee)
@@ -89,7 +89,7 @@ contract ETHVaultHandlerTest is Test {
       _burnFee,
       mintFee,
       liquidationPenalty,
-      address(tcapOracle),
+      address(indexOracle),
       tcap,
       address(weth),
       address(ethOracle),
@@ -116,7 +116,7 @@ contract ETHVaultHandlerTest is Test {
       burnFee,
       _mintFee,
       liquidationPenalty,
-      address(tcapOracle),
+      address(indexOracle),
       tcap,
       address(weth),
       address(ethOracle),
@@ -147,7 +147,7 @@ contract ETHVaultHandlerTest is Test {
       burnFee,
       mintFee,
       _liquidationPenalty,
-      address(tcapOracle),
+      address(indexOracle),
       tcap,
       address(weth),
       address(ethOracle),
@@ -188,19 +188,19 @@ contract ETHVaultHandlerTest is Test {
     orchestrator.setRatio(ethVault, _ratio);
   }
 
-  function testSetMinimumTCAP_ShouldUpdateValue(uint256 _minimumTCAP) public {
+  function testSetMinimumMint_ShouldUpdateValue(uint256 _minimumMint) public {
     vm.expectRevert("Ownable: caller is not the owner");
-    ethVault.setMinimumTCAP(_minimumTCAP);
+    ethVault.setMinimumMint(_minimumMint);
 
     vm.expectEmit(true, true, true, true);
-    emit NewMinimumTCAP(address(orchestrator), _minimumTCAP);
+    emit NewMinimumMint(address(orchestrator), _minimumMint);
     orchestrator.executeTransaction(
       address(ethVault),
       0,
-      "setMinimumTCAP(uint256)",
-      abi.encode(_minimumTCAP)
+      "setMinimumMint(uint256)",
+      abi.encode(_minimumMint)
     );
-    assertEq(ethVault.minimumTCAP(), _minimumTCAP);
+    assertEq(ethVault.minimumMint(), _minimumMint);
   }
 
   function testMint_ShouldCreateTCAP_WhenFeeIsPaid() public {
@@ -259,7 +259,7 @@ contract ETHVaultHandlerTest is Test {
     orchestrator.executeTransaction(
       address(ethVault),
       0,
-      "setMinimumTCAP(uint256)",
+      "setMinimumMint(uint256)",
       abi.encode(20 ether)
     );
     uint256 fee = ethVault.getMintFee(20 ether);
@@ -284,7 +284,7 @@ contract ETHVaultHandlerTest is Test {
     orchestrator.executeTransaction(
       address(ethVault),
       0,
-      "setMinimumTCAP(uint256)",
+      "setMinimumMint(uint256)",
       abi.encode(30 ether)
     );
 
@@ -310,7 +310,7 @@ contract ETHVaultHandlerTest is Test {
     orchestrator.executeTransaction(
       address(ethVault),
       0,
-      "setMinimumTCAP(uint256)",
+      "setMinimumMint(uint256)",
       abi.encode(1 ether)
     );
     vm.startPrank(user);
@@ -343,7 +343,7 @@ contract ETHVaultHandlerTest is Test {
     orchestrator.executeTransaction(
       address(ethVault),
       0,
-      "setMinimumTCAP(uint256)",
+      "setMinimumMint(uint256)",
       abi.encode(1 ether)
     );
     uint256 mfee = ethVault.getMintFee(_tcapAmount);
@@ -377,7 +377,7 @@ contract ETHVaultHandlerTest is Test {
     orchestrator.executeTransaction(
       address(ethVault),
       0,
-      "setMinimumTCAP(uint256)",
+      "setMinimumMint(uint256)",
       abi.encode(1 ether)
     );
     uint256 mfee = ethVault.getMintFee(_tcapAmount);
@@ -409,7 +409,7 @@ contract ETHVaultHandlerTest is Test {
       return;
     }
 
-    uint256 requiredLiquidation = ethVault.requiredLiquidationTCAP(1);
+    uint256 requiredLiquidation = ethVault.requiredLiquidationIndex(1);
     reward = ethVault.liquidationReward(1);
     uint256 fee = ethVault.getBurnFee(_tcapAmount);
     vm.deal(user2, fee);
@@ -434,7 +434,7 @@ contract ETHVaultHandlerTest is Test {
     orchestrator.executeTransaction(
       address(ethVault),
       0,
-      "setMinimumTCAP(uint256)",
+      "setMinimumMint(uint256)",
       abi.encode(1 ether)
     );
     uint256 mfee = ethVault.getMintFee(_tcapAmount);
@@ -461,7 +461,7 @@ contract ETHVaultHandlerTest is Test {
       return;
     }
 
-    uint256 requiredLiquidation = ethVault.requiredLiquidationTCAP(1);
+    uint256 requiredLiquidation = ethVault.requiredLiquidationIndex(1);
     reward = ethVault.liquidationReward(1);
     uint256 fee = ethVault.getBurnFee(_tcapAmount);
     vm.deal(user2, fee);
@@ -573,7 +573,7 @@ contract ETHVaultHandlerTest is Test {
       return;
     }
     orchestrator.setMintFee(ethVault, _mintFee);
-    uint256 calculatedFee = (ethVault.TCAPPrice() * (_amount) * (_mintFee)) /
+    uint256 calculatedFee = (ethVault.indexPrice() * (_amount) * (_mintFee)) /
       (10000) /
       (ethVault.getOraclePrice(ethOracle));
 
@@ -593,7 +593,7 @@ contract ETHVaultHandlerTest is Test {
       return;
     }
     orchestrator.setBurnFee(ethVault, _burnFee);
-    uint256 calculatedFee = (ethVault.TCAPPrice() * (_amount) * (_burnFee)) /
+    uint256 calculatedFee = (ethVault.indexPrice() * (_amount) * (_burnFee)) /
       (10000) /
       (ethVault.getOraclePrice(ethOracle));
 
@@ -617,7 +617,7 @@ contract ETHVaultHandlerTest is Test {
     orchestrator.setBurnFee(ethVault, _burnFeePercentage * 100);
     // By dividing by 100 in the formula below, we can ensure that fee calculated
     // is the same as the previous version
-    uint256 calculatedFee = (ethVault.TCAPPrice() *
+    uint256 calculatedFee = (ethVault.indexPrice() *
       (_amount) *
       (_burnFeePercentage)) /
       (100) /

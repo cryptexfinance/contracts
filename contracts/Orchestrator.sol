@@ -4,14 +4,14 @@ pragma solidity 0.7.5;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/introspection/ERC165Checker.sol";
 import "./IVaultHandler.sol";
-import "./TCAP.sol";
+import "./IndexToken.sol";
 import "./oracles/ChainlinkOracle.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
- * @title TCAP Orchestrator
+ * @title Cryptex Orchestrator
  * @author Cryptex.finance
- * @notice Orchestrator contract in charge of managing the settings of the vaults, rewards and TCAP token. It acts as the owner of these contracts.
+ * @notice Orchestrator contract in charge of managing the settings of the vaults, rewards and Index token. It acts as the owner of these contracts.
  */
 contract Orchestrator is Ownable {
   /// @dev Enum which saves the available functions to emergency call.
@@ -27,7 +27,7 @@ contract Orchestrator is Ownable {
 
   /** @dev Interface constants*/
   bytes4 private constant _INTERFACE_ID_IVAULT = 0x9e75ab0c;
-  bytes4 private constant _INTERFACE_ID_TCAP = 0xbd115939;
+  bytes4 private constant _INTERFACE_ID_INDEX = 0xbd115939;
   bytes4 private constant _INTERFACE_ID_CHAINLINK_ORACLE = 0x85be402b;
 
   /// @dev tracks which vault was emergency called
@@ -78,13 +78,13 @@ contract Orchestrator is Ownable {
   }
 
   /**
-   * @notice Throws if TCAP Token is not valid
-   * @param _tcap address
+   * @notice Throws if Index Token is not valid
+   * @param _indexToken address
    */
-  modifier validTCAP(TCAP _tcap) {
+  modifier validIndex(IndexToken _indexToken) {
     require(
-      ERC165Checker.supportsInterface(address(_tcap), _INTERFACE_ID_TCAP),
-      "Orchestrator::validTCAP: not a valid TCAP ERC20"
+      ERC165Checker.supportsInterface(address(_indexToken), _INTERFACE_ID_INDEX),
+      "Orchestrator::validIndex: not a valid Index Token"
     );
     _;
   }
@@ -264,67 +264,67 @@ contract Orchestrator is Ownable {
   }
 
   /**
-   * @notice Enables or disables the TCAP Cap
-   * @param _tcap address
+   * @notice Enables or disables the Index Token Cap
+   * @param _indexToken address
    * @param _enable bool
    * @dev Only owner can call it
-   * @dev Validates if _tcap is valid
+   * @dev Validates if _indexToken is valid
    */
-  function enableTCAPCap(TCAP _tcap, bool _enable)
+  function enableIndexCap(IndexToken _indexToken, bool _enable)
     external
     onlyOwner
-    validTCAP(_tcap)
+    validIndex(_indexToken)
   {
-    _tcap.enableCap(_enable);
+    _indexToken.enableCap(_enable);
   }
 
   /**
-   * @notice Sets the TCAP maximum minting value
-   * @param _tcap address
+   * @notice Sets the IndexToken maximum minting value
+   * @param _indexToken address
    * @param _cap uint value
    * @dev Only owner can call it
-   * @dev Validates if _tcap is valid
+   * @dev Validates if _indexToken is valid
    */
-  function setTCAPCap(TCAP _tcap, uint256 _cap)
+  function setIndexCap(IndexToken _indexToken, uint256 _cap)
     external
     onlyOwner
-    validTCAP(_tcap)
+    validIndex(_indexToken)
   {
-    _tcap.setCap(_cap);
+    _indexToken.setCap(_cap);
   }
 
   /**
-   * @notice Adds Vault to TCAP ERC20
-   * @param _tcap address
+   * @notice Adds Vault to Index Token
+   * @param _indexToken address
    * @param _vault address
    * @dev Only owner can call it
-   * @dev Validates if _tcap is valid
+   * @dev Validates if _indexToken is valid
    * @dev Validates if _vault is valid
    */
-  function addTCAPVault(TCAP _tcap, IVaultHandler _vault)
+  function addIndexVault(IndexToken _indexToken, IVaultHandler _vault)
     external
     onlyOwner
-    validTCAP(_tcap)
+    validIndex(_indexToken)
     validVault(_vault)
   {
-    _tcap.addVaultHandler(address(_vault));
+    _indexToken.addVaultHandler(address(_vault));
   }
 
   /**
-   * @notice Removes Vault to TCAP ERC20
-   * @param _tcap address
+   * @notice Removes Vault from Index Token
+   * @param _indexToken address
    * @param _vault address
    * @dev Only owner can call it
-   * @dev Validates if _tcap is valid
+   * @dev Validates if _indexToken is valid
    * @dev Validates if _vault is valid
    */
-  function removeTCAPVault(TCAP _tcap, IVaultHandler _vault)
+  function removeIndexVault(IndexToken _indexToken, IVaultHandler _vault)
     external
     onlyOwner
-    validTCAP(_tcap)
+    validIndex(_indexToken)
     validVault(_vault)
   {
-    _tcap.removeVaultHandler(address(_vault));
+    _indexToken.removeVaultHandler(address(_vault));
   }
 
   /**

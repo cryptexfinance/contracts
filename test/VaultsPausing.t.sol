@@ -21,8 +21,8 @@ contract VaultDisablingTest is Test {
   // Setup
   ETHVaultHandler ethVault;
   Orchestrator orchestrator = new Orchestrator(address(this));
-  TCAP tcap =
-    new TCAP("Total Crypto Market Cap Token", "TCAP", 0, (orchestrator));
+  IndexToken tcap =
+    new IndexToken("Total Crypto Market Cap Token", "TCAP", 0, (orchestrator));
   AggregatorInterfaceTCAP tcapAggregator = new AggregatorInterfaceTCAP();
   AggregatorInterface ethAggregator = new AggregatorInterface();
   ChainlinkOracle tcapOracle =
@@ -58,7 +58,7 @@ contract VaultDisablingTest is Test {
       1 ether
     );
 
-    orchestrator.addTCAPVault(tcap, ethVault);
+    orchestrator.addIndexVault(tcap, ethVault);
   }
 
   function testToggleFunction_ShouldRevert_WhenNotOwner() public {

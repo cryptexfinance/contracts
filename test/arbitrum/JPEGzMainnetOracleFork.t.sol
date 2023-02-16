@@ -5,20 +5,20 @@ pragma abicoder v2;
 import "forge-std/Test.sol";
 import "../../contracts/ETHVaultHandler.sol";
 import "../../contracts/Orchestrator.sol";
-import "../../contracts/TCAP.sol";
+import "../../contracts/IndexToken.sol";
 import "../../contracts/oracles/ChainlinkOracle.sol";
 import "@chainlink/contracts/src/v0.6/interfaces/AggregatorV3Interface.sol";
 
 contract JPEGzMainnetFork is Test {
   // events
-  event NewMinimumTCAP(address indexed _owner, uint256 _minimumTCAP);
+  event NewMinimumMint(address indexed _owner, uint256 _minimumMint);
   event NewMintFee(address indexed _owner, uint256 _mintFee);
   event NewBurnFee(address indexed _owner, uint256 _burnFee);
 
   // Setup
   ETHVaultHandler ethVault;
   Orchestrator orchestrator = new Orchestrator(address(this));
-  TCAP jpegz = new TCAP("JPEGz Token", "JPEGz", 0, (orchestrator));
+  IndexToken jpegz = new IndexToken("JPEGz Token", "JPEGz", 0, (orchestrator));
   AggregatorV3Interface jpegzAggregator =
     AggregatorV3Interface(0x8D0e319eBAA8DF32e088e469062F85abF2eBe599);
   AggregatorV3Interface ethAggregator =
@@ -56,7 +56,7 @@ contract JPEGzMainnetFork is Test {
       0 ether
     );
 
-    orchestrator.addTCAPVault(jpegz, ethVault);
+    orchestrator.addIndexVault(jpegz, ethVault);
   }
 
   function testConstructor_ShouldSetParams_WhenInitialized() public {
@@ -66,13 +66,13 @@ contract JPEGzMainnetFork is Test {
     assertEq(burnFee, ethVault.burnFee());
     assertEq(burnFee, ethVault.mintFee());
     assertEq(liquidationPenalty, ethVault.liquidationPenalty());
-    assertEq(address(jpegzOracle), address(ethVault.tcapOracle()));
-    assertEq(address(jpegz), address(ethVault.TCAPToken()));
+    assertEq(address(jpegzOracle), address(ethVault.indexOracle()));
+    assertEq(address(jpegz), address(ethVault.indexToken()));
     assertEq(address(weth), address(ethVault.collateralContract()));
     assertEq(address(ethOracle), address(ethVault.collateralPriceOracle()));
     assertEq(address(ethOracle), address(ethVault.ETHPriceOracle()));
     assertEq(treasury, ethVault.treasury());
-    assertEq(0 ether, ethVault.minimumTCAP());
+    assertEq(0 ether, ethVault.minimumMint());
   }
 
   function testConstructor_ShouldRevert_WhenBurnFeeIsHigh(uint256 _burnFee)
@@ -172,19 +172,19 @@ contract JPEGzMainnetFork is Test {
     orchestrator.setRatio(ethVault, _ratio);
   }
 
-  function testSetMinimumJGPEZ_ShouldUpdateValue(uint256 _minimumTCAP) public {
+  function testSetMinimumJGPEZ_ShouldUpdateValue(uint256 _minimumMint) public {
     vm.expectRevert("Ownable: caller is not the owner");
-    ethVault.setMinimumTCAP(_minimumTCAP);
+    ethVault.setMinimumMint(_minimumMint);
 
     vm.expectEmit(true, true, true, true);
-    emit NewMinimumTCAP(address(orchestrator), _minimumTCAP);
+    emit NewMinimumMint(address(orchestrator), _minimumMint);
     orchestrator.executeTransaction(
       address(ethVault),
       0,
-      "setMinimumTCAP(uint256)",
-      abi.encode(_minimumTCAP)
+      "setMinimumMint(uint256)",
+      abi.encode(_minimumMint)
     );
-    assertEq(ethVault.minimumTCAP(), _minimumTCAP);
+    assertEq(ethVault.minimumMint(), _minimumMint);
   }
 
   function testMint_ShouldCreateJPEGZ_WhenFeeIsPaid() public {
@@ -248,7 +248,7 @@ contract JPEGzMainnetFork is Test {
     orchestrator.executeTransaction(
       address(ethVault),
       0,
-      "setMinimumTCAP(uint256)",
+      "setMinimumMint(uint256)",
       abi.encode(20 ether)
     );
     uint256 fee = ethVault.getMintFee(20 ether);
@@ -273,7 +273,7 @@ contract JPEGzMainnetFork is Test {
     orchestrator.executeTransaction(
       address(ethVault),
       0,
-      "setMinimumTCAP(uint256)",
+      "setMinimumMint(uint256)",
       abi.encode(30 ether)
     );
 
@@ -297,7 +297,7 @@ contract JPEGzMainnetFork is Test {
     orchestrator.executeTransaction(
       address(ethVault),
       0,
-      "setMinimumTCAP(uint256)",
+      "setMinimumMint(uint256)",
       abi.encode(1 ether)
     );
     vm.startPrank(user);
@@ -336,7 +336,7 @@ contract JPEGzMainnetFork is Test {
     orchestrator.executeTransaction(
       address(ethVault),
       0,
-      "setMinimumTCAP(uint256)",
+      "setMinimumMint(uint256)",
       abi.encode(1 ether)
     );
     uint256 mfee = ethVault.getMintFee(_tcapAmount);
@@ -441,7 +441,7 @@ contract JPEGzMainnetFork is Test {
     //setUp
     vm.assume(_mintFee < 1000);
     orchestrator.setMintFee(ethVault, _mintFee);
-    uint256 calculatedFee = (ethVault.TCAPPrice() * (_amount) * (_mintFee)) /
+    uint256 calculatedFee = (ethVault.indexPrice() * (_amount) * (_mintFee)) /
       (10000) /
       (ethVault.getOraclePrice(ethOracle));
 
@@ -459,7 +459,7 @@ contract JPEGzMainnetFork is Test {
     //setUp
     vm.assume(_burnFee < 1000);
     orchestrator.setBurnFee(ethVault, _burnFee);
-    uint256 calculatedFee = (ethVault.TCAPPrice() * (_amount) * (_burnFee)) /
+    uint256 calculatedFee = (ethVault.indexPrice() * (_amount) * (_burnFee)) /
       (10000) /
       (ethVault.getOraclePrice(ethOracle));
 

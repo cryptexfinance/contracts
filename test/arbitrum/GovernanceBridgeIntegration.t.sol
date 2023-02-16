@@ -20,7 +20,7 @@ import "../../contracts/oracles/ChainlinkOracle.sol";
 import "../../contracts/mocks/AggregatorInterfaceTCAP.sol";
 import "../../contracts/mocks/AggregatorInterface.sol";
 import "../../contracts/mocks/WETH.sol";
-import "../../contracts/TCAP.sol";
+import "../../contracts/IndexToken.sol";
 import "../../contracts/mocks/Greeter.sol";
 import "./mocks/MockInbox.sol";
 
@@ -53,7 +53,7 @@ contract GovernanceBridgeIntegration is Test {
 
   ETHVaultHandler ethVault;
   Orchestrator orchestrator;
-  TCAP tcap;
+  IndexToken tcap;
   AggregatorInterfaceTCAP tcapAggregator;
   AggregatorInterface ethAggregator;
   ChainlinkOracle tcapOracle;
@@ -88,7 +88,7 @@ contract GovernanceBridgeIntegration is Test {
 
     orchestrator = new Orchestrator(user);
     orchestrator.transferOwnership(address(proxy));
-    tcap = new TCAP("Total Crypto Market Cap Token", "TCAP", 0, orchestrator);
+    tcap = new IndexToken("Total Crypto Market Cap Token", "TCAP", 0, orchestrator);
     tcapAggregator = new AggregatorInterfaceTCAP();
     ethAggregator = new AggregatorInterface();
     tcapOracle = new ChainlinkOracle(
@@ -168,7 +168,7 @@ contract GovernanceBridgeIntegration is Test {
 
   function testAddVault() public {
     bytes memory _callData = abi.encodeWithSelector(
-      orchestrator.addTCAPVault.selector,
+      orchestrator.addIndexVault.selector,
       address(tcap),
       address(ethVault)
     );

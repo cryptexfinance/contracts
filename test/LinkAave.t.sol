@@ -4,7 +4,7 @@ pragma solidity 0.7.5;
 import "ds-test/test.sol";
 import "../contracts/ERC20VaultHandler.sol";
 import "../contracts/mocks/AAVE.sol";
-import "../contracts/TCAP.sol";
+import "../contracts/IndexToken.sol";
 
 interface Vm {
   // Set block.timestamp (newTimestamp)
