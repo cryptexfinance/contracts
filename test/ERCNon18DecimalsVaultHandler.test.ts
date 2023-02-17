@@ -57,7 +57,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
       wallet.address,
     ]);
     treasury = await deployContract("BaseTreasury", wallet, [wallet.address]);
-    tCAP = await deployContract("TCAP", wallet, [
+    tCAP = await deployContract("IndexToken", wallet, [
       "TCAP Token",
       "TCAP",
       0,
@@ -140,8 +140,8 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
       0,
     ]);
     // add Vaults
-    await orchestrator.addTCAPVault(tCAP.address, wBTCVaultHandler.address);
-    await orchestrator.addTCAPVault(tCAP.address, DAIVaultHandler.address);
+    await orchestrator.addIndexVault(tCAP.address, wBTCVaultHandler.address);
+    await orchestrator.addIndexVault(tCAP.address, DAIVaultHandler.address);
 
     // Mint tokens
     // 10000 * 10 ** 8
@@ -455,7 +455,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
     );
   });
 
-  it("...should have same requiredLiquidationTCAP when vault ratio goes down", async () => {
+  it("...should have same requiredLiquidationIndex when vault ratio goes down", async () => {
     const USDAmountCollateralToDeposit = BigNumber.from(1000);
     // equivalent in decimals places supported by WBTC
     const btcCollateralAmountDeposit = USDAmountCollateralToDeposit.mul(
@@ -521,9 +521,9 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
     expect(newBTCVaultRatio.toNumber()).to.be.eq(newDAIVaultRatio.toNumber());
 
     const BTCTcapLiquidationAmount =
-      await wBTCVaultHandler.requiredLiquidationTCAP(1);
+      await wBTCVaultHandler.requiredLiquidationIndex(1);
     const DAITcapLiquidationAmount =
-      await DAIVaultHandler.requiredLiquidationTCAP(1);
+      await DAIVaultHandler.requiredLiquidationIndex(1);
 
     expect(BTCTcapLiquidationAmount.toHexString() / 10 ** 18).to.be.closeTo(
       DAITcapLiquidationAmount.toHexString() / 10 ** 18,
@@ -678,9 +678,9 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
     expect(newBTCVaultRatio.toNumber()).to.be.eq(newDAIVaultRatio.toNumber());
 
     const BTCTcapLiquidationAmount =
-      await wBTCVaultHandler.requiredLiquidationTCAP(1);
+      await wBTCVaultHandler.requiredLiquidationIndex(1);
     const DAITcapLiquidationAmount =
-      await DAIVaultHandler.requiredLiquidationTCAP(1);
+      await DAIVaultHandler.requiredLiquidationIndex(1);
 
     expect(BTCTcapLiquidationAmount.toHexString() / 10 ** 18).to.be.closeTo(
       DAITcapLiquidationAmount.toHexString() / 10 ** 18,
@@ -739,7 +739,7 @@ describe("ERC20 Vaults With Non 18 Decimal", async function () {
     expect(newBTCVaultRatio).to.be.below(100);
 
     const BTCTcapLiquidationAmount =
-      await wBTCVaultHandler.requiredLiquidationTCAP(1);
+      await wBTCVaultHandler.requiredLiquidationIndex(1);
 
     const BTCBurnFee = await wBTCVaultHandler.getBurnFee(
       BTCTcapLiquidationAmount

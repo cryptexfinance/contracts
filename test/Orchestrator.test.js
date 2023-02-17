@@ -41,7 +41,7 @@ describe("Orchestrator Contract", async function () {
         expect(orchestratorInstance.address).properAddress;
 
         //TCAP
-        const TCAP = await ethers.getContractFactory("TCAP");
+        const TCAP = await ethers.getContractFactory("IndexToken");
         tcapInstance = await TCAP.deploy(
             "Total Market Cap Token",
             "TCAP",
@@ -292,14 +292,14 @@ describe("Orchestrator Contract", async function () {
         let enableCap = true;
 
         await expect(
-            orchestratorInstance.connect(addr1).enableTCAPCap(tcapInstance.address, false)
+            orchestratorInstance.connect(addr1).enableIndexCap(tcapInstance.address, false)
         ).to.be.revertedWith("Ownable: caller is not the owner");
 
         await expect(
-            orchestratorInstance.enableTCAPCap(ethersProvider.constants.AddressZero, false)
-        ).to.be.revertedWith("Orchestrator::validTCAP: not a valid TCAP ERC20");
+            orchestratorInstance.enableIndexCap(ethersProvider.constants.AddressZero, false)
+        ).to.be.revertedWith("Orchestrator::validIndex: not a valid Index Token");
 
-        await expect(orchestratorInstance.enableTCAPCap(tcapInstance.address, enableCap))
+        await expect(orchestratorInstance.enableIndexCap(tcapInstance.address, enableCap))
             .to.emit(tcapInstance, "NewCapEnabled")
             .withArgs(orchestratorInstance.address, enableCap);
 
@@ -310,14 +310,14 @@ describe("Orchestrator Contract", async function () {
         let tcapCap = 100;
 
         await expect(
-            orchestratorInstance.connect(addr1).setTCAPCap(tcapInstance.address, 0)
+            orchestratorInstance.connect(addr1).setIndexCap(tcapInstance.address, 0)
         ).to.be.revertedWith("Ownable: caller is not the owner");
 
         await expect(
-            orchestratorInstance.setTCAPCap(ethersProvider.constants.AddressZero, 0)
-        ).to.be.revertedWith("Orchestrator::validTCAP: not a valid TCAP ERC20");
+            orchestratorInstance.setIndexCap(ethersProvider.constants.AddressZero, 0)
+        ).to.be.revertedWith("Orchestrator::validIndex: not a valid Index Token");
 
-        await expect(orchestratorInstance.setTCAPCap(tcapInstance.address, tcapCap))
+        await expect(orchestratorInstance.setIndexCap(tcapInstance.address, tcapCap))
             .to.emit(tcapInstance, "NewCap")
             .withArgs(orchestratorInstance.address, tcapCap);
 
@@ -328,21 +328,21 @@ describe("Orchestrator Contract", async function () {
         await expect(
             orchestratorInstance
                 .connect(addr1)
-                .addTCAPVault(tcapInstance.address, ethVaultInstance.address)
+                .addIndexVault(tcapInstance.address, ethVaultInstance.address)
         ).to.be.revertedWith("Ownable: caller is not the owner");
 
         await expect(
-            orchestratorInstance.addTCAPVault(
+            orchestratorInstance.addIndexVault(
                 ethersProvider.constants.AddressZero,
                 ethVaultInstance.address
             )
-        ).to.be.revertedWith("Orchestrator::validTCAP: not a valid TCAP ERC20");
+        ).to.be.revertedWith("Orchestrator::validIndex: not a valid Index Token");
 
         await expect(
-            orchestratorInstance.addTCAPVault(tcapInstance.address, ethersProvider.constants.AddressZero)
+            orchestratorInstance.addIndexVault(tcapInstance.address, ethersProvider.constants.AddressZero)
         ).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
 
-        await expect(orchestratorInstance.addTCAPVault(tcapInstance.address, ethVaultInstance.address))
+        await expect(orchestratorInstance.addIndexVault(tcapInstance.address, ethVaultInstance.address))
             .to.emit(tcapInstance, "VaultHandlerAdded")
             .withArgs(orchestratorInstance.address, ethVaultInstance.address);
 
@@ -353,25 +353,25 @@ describe("Orchestrator Contract", async function () {
         await expect(
             orchestratorInstance
                 .connect(addr1)
-                .removeTCAPVault(tcapInstance.address, ethVaultInstance.address)
+                .removeIndexVault(tcapInstance.address, ethVaultInstance.address)
         ).to.be.revertedWith("Ownable: caller is not the owner");
 
         await expect(
-            orchestratorInstance.removeTCAPVault(
+            orchestratorInstance.removeIndexVault(
                 ethersProvider.constants.AddressZero,
                 ethVaultInstance.address
             )
-        ).to.be.revertedWith("Orchestrator::validTCAP: not a valid TCAP ERC20");
+        ).to.be.revertedWith("Orchestrator::validIndex: not a valid Index Token");
 
         await expect(
-            orchestratorInstance.removeTCAPVault(
+            orchestratorInstance.removeIndexVault(
                 tcapInstance.address,
                 ethersProvider.constants.AddressZero
             )
         ).to.be.revertedWith("Orchestrator::validVault: not a valid vault");
 
         await expect(
-            orchestratorInstance.removeTCAPVault(tcapInstance.address, ethVaultInstance.address)
+            orchestratorInstance.removeIndexVault(tcapInstance.address, ethVaultInstance.address)
         )
             .to.emit(tcapInstance, "VaultHandlerRemoved")
             .withArgs(orchestratorInstance.address, ethVaultInstance.address);
@@ -380,7 +380,7 @@ describe("Orchestrator Contract", async function () {
     });
 
     it("...should allow to execute a custom transaction", async () => {
-        await orchestratorInstance.addTCAPVault(tcapInstance.address, ethVaultInstance.address);
+        await orchestratorInstance.addIndexVault(tcapInstance.address, ethVaultInstance.address);
 
         let currentOwner = await tcapInstance.owner();
         expect(currentOwner).to.eq(orchestratorInstance.address);

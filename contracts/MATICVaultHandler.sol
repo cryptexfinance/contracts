@@ -23,12 +23,12 @@ contract MATICVaultHandler is IVaultHandler {
    * @param _burnFee uint256
    * @param _mintFee uint256
    * @param _liquidationPenalty uint256
-   * @param _tcapOracle address
-   * @param _tcapAddress address
+   * @param _indexOracle address
+   * @param _indexAddress address
    * @param _collateralAddress address
    * @param _collateralOracle address
    * @param _treasury address
-   * @param _minimumTCAP uint256
+   * @param _minimumMint uint256
    */
   constructor(
     Orchestrator _orchestrator,
@@ -37,13 +37,13 @@ contract MATICVaultHandler is IVaultHandler {
     uint256 _burnFee,
     uint256 _mintFee,
     uint256 _liquidationPenalty,
-    address _tcapOracle,
-    TCAP _tcapAddress,
+    address _indexOracle,
+    IndexToken _indexAddress,
     address _collateralAddress,
     address _collateralOracle,
     address _maticOracle,
     address _treasury,
-    uint256 _minimumTCAP
+    uint256 _minimumMint
   )
     IVaultHandler(
       _orchestrator,
@@ -52,13 +52,13 @@ contract MATICVaultHandler is IVaultHandler {
       _burnFee,
       _mintFee,
       _liquidationPenalty,
-      _tcapOracle,
-      _tcapAddress,
+      _indexOracle,
+      _indexAddress,
       _collateralAddress,
       _collateralOracle,
       _maticOracle,
       _treasury,
-      _minimumTCAP
+      _minimumMint
     )
   {}
 

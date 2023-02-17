@@ -223,7 +223,7 @@ describe("Polygon Integration Test", async function () {
       wallet,
       []
     );
-    tCAP = await deployContract("TCAP", wallet, [
+    tCAP = await deployContract("IndexToken", wallet, [
       "TCAP Token",
       "TCAP",
       0,
@@ -258,9 +258,9 @@ describe("Polygon Integration Test", async function () {
 
   it("...Add new vault without Governance", async () => {
     expect(await tCAP.vaultHandlers(wMATICVaultHandler.address)).to.be.false;
-    let ABI = ["function addTCAPVault(address,address)"];
+    let ABI = ["function addIndexVault(address,address)"];
     let iface = new hre.ethers.utils.Interface(ABI);
-    const _data = iface.encodeFunctionData("addTCAPVault", [
+    const _data = iface.encodeFunctionData("addIndexVault", [
       tCAP.address,
       wMATICVaultHandler.address,
     ]);
@@ -327,9 +327,9 @@ describe("Polygon Integration Test", async function () {
 
     expect(await tCAP.vaultHandlers(wMATICVaultHandler.address)).to.be.false;
 
-    let ABI = ["function addTCAPVault(address,address)"];
+    let ABI = ["function addIndexVault(address,address)"];
     let iface = new hre.ethers.utils.Interface(ABI);
-    let _data = iface.encodeFunctionData("addTCAPVault", [
+    let _data = iface.encodeFunctionData("addIndexVault", [
       tCAP.address,
       wMATICVaultHandler.address,
     ]);

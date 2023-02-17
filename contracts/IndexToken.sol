@@ -8,23 +8,23 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./Orchestrator.sol";
 
 /**
- * @title Total Market Cap Token
+ * @title Syntethic Index Token
  * @author Cryptex.finance
- * @notice ERC20 token on the Ethereum Blockchain that provides total exposure to the cryptocurrency sector.
+ * @notice ERC20 token on the Ethereum Blockchain that provides total exposure to a index assets pegged with an Oracle.
  */
-contract TCAP is ERC20, Ownable, IERC165 {
+contract IndexToken is ERC20, Ownable, IERC165 {
   /// @notice Open Zeppelin libraries
   using SafeMath for uint256;
 
-  /// @notice if enabled TCAP can't be minted if the total supply is above or equal the cap value
+  /// @notice if enabled the token can't be minted if the total supply is above or equal the cap value
   bool public capEnabled = false;
 
-  /// @notice Maximum value the total supply of TCAP
+  /// @notice Maximum value the total supply of the token
   uint256 public cap;
 
   /**
    * @notice Address to Vault Handler
-   * @dev Only vault handlers can mint and burn TCAP
+   * @dev Only vault handlers can mint and burn the token
    */
   mapping(address => bool) public vaultHandlers;
 
@@ -40,7 +40,7 @@ contract TCAP is ERC20, Ownable, IERC165 {
    * removeVaultHandler.selector ^
    * approve.selector => 0xbd115939
    */
-  bytes4 private constant _INTERFACE_ID_TCAP = 0xbd115939;
+  bytes4 private constant _INTERFACE_ID_INDEX = 0xbd115939;
 
   /// @dev bytes4(keccak256('supportsInterface(bytes4)')) == 0x01ffc9a7
   bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
@@ -86,7 +86,7 @@ contract TCAP is ERC20, Ownable, IERC165 {
   modifier onlyVault() {
     require(
       vaultHandlers[msg.sender],
-      "TCAP::onlyVault: caller is not a vault"
+      "IndexToken::onlyVault: caller is not a vault"
     );
     _;
   }
@@ -112,7 +112,7 @@ contract TCAP is ERC20, Ownable, IERC165 {
   }
 
   /**
-   * @notice Mints TCAP Tokens
+   * @notice Mints The token
    * @param _account address of the receiver of tokens
    * @param _amount uint of tokens to mint
    * @dev Only vault can call it
@@ -122,7 +122,7 @@ contract TCAP is ERC20, Ownable, IERC165 {
   }
 
   /**
-   * @notice Burns TCAP Tokens
+   * @notice Burns the token
    * @param _account address of the account which is burning tokens.
    * @param _amount uint of tokens to burn
    * @dev Only vault can call it
@@ -132,7 +132,7 @@ contract TCAP is ERC20, Ownable, IERC165 {
   }
 
   /**
-   * @notice Sets maximum value the total supply of TCAP can have
+   * @notice Sets maximum value the total supply of the token can have
    * @param _cap value
    * @dev When capEnabled is true, mint is not allowed to issue tokens that would increase the total supply above or equal the specified capacity.
    * @dev Only owner can call it
@@ -164,7 +164,7 @@ contract TCAP is ERC20, Ownable, IERC165 {
     override
     returns (bool)
   {
-    return (_interfaceId == _INTERFACE_ID_TCAP ||
+    return (_interfaceId == _INTERFACE_ID_INDEX ||
       _interfaceId == _INTERFACE_ID_ERC165);
   }
 
@@ -186,14 +186,14 @@ contract TCAP is ERC20, Ownable, IERC165 {
 
     require(
       _to != address(this),
-      "TCAP::transfer: can't transfer to TCAP contract"
+      "IndexToken::transfer: can't transfer to the Index Token contract"
     );
 
     if (_from == address(0) && capEnabled) {
       // When minting tokens
       require(
         totalSupply().add(_amount) <= cap,
-        "TCAP::Transfer: TCAP cap exceeded"
+        "IndexToken::Transfer: cap exceeded"
       );
     }
   }

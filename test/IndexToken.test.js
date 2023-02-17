@@ -1,7 +1,7 @@
 var expect = require("chai").expect;
 var ethersProvider = require("ethers");
 
-describe("TCAP Token", async function () {
+describe("Index Token", async function () {
     let tcapInstance;
     let orchestratorInstance;
     let [owner, addr1, handler, handler2, guardian] = [];
@@ -30,7 +30,7 @@ describe("TCAP Token", async function () {
         expect(orchestratorInstance.address).properAddress;
 
         let cap = ethers.utils.parseEther("100");
-        const TCAP = await ethers.getContractFactory("TCAP");
+        const TCAP = await ethers.getContractFactory("IndexToken");
         tcapInstance = await TCAP.deploy(
             "Total Market Cap Token",
             "TCAP",
@@ -71,14 +71,14 @@ describe("TCAP Token", async function () {
     it("...shouldn't allow users to mint", async () => {
         const amount = ethersProvider.utils.parseEther("1000000");
         await expect(tcapInstance.mint(accounts[0], amount)).to.be.revertedWith(
-            "TCAP::onlyVault: caller is not a vault"
+            "IndexToken::onlyVault: caller is not a vault"
         );
     });
 
     it("...shouldn't allow users to burn", async () => {
         const amount = ethersProvider.utils.parseEther("1000000");
         await expect(tcapInstance.burn(accounts[1], amount)).to.be.revertedWith(
-            "TCAP::onlyVault: caller is not a vault"
+            "IndexToken::onlyVault: caller is not a vault"
         );
     });
 });

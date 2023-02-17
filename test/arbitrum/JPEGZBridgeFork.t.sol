@@ -5,7 +5,7 @@ pragma abicoder v2;
 import "forge-std/Test.sol";
 import "../../contracts/ETHVaultHandler.sol";
 import "../../contracts/ERC20VaultHandler.sol";
-import "../../contracts/TCAP.sol";
+import "../../contracts/IndexToken.sol";
 import "../../contracts/governance/GovernorBeta.sol";
 import "../../contracts/governance/Timelock.sol";
 import "../../contracts/governance/Ctx.sol";
@@ -42,7 +42,7 @@ contract JPEGZBridgeFork is Test {
     ArbitrumOrchestrator(0x60f5C89C26cd424DF5E8513FDe150D2CA8F0eB9f);
   ArbitrumTreasury treasury =
     ArbitrumTreasury(0x9474B771Fb46E538cfED114Ca816A3e25Bb346CF);
-  TCAP jpegz = TCAP(0xD5536c80191c624F6bFD5590A45b9E93B16DEA97);
+  IndexToken jpegz = IndexToken(0xD5536c80191c624F6bFD5590A45b9E93B16DEA97);
   GovernorBeta governorBeta =
     GovernorBeta(0x874C5D592AfC6803c3DD60d6442357879F196d5b);
   Timelock timeLock = Timelock(0xa54074b2cc0e96a43048d4a68472F7F046aC0DA8);
