@@ -17,6 +17,8 @@ import "../../contracts/arbitrum/L2MessageExecutorProxy.sol";
 import "../../contracts/arbitrum/L2MessageExecutor.sol";
 import "../../contracts/arbitrum/L2AdminProxy.sol";
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
 contract JPEGZBridgeFork is Test {
   enum ProposalState {
     Pending,
@@ -55,6 +57,7 @@ contract JPEGZBridgeFork is Test {
     L2MessageExecutorProxy(0x3769b6aA269995297a539BEd7a463105466733A5);
   L2AdminProxy l2AdminProxy =
     L2AdminProxy(0x7877f3C9c57467b1ad92D27608E706CD277c7817);
+	ERC20 DAI = ERC20(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
   uint256 mainnetFork;
   uint256 arbitrumFork;
 
@@ -324,4 +327,48 @@ contract JPEGZBridgeFork is Test {
     );
     assertEq(uint256(abi.decode(message, (uint8))), 18);
   }
+
+	function testTreasuryETHTransfer() external {
+		vm.selectFork(arbitrumFork);
+		uint256 initialUserBalance = user.balance;
+		uint256 treasuryBalance = address(treasury).balance;
+		if(treasuryBalance == 0) {
+			vm.deal(address(treasury), 100 ether);
+			treasuryBalance = 100 ether;
+		}
+    bytes memory _callData = abi.encodeWithSelector(
+      treasury.retrieveETH.selector,
+      user
+    );
+    bytes memory _payLoad = abi.encode(address(treasury), _callData);
+    createAndExecuteGovernanceMessageExecutorProposal(_payLoad);
+    vm.selectFork(arbitrumFork);
+    assertEq(user.balance, initialUserBalance + treasuryBalance);
+		assertEq(address(treasury).balance, 0);
+	}
+
+	function testTreasuryERC20Transfer() external {
+		vm.selectFork(arbitrumFork);
+		uint256 initialUserBalance = DAI.balanceOf(user);
+		uint256 treasuryBalance = DAI.balanceOf(address(treasury));
+		if(treasuryBalance == 0) {
+			deal({token: address(DAI), to: address(treasury), give: 100 ether});
+			treasuryBalance = 100 ether;
+		}
+		bytes memory _callData = abi.encodeWithSelector(
+      treasury.executeTransaction.selector,
+      address(DAI),
+			0,
+			"transfer(address,uint256)",
+			abi.encode(
+				user,
+				treasuryBalance
+    	)
+    );
+		bytes memory _payLoad = abi.encode(address(treasury), _callData);
+		createAndExecuteGovernanceMessageExecutorProposal(_payLoad);
+		vm.selectFork(arbitrumFork);
+		assertEq(DAI.balanceOf(user), initialUserBalance + treasuryBalance);
+		assertEq(DAI.balanceOf(address(treasury)), 0);
+	}
 }
