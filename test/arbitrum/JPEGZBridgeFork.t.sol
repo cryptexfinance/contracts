@@ -63,8 +63,8 @@ contract JPEGZBridgeFork is Test {
   uint256 arbitrumFork;
 
   function setUp() external {
-    string memory MAINNET_RPC_URL = vm.envString("MAINNET_RPC_URL");
-    string memory ARBITRUM_RPC_URL = vm.envString("ARBITRUM_RPC_URL");
+    string memory MAINNET_RPC_URL = vm.envString("MAINNET_API_URL");
+    string memory ARBITRUM_RPC_URL = vm.envString("ARBITRUM_API_URL");
     mainnetFork = vm.createFork(MAINNET_RPC_URL);
     arbitrumFork = vm.createFork(ARBITRUM_RPC_URL);
     vm.selectFork(mainnetFork);
