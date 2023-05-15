@@ -27,7 +27,8 @@ jobs:
       - name: Install Foundry
         run: |
           curl -L https://foundry.paradigm.xyz | bash
-          source /home/runner/.bashrc && foundryup
+          cat /home/runner/.bashrc
+          foundryup
       - name: Create .env File
         run: cp .env.sample .env
       - name: Set Alchemy Key
