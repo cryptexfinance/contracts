@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ALCHEMY_KEY: ${{ secrets.ALCHEMY_KEY }}
+      MAINNET_API_URL: ${{ secrets.MAINNET_API_URL }}
+      ARBITRUM_API_URL: ${{ secrets.ARBITRUM_API_URL }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -25,7 +27,7 @@ jobs:
       - name: Install Foundry
         run: |
           curl -L https://foundry.paradigm.xyz | bash
-          $HOME/.foundry/bin/foundryup
+          /home/runner/.config/.foundry/bin/foundryup
       - name: Create .env File
         run: cp .env.sample .env
       - name: Set Alchemy Key

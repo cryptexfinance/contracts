@@ -33,7 +33,7 @@ contract JPEGZBridgeFork is Test {
 
   // Setup
   address user = address(0x51);
-  address deployer = 0x9D1A807355056442F878F3bBC22054a0677e7995;
+  address deployer = 0xd322a9876222Dea06a478D4a69B75cb83b81Eb3c;
   address guardian = 0x8705b41F9193f05ba166a1D5C0771E9cB2Ca0aa3;
   address arbitrumInbox = 0x4Dbd4fc535Ac27206064B68FfCf827b0A60BAB3f;
   ETHVaultHandler ethVault =
@@ -57,13 +57,14 @@ contract JPEGZBridgeFork is Test {
     L2MessageExecutorProxy(0x3769b6aA269995297a539BEd7a463105466733A5);
   L2AdminProxy l2AdminProxy =
     L2AdminProxy(0x7877f3C9c57467b1ad92D27608E706CD277c7817);
-	ERC20 DAI = ERC20(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
+  ERC20 DAI = ERC20(0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1);
+  ERC20 ARB = ERC20(0x912CE59144191C1204E64559FE8253a0e49E6548);
   uint256 mainnetFork;
   uint256 arbitrumFork;
 
   function setUp() external {
-    string memory MAINNET_RPC_URL = vm.envString("MAINNET_RPC_URL");
-    string memory ARBITRUM_RPC_URL = vm.envString("ARBITRUM_RPC_URL");
+    string memory MAINNET_RPC_URL = vm.envString("MAINNET_API_URL");
+    string memory ARBITRUM_RPC_URL = vm.envString("ARBITRUM_API_URL");
     mainnetFork = vm.createFork(MAINNET_RPC_URL);
     arbitrumFork = vm.createFork(ARBITRUM_RPC_URL);
     vm.selectFork(mainnetFork);
@@ -328,14 +329,14 @@ contract JPEGZBridgeFork is Test {
     assertEq(uint256(abi.decode(message, (uint8))), 18);
   }
 
-	function testTreasuryETHTransfer() external {
-		vm.selectFork(arbitrumFork);
-		uint256 initialUserBalance = user.balance;
-		uint256 treasuryBalance = address(treasury).balance;
-		if(treasuryBalance == 0) {
-			vm.deal(address(treasury), 100 ether);
-			treasuryBalance = 100 ether;
-		}
+  function testTreasuryETHTransfer() external {
+    vm.selectFork(arbitrumFork);
+    uint256 initialUserBalance = user.balance;
+    uint256 treasuryBalance = address(treasury).balance;
+    if (treasuryBalance == 0) {
+      vm.deal(address(treasury), 100 ether);
+      treasuryBalance = 100 ether;
+    }
     bytes memory _callData = abi.encodeWithSelector(
       treasury.retrieveETH.selector,
       user
@@ -344,31 +345,50 @@ contract JPEGZBridgeFork is Test {
     createAndExecuteGovernanceMessageExecutorProposal(_payLoad);
     vm.selectFork(arbitrumFork);
     assertEq(user.balance, initialUserBalance + treasuryBalance);
-		assertEq(address(treasury).balance, 0);
-	}
+    assertEq(address(treasury).balance, 0);
+  }
 
-	function testTreasuryERC20Transfer() external {
-		vm.selectFork(arbitrumFork);
-		uint256 initialUserBalance = DAI.balanceOf(user);
-		uint256 treasuryBalance = DAI.balanceOf(address(treasury));
-		if(treasuryBalance == 0) {
-			deal({token: address(DAI), to: address(treasury), give: 100 ether});
-			treasuryBalance = 100 ether;
-		}
-		bytes memory _callData = abi.encodeWithSelector(
+  function testTreasuryERC20Transfer() external {
+    vm.selectFork(arbitrumFork);
+    uint256 initialUserBalance = DAI.balanceOf(user);
+    uint256 treasuryBalance = DAI.balanceOf(address(treasury));
+    if (treasuryBalance == 0) {
+      deal({token: address(DAI), to: address(treasury), give: 100 ether});
+      treasuryBalance = 100 ether;
+    }
+    bytes memory _callData = abi.encodeWithSelector(
       treasury.executeTransaction.selector,
       address(DAI),
-			0,
-			"transfer(address,uint256)",
-			abi.encode(
-				user,
-				treasuryBalance
-    	)
+      0,
+      "transfer(address,uint256)",
+      abi.encode(user, treasuryBalance)
     );
-		bytes memory _payLoad = abi.encode(address(treasury), _callData);
-		createAndExecuteGovernanceMessageExecutorProposal(_payLoad);
-		vm.selectFork(arbitrumFork);
-		assertEq(DAI.balanceOf(user), initialUserBalance + treasuryBalance);
-		assertEq(DAI.balanceOf(address(treasury)), 0);
-	}
+    bytes memory _payLoad = abi.encode(address(treasury), _callData);
+    createAndExecuteGovernanceMessageExecutorProposal(_payLoad);
+    vm.selectFork(arbitrumFork);
+    assertEq(DAI.balanceOf(user), initialUserBalance + treasuryBalance);
+    assertEq(DAI.balanceOf(address(treasury)), 0);
+  }
+
+  function testTreasuryArbTransfer() external {
+    vm.selectFork(arbitrumFork);
+    uint256 initialUserBalance = ARB.balanceOf(user);
+    uint256 treasuryBalance = ARB.balanceOf(address(treasury));
+    if (treasuryBalance == 0) {
+      deal({token: address(ARB), to: address(treasury), give: 100 ether});
+      treasuryBalance = 100 ether;
+    }
+    bytes memory _callData = abi.encodeWithSelector(
+      treasury.executeTransaction.selector,
+      address(ARB),
+      0,
+      "transfer(address,uint256)",
+      abi.encode(user, treasuryBalance)
+    );
+    bytes memory _payLoad = abi.encode(address(treasury), _callData);
+    createAndExecuteGovernanceMessageExecutorProposal(_payLoad);
+    vm.selectFork(arbitrumFork);
+    assertEq(ARB.balanceOf(user), initialUserBalance + treasuryBalance);
+    assertEq(ARB.balanceOf(address(treasury)), 0);
+  }
 }
