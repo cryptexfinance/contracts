@@ -99,7 +99,6 @@ async function main() {
 	const l1MessageRelayerAddress = "0x209c23DB16298504354112fa4210d368e1d564dA"
 	const l2MessageExecutorProxyAddress = "0x3769b6aA269995297a539BEd7a463105466733A5"
 	const ArbitrumTreasuryAddress = "0x9474B771Fb46E538cfED114Ca816A3e25Bb346CF"
-	// 	TODO: Verify with cris what the ArbitrumMultisigAddress
 	const ArbitrumMultisigAddress = "0x8705b41F9193f05ba166a1D5C0771E9cB2Ca0aa3"
 	const ARBTokenAddress = "0x912CE59144191C1204E64559FE8253a0e49E6548"
 
@@ -148,7 +147,7 @@ async function main() {
 	const description = "CIP-20: Transfer ARB tokens to create an incentive program"
 	console.log("_".repeat(100))
 	console.log("targets:", targets)
-	console.log("values:", values)
+	console.log("values:", values.toString())
 	console.log("signatures:", signatures)
 	console.log("calldatas:", calldatas)
 	console.log("description:", description)
