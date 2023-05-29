@@ -78,7 +78,7 @@ async function calculateArbitrumRelayerGasParams(
 	console.log("maxGas ", maxGas)
 	console.log("gasPriceBid ", gasPriceBid)
 	console.log("callValue ", callValue)
-	return [submissionPriceWei, maxGas, gasPriceBid, callValue]
+	return [submissionPriceWei, maxGas, gasPriceBid, callValue, calldata]
 }
 
 async function main() {
@@ -124,7 +124,7 @@ async function main() {
 	]);
 	const payLoad = abiCoder.encode(["address", "bytes"], [ArbitrumTreasuryAddress, _calldata])
 
-	const [submissionPriceWei, maxGas, gasPriceBid, callValue] =
+	const [submissionPriceWei, maxGas, gasPriceBid, callValue, calldata] =
 		await calculateArbitrumRelayerGasParams(
 			payLoad,
 			l1Provider,
@@ -140,7 +140,7 @@ async function main() {
 	const calldatas = [
 		abiCoder.encode(
 			["address", "bytes", "uint256", "uint256", "uint256"],
-			[l2MessageExecutorProxyAddress, payLoad, submissionPriceWei, maxGas, gasPriceBid]
+			[l2MessageExecutorProxyAddress, calldata, submissionPriceWei, maxGas, gasPriceBid]
 		),
 	];
 
