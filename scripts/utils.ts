@@ -6,9 +6,10 @@ const ethers = hre.ethers;
 let signer: Signer;
 let governor: Deployment;
 let governorContract: Contract;
+let proposer = "0x4E926f4580A5221D32e8d27D59C0c88F160b620b";
 
 const initialize = async () => {
-	signer = ethers.provider.getSigner("0x8D6F396D210d385033b348bCae9e4f9Ea4e045bD");
+	signer = ethers.provider.getSigner(proposer);
 	governor = await deployments.get("GovernorBeta");
 	governorContract = await ethers.getContractAt("GovernorBeta", governor.address, signer);
 };
@@ -27,13 +28,13 @@ export async function fundMultisign(amount: string) {
 	let vbSigner = ethers.provider.getSigner("0xd8da6bf26964af9d7eed9e03e53415d37aa96045");
 
 	await vbSigner.sendTransaction({
-		to: "0x8D6F396D210d385033b348bCae9e4f9Ea4e045bD",
+		to: proposer,
 		value: ethers.BigNumber.from(amount),
 	});
 
 	await hre.network.provider.request({
 		method: "hardhat_impersonateAccount",
-		params: ["0x8D6F396D210d385033b348bCae9e4f9Ea4e045bD"],
+		params: [proposer],
 	});
 }
 
@@ -50,7 +51,7 @@ export async function createProposal(
 
     let ctx = await deployments.get("Ctx");
     let ctxContract= await ethers.getContractAt("Ctx",ctx.address, signer);
-    const x =  await ctxContract.delegate("0x8D6F396D210d385033b348bCae9e4f9Ea4e045bD");
+    const x =  await ctxContract.delegate(proposer);
     await ethers.provider.send("evm_mine", []);
 
 	console.log("==================Create Proposal==================");
