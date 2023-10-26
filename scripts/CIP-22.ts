@@ -13,13 +13,14 @@ import { BigNumber } from "ethers";
 async function main() {
   const ethers = hre.ethers;
   let multisig = "0xa70b638B70154EdfCbb8DbbBd04900F328F32c35";
+  let ethReceiver = "0x714E5202297d4981839E7F5EE6E6D4641dFF8769"
   let ctxAmount = ethers.utils.parseEther("195625");
   let ethAmount = ethers.utils.parseEther("7.3")
   let ctx = await deployments.get("Ctx");
   let ctxContract = await ethers.getContractAt("Ctx", ctx.address);
 
   const abi = new ethers.utils.AbiCoder();
-  const targets = [multisig, ctx.address];
+  const targets = [ethReceiver, ctx.address];
   const values = [ethAmount, BigNumber.from(0)];
   const signatures = ["", "transfer(address,uint256)"];
   const calldatas = [
@@ -36,8 +37,8 @@ async function main() {
 
   let ctxbalance = await ctxContract.balanceOf(multisig);
   console.log("multisig old CTX balance", ethers.utils.formatEther(ctxbalance));
-  let ethBalance = await ethers.provider.getBalance(multisig);
-  console.log("multisig old ETH balance", ethers.utils.formatEther(ethBalance));
+  let ethBalance = await ethers.provider.getBalance(ethReceiver);
+  console.log("ethReceiver old ETH balance", ethers.utils.formatEther(ethBalance));
   if (hardhatArguments.network === "hardhat") {
     //Fund Multisign with ETH
     await fundMultisign("10000000000000000000");
@@ -62,9 +63,9 @@ async function main() {
       "multisig new CTX balance",
       ethers.utils.formatEther(ctxbalance)
     );
-    ethBalance = await ethers.provider.getBalance(multisig);
+    ethBalance = await ethers.provider.getBalance(ethReceiver);
     console.log(
-      "multisig new ETH balance",
+      "ethReceiver new ETH balance",
       ethers.utils.formatEther(ethBalance)
     );
   }
