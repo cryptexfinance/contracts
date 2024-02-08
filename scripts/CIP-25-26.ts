@@ -12,20 +12,26 @@ import { BigNumber } from "ethers";
 
 async function main() {
   const ethers = hre.ethers;
-  let claimContract = "0xc994129188ca4f3ecc2266a1f2ccd3980a68177c";
+  let claimContract = "0xa026Fa5DF25185101e99F2731F8138262Af9F656";
+  let sssContract = "0x70236b36f86AB4bd557Fe9934E1246537B472918";
   let ctxAmount = ethers.utils.parseEther("50000");
+  let sssAmount = ethers.utils.parseEther("70000");
   let ctx = await deployments.get("Ctx");
   let ctxContract = await ethers.getContractAt("Ctx", ctx.address);
 
   const abi = new ethers.utils.AbiCoder();
-  const targets = [ctx.address];
-  const values = [BigNumber.from(0)];
-  const signatures = ["transfer(address,uint256)"];
+  const targets = [ctx.address, ctx.address];
+  const values = [BigNumber.from(0), BigNumber.from(0)];
+  const signatures = [
+  	"transfer(address,uint256)",
+  	"transfer(address,uint256)"
+  ];
   const calldatas = [
     abi.encode(["address", "uint256"], [claimContract, ctxAmount]),
+    abi.encode(["address", "uint256"], [sssContract, sssAmount])
   ];
   const description =
-    "CIP-25: CTX Retroactive Airdrop Distribution";
+    "CIP-25-26: SSS & CTX Retroactive Airdrop Distribution";
   console.log(targets);
   console.log(values.toString());
   console.log(signatures);
