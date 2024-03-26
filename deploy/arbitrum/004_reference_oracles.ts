@@ -5,13 +5,16 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
     const { deployIfDifferent, log } = deployments;
     const { deployer } = await getNamedAccounts();
 
-    let JPEGZOracle, WETHOracle, DAIOracle;
+    let JPEGZOracle, WETHOracle, DAIOracle, TCAPOracle;
 
     //params
-    const l2MessageExecutorProxy = await deployments.get("L2MessageExecutorProxy");
+    const l2MessageExecutorProxy = await deployments.get(
+      "L2MessageExecutorProxy"
+    );
     const daiAggregator = "0xc5C8E77B397E531B8EC06BFb0048328B30E9eCfB";
     const jpegzAggregator = "0x8D0e319eBAA8DF32e088e469062F85abF2eBe599";
     const ethAggregator = "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612";
+    const tcapAggregator = "0x4763b84cdBc5211B9e0a57D5E39af3B3b2440012";
 
     try {
       DAIOracle = await deployments.get("DAIOracle");
@@ -71,6 +74,26 @@ module.exports = async ({ getNamedAccounts, deployments }: any) => {
       if (deployResult.newlyDeployed) {
         log(
           `Oracle deployed at ${JPEGZOracle.address} for ${deployResult.receipt.gasUsed}`
+        );
+      }
+    }
+    try {
+      TCAPOracle = await deployments.get("TCAPOracle");
+    } catch (error: any) {
+      log(error.message);
+
+      const deployResult = await deployments.deploy("TCAPOracle", {
+        from: deployer,
+        contract: "ChainlinkOracle",
+        skipIfAlreadyDeployed: true,
+        log: true,
+        args: [tcapAggregator, l2MessageExecutorProxy.address],
+      });
+
+      DAIOracle = await deployments.get("TCAPOracle");
+      if (deployResult.newlyDeployed) {
+        log(
+          `Oracle deployed at ${TCAPOracle.address} for ${deployResult.receipt.gasUsed}`
         );
       }
     }
