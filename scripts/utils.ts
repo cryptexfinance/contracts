@@ -6,7 +6,7 @@ const ethers = hre.ethers;
 let signer: Signer;
 let governor: Deployment;
 let governorContract: Contract;
-let proposer = "0x4E926f4580A5221D32e8d27D59C0c88F160b620b";
+let proposer = "0x19C48BDEbE9925Ff78026385Dc2bf2427B136f69";
 
 const initialize = async () => {
 	signer = ethers.provider.getSigner(proposer);
