@@ -1,5 +1,5 @@
 // run with
-// npx hardhat run ./scripts/CIP-30.ts --network hardhat
+// npx hardhat run ./scripts/CIP-31.ts --network hardhat
 import hre, { deployments, network, hardhatArguments } from "hardhat";
 import {
   castVote,
@@ -39,10 +39,10 @@ async function main() {
   console.log(description);
 
   let ctxbalance = await ctxContract.balanceOf(multisigAddress);
-  console.log(" old subDAOMultisig CTX balance", ethers.utils.formatEther(ctxbalance));
+  console.log(" old treasury CTX balance", ethers.utils.formatEther(ctxbalance));
 
   let usdcbalance = await usdcContract.balanceOf(multisigAddress);
-  console.log("old subDAOMultisig CTX balance", usdcbalance/ 10 ** 6);
+  console.log("old treasury CTX balance", usdcbalance/ 10 ** 6);
 
   if (hardhatArguments.network === "hardhat") {
     //Fund Multisign with ETH
@@ -64,10 +64,10 @@ async function main() {
     console.log("==================Check Results==================");
 
     let ctxbalance = await ctxContract.balanceOf(multisigAddress);
-    console.log("new subDAOMultisig CTX balance", ethers.utils.formatEther(ctxbalance));
+    console.log("new treasury CTX balance", ethers.utils.formatEther(ctxbalance));
 
     let usdcBalance = await usdcContract.balanceOf(multisigAddress);
-    console.log("new subDAOMultisig usdcBalance balance", usdcBalance/ 10 ** 6);
+    console.log("new treasury usdcBalance balance", usdcBalance/ 10 ** 6);
   }
 }
 
