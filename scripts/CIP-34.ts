@@ -1,5 +1,5 @@
 // run with
-// npx hardhat run ./scripts/CIP-30.ts --network hardhat
+// npx hardhat run ./scripts/CIP-34.ts --network hardhat
 import hre, { deployments, network, hardhatArguments } from "hardhat";
 import {
   castVote,
@@ -14,29 +14,19 @@ async function main() {
   const ethers = hre.ethers;
   let subDAOMultisigAddress = "0x41187c70eB8eeEfDaEd4ED0bFF20005C53c3a7DD";
 
-  let wintermuteAddress = "0xDbefB887662Ca19CD485381F3386fe5F8537B910";
-
-  let usdcAddress = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
-  let usdcAmount = BigNumber.from("12500000000");
-
   let ctx = await deployments.get("Ctx");
   let ctxContract = await ethers.getContractAt("Ctx", ctx.address);
-  let usdcContract = await ethers.getContractAt("Ctx", usdcAddress);
 
-  let ctxAmount = BigNumber.from("6250000000000000000000");
-
-  let ctxAmountWinterMute = BigNumber.from("25000000000000000000000");
+  let ctxAmount = ethers.utils.parseEther("330000");
 
   const abi = new ethers.utils.AbiCoder();
-  const targets = [usdcAddress, ctx.address, ctx.address];
-  const values = [BigNumber.from(0), BigNumber.from(0), BigNumber.from(0)];
-  const signatures = ["transfer(address,uint256)", "transfer(address,uint256)", "transfer(address,uint256)"];
+  const targets = [ctx.address];
+  const values = [BigNumber.from(0)];
+  const signatures = ["transfer(address,uint256)",];
   const calldatas = [
-    abi.encode(["address", "uint256"], [subDAOMultisigAddress, usdcAmount]),
     abi.encode(["address", "uint256"], [subDAOMultisigAddress, ctxAmount]),
-    abi.encode(["address", "uint256"], [wintermuteAddress, ctxAmountWinterMute]),
   ];
-  const description = "Cryptex Aerodrome Pilot Program && Renewal of WinterMute Loan";
+  const description = "CIP 34: TCAP 2.0 Incentives";
   console.log(targets);
   console.log(values.toString());
   console.log(signatures);
@@ -45,9 +35,6 @@ async function main() {
 
   let ctxbalance = await ctxContract.balanceOf(subDAOMultisigAddress);
   console.log(" old subDAOMultisig CTX balance", ethers.utils.formatEther(ctxbalance));
-
-  let usdcbalance = await usdcContract.balanceOf(subDAOMultisigAddress);
-  console.log("old subDAOMultisig CTX balance", usdcbalance/ 10 ** 6);
 
   if (hardhatArguments.network === "hardhat") {
     //Fund Multisign with ETH
@@ -70,9 +57,6 @@ async function main() {
 
     let ctxbalance = await ctxContract.balanceOf(subDAOMultisigAddress);
     console.log("new subDAOMultisig CTX balance", ethers.utils.formatEther(ctxbalance));
-
-    let usdcBalance = await usdcContract.balanceOf(subDAOMultisigAddress);
-    console.log("new subDAOMultisig usdcBalance balance", usdcBalance/ 10 ** 6);
   }
 }
 
