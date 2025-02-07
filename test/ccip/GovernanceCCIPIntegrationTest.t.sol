@@ -85,7 +85,7 @@ contract GovernanceCCIPIntegrationTest is Test {
     vm.makePersistent(address(governanceRelay));
   }
 
-  function testCrossChainMessageRelayUpdateNumber() public {
+  function testCrossChainMessageRelayUpdateNumber() external {
     // Set up the source chain (Ethereum)
     vm.selectFork(ethereumMainnetForkId);
 
@@ -117,5 +117,45 @@ contract GovernanceCCIPIntegrationTest is Test {
 
     // Check that the number was updated in NumberUpdater
     assertEq(numberUpdater.number(), 42, "Number was not updated correctly");
+  }
+
+  function testTreasuryControl() external {
+    address testAddress = address(0x51);
+    vm.selectFork(polygonMainnetForkId);
+    address cryptexBaseTreasury = deployCode(
+      "CryptexBaseTreasury.sol",
+      abi.encode(address(governanceReceiver))
+    );
+    vm.deal(cryptexBaseTreasury, 10 ether);
+    vm.makePersistent(cryptexBaseTreasury);
+    assertEq(cryptexBaseTreasury.balance, 10 ether);
+    assertEq(testAddress.balance, 0);
+
+    vm.selectFork(ethereumMainnetForkId);
+    address target = cryptexBaseTreasury;
+    bytes memory payload = abi.encodeWithSignature(
+      "retrieveETH(address)",
+      testAddress
+    );
+
+    // Mock the CCIP router's getFee function
+    uint256 fee = 1 ether;
+    vm.mockCall(
+      ethereumMainnetCcipRouterAddress,
+      abi.encodeWithSelector(IRouterClient.getFee.selector),
+      abi.encode(fee)
+    );
+    vm.deal(address(this), fee);
+    vm.expectEmit(true, true, true, true);
+    emit GovernanceCCIPRelay.MessageRelayed(target, payload);
+    governanceRelay.relayMessage{value: fee}(target, payload);
+
+    vm.expectEmit(true, true, true, true);
+    emit GovernanceCCIPReceiver.MessageExecuted(target, payload);
+    ccipLocalSimulatorFork.switchChainAndRouteMessage(polygonMainnetForkId);
+
+    vm.selectFork(polygonMainnetForkId);
+    assertEq(cryptexBaseTreasury.balance, 0);
+    assertEq(testAddress.balance, 10 ether);
   }
 }

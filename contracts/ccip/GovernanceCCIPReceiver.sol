@@ -35,8 +35,6 @@ contract GovernanceCCIPReceiver is CCIPReceiver {
   error TargetAddressCannotBeZero();
   /// @dev Error thrown when the chain selector of the incoming message is invalid.
   error InvalidChainSelector();
-  /// @dev Error thrown when the payload of the incoming message is invalid.
-  error InvalidPayload();
 
   /**
    * @dev Constructor to initialize the BaseGovernanceReceiver contract.
@@ -69,8 +67,6 @@ contract GovernanceCCIPReceiver is CCIPReceiver {
     address messageSender = abi.decode(message.sender, (address));
     if (messageSender != mainnetSender) revert Unauthorized(messageSender);
 
-    // Validate payload length
-    if (message.data.length < 64) revert InvalidPayload();
     // Decode payload
     (address target, bytes memory payload) = abi.decode(
       message.data,
