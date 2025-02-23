@@ -230,6 +230,7 @@ contract GovernanceCCIPIntegrationTest is Test {
     vm.prank(address(timelock));
     bytes32 messageId = governanceRelay.relayMessage{value: fee}(
       polygonMainnetChainSelector,
+      200_000,
       target,
       payload
     );
@@ -276,6 +277,7 @@ contract GovernanceCCIPIntegrationTest is Test {
     vm.prank(address(timelock));
     bytes32 messageId = governanceRelay.relayMessage{value: fee}(
       polygonMainnetChainSelector,
+      200_000,
       target,
       payload
     );
@@ -303,8 +305,13 @@ contract GovernanceCCIPIntegrationTest is Test {
 
     targets[0] = address(governanceRelay);
     values[0] = 1 ether;
-    signatures[0] = "relayMessage(uint64,address,bytes)";
-    calldatas[0] = abi.encode(polygonMainnetChainSelector, target, payload);
+    signatures[0] = "relayMessage(uint64,uint256,address,bytes)";
+    calldatas[0] = abi.encode(
+      polygonMainnetChainSelector,
+      200_000,
+      target,
+      payload
+    );
     assertEq(numberUpdater.number(), 0, "Initial number should be 0");
 
     uint256 fee = 0.1 ether;

@@ -21,6 +21,8 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
   mapping(uint64 => address) public destinationReceivers;
 
   uint64 private constant CCIP_MAINNET_CHAIN_SELECTOR = 5009297550715157269;
+  uint256 constant MIN_GAS_LIMIT = 50_000;
+  uint256 constant MAX_GAS_LIMIT = 10_000_000;
 
   /// @dev Modifier to restrict access to the Timelock contract.
   modifier onlyTimeLock() {
@@ -130,11 +132,17 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
   /// @inheritdoc IGovernanceCCIPRelay
   function relayMessage(
     uint64 destinationChainSelector,
+    uint256 gasLimit,
     address target,
     bytes calldata payload
   ) external payable onlyTimeLock returns (bytes32 messageId) {
     require(target != address(0), AddressCannotBeZero());
     require(payload.length != 0, PayloadCannotBeEmpty());
+    require(gasLimit >= MIN_GAS_LIMIT, GasLimitTooLow(gasLimit, MIN_GAS_LIMIT));
+    require(
+      gasLimit <= MAX_GAS_LIMIT,
+      GasLimitTooHigh(gasLimit, MAX_GAS_LIMIT)
+    );
 
     address destinationReceiver = destinationReceivers[
       destinationChainSelector
@@ -148,7 +156,12 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
       receiver: abi.encode(destinationReceiver),
       data: abi.encode(target, payload),
       tokenAmounts: new Client.EVMTokenAmount[](0),
-      extraArgs: "",
+      extraArgs: Client._argsToBytes(
+        Client.EVMExtraArgsV2({
+          gasLimit: gasLimit,
+          allowOutOfOrderExecution: true
+        })
+      ),
       feeToken: address(0)
     });
 
