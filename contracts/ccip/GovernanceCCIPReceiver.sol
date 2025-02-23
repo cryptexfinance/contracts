@@ -32,6 +32,8 @@ contract GovernanceCCIPReceiver is IGovernanceCCIPReceiver, CCIPReceiver {
     internal
     override
   {
+    bytes32 messageId = message.messageId;
+
     // Validate chain selector
     require(
       message.sourceChainSelector == mainnetChainSelector,
@@ -54,6 +56,6 @@ contract GovernanceCCIPReceiver is IGovernanceCCIPReceiver, CCIPReceiver {
     (bool success, ) = target.call(payload);
     require(success, MessageCallFailed());
 
-    emit MessageExecuted(target, payload);
+    emit MessageExecuted(messageId, target, payload);
   }
 }

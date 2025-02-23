@@ -172,7 +172,7 @@ contract GovernanceCCIPRelayTest is Test {
 
     vm.prank(timelock);
     vm.expectEmit(true, true, true, true);
-    emit IGovernanceCCIPRelay.MessageRelayed(target, payload);
+    emit IGovernanceCCIPRelay.MessageRelayed(bytes32(""), target, payload);
     relay.relayMessage{value: fee}(destinationChainSelector, target, payload);
   }
 

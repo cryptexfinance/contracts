@@ -161,6 +161,7 @@ contract GovernanceCCIPReceiverTest is Test {
     vm.prank(ccipRouter);
     vm.expectEmit(true, true, true, true);
     emit IGovernanceCCIPReceiver.MessageExecuted(
+      bytes32(""),
       address(numberUpdater),
       payload
     );
