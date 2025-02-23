@@ -170,11 +170,15 @@ contract GovernanceCCIPIntegrationTest is Test {
       address(user),
       vm.getNonce(user) + 1
     );
+    uint64[] memory chainSelectors = new uint64[](1);
+    chainSelectors[0] = polygonMainnetChainSelector;
+    address[] memory receivers = new address[](1);
+    receivers[0] = address(governanceReceiver);
     governanceRelay = new GovernanceCCIPRelay(
       timelockComputedAddress,
       ethereumMainnetCcipRouterAddress,
-      polygonMainnetChainSelector,
-      address(governanceReceiver)
+      chainSelectors,
+      receivers
     );
     vm.startPrank(user);
     address ctxAddress = deployCode(
@@ -226,7 +230,11 @@ contract GovernanceCCIPIntegrationTest is Test {
     vm.expectEmit(true, true, true, true);
     emit IGovernanceCCIPRelay.MessageRelayed(target, payload);
     vm.prank(address(timelock));
-    governanceRelay.relayMessage{value: fee}(target, payload);
+    governanceRelay.relayMessage{value: fee}(
+      polygonMainnetChainSelector,
+      target,
+      payload
+    );
 
     // Route the message to Polygon
     vm.expectEmit(true, true, true, true);
@@ -270,7 +278,11 @@ contract GovernanceCCIPIntegrationTest is Test {
     vm.expectEmit(true, true, true, true);
     emit IGovernanceCCIPRelay.MessageRelayed(target, payload);
     vm.prank(address(timelock));
-    governanceRelay.relayMessage{value: fee}(target, payload);
+    governanceRelay.relayMessage{value: fee}(
+      polygonMainnetChainSelector,
+      target,
+      payload
+    );
 
     vm.expectEmit(true, true, true, true);
     emit IGovernanceCCIPReceiver.MessageExecuted(target, payload);
@@ -295,8 +307,8 @@ contract GovernanceCCIPIntegrationTest is Test {
 
     targets[0] = address(governanceRelay);
     values[0] = 1 ether;
-    signatures[0] = "relayMessage(address,bytes)";
-    calldatas[0] = abi.encode(target, payload);
+    signatures[0] = "relayMessage(uint64,address,bytes)";
+    calldatas[0] = abi.encode(polygonMainnetChainSelector, target, payload);
     assertEq(numberUpdater.number(), 0, "Initial number should be 0");
 
     uint256 fee = 0.1 ether;
