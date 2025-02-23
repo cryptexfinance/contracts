@@ -18,10 +18,9 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
   address public immutable timelock;
 
   /// @inheritdoc IGovernanceCCIPRelay
-  address public destinationReceiver;
+  mapping(uint64 => address) public destinationReceivers;
 
-  /// @inheritdoc IGovernanceCCIPRelay
-  uint64 public destinationChainSelector;
+  uint64 private CCIPMainnetChainSelector = 5009297550715157269;
 
   /// @dev Modifier to restrict access to the Timelock contract.
   modifier onlyTimeLock() {
@@ -32,33 +31,86 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
   /// @dev Constructor to initialize the GovernanceRelay contract.
   /// @param _timelock The address of the Timelock contract.
   /// @param _router The address of the CCIP router contract.
-  /// @param _destinationChainSelector The chain selector for the destination chain.
-  /// @param _receiver The address of the receiver contract on the destination chain.
+  /// @param _destinationChainSelectors Array of chain selectors for the destination chains.
+  /// @param _destinationReceivers Array addresses of the receiver contracts on the destination chains.
   constructor(
     address _timelock,
     address _router,
-    uint64 _destinationChainSelector,
-    address _receiver
+    uint64[] memory _destinationChainSelectors,
+    address[] memory _destinationReceivers
   ) {
     ccipRouter = IRouterClient(_router);
     timelock = _timelock;
-    destinationChainSelector = _destinationChainSelector;
-    destinationReceiver = _receiver;
+    _addDestinationChains(_destinationChainSelectors, _destinationReceivers);
   }
 
   /// @inheritdoc IGovernanceCCIPRelay
-  function setDestinationReceiver(address _receiver) external onlyTimeLock {
-    emit DestinationReceiverUpdated(destinationReceiver, _receiver);
-    destinationReceiver = _receiver;
+  function addDestinationChains(
+    uint64[] memory _destinationChainSelectors,
+    address[] memory _destinationReceivers
+  ) external onlyTimeLock {
+    _addDestinationChains(_destinationChainSelectors, _destinationReceivers);
+  }
+
+  function _addDestinationChains(
+    uint64[] memory _destinationChainSelectors,
+    address[] memory _destinationReceivers
+  ) private {
+    uint256 receiversLength = _destinationReceivers.length;
+    require(
+      _destinationChainSelectors.length == receiversLength,
+      ArrayLengthMismatch()
+    );
+
+    for (uint256 i = 0; i < receiversLength; ) {
+      uint64 _destinationChainSelector = _destinationChainSelectors[i];
+      address _destinationReceiver = _destinationReceivers[i];
+
+      require(
+        ccipRouter.isChainSupported(_destinationChainSelector),
+        DestinationChainNotSupported(_destinationChainSelector)
+      );
+
+      require(
+        _destinationChainSelector != CCIPMainnetChainSelector,
+        CannotUseMainnetChainSelector()
+      );
+
+      require(
+        _destinationReceiver != address(0),
+        ReceiverCannotBeZeroAddress()
+      );
+
+      require(
+        destinationReceivers[_destinationChainSelector] == address(0),
+        ChainSelectorAlreadyAssigned(_destinationChainSelector)
+      );
+
+      destinationReceivers[_destinationChainSelector] = _destinationReceiver;
+      emit DestinationChainAdded(
+        _destinationChainSelector,
+        _destinationReceiver
+      );
+
+      unchecked {
+        i++;
+      }
+    }
   }
 
   /// @inheritdoc IGovernanceCCIPRelay
-  function relayMessage(address target, bytes calldata payload)
-    external
-    payable
-    onlyTimeLock
-    returns (bytes32 messageId)
-  {
+  function relayMessage(
+    uint64 destinationChainSelector,
+    address target,
+    bytes calldata payload
+  ) external payable onlyTimeLock returns (bytes32 messageId) {
+    address destinationReceiver = destinationReceivers[
+      destinationChainSelector
+    ];
+    require(
+      destinationReceiver != address(0),
+      DestinationChainIsNotAdded(destinationChainSelector)
+    );
     // Create the CCIP message
     Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
       receiver: abi.encode(destinationReceiver),

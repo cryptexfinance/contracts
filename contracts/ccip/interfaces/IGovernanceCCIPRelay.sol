@@ -8,21 +8,40 @@ import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/
  * @dev Interface for the GovernanceCCIPRelay contract.
  */
 interface IGovernanceCCIPRelay {
-  /// @notice Emitted when the destination receiver is updated.
-  /// @param oldReceiver The previous destination receiver address.
-  /// @param newReceiver The new destination receiver address.
-  event DestinationReceiverUpdated(
-    address indexed oldReceiver,
-    address indexed newReceiver
-  );
-
   /// @notice Emitted when a governance message is relayed.
   /// @param target The target address of the execution.
   /// @param payload The calldata payload executed.
   event MessageRelayed(address indexed target, bytes payload);
 
+  /// @notice Emitted when a new destination chain is added.
+  /// @param chainSelector The CCIP chain selector of the destination chain.
+  /// @param receiver The address of the receiver contract on the destination chain.
+  event DestinationChainAdded(uint64 indexed chainSelector, address receiver);
+
   /// @dev Error thrown when an unauthorized caller tries to execute a restricted function.
   error Unauthorized(address caller);
+
+  /// @dev Error thrown when the destination receiver address is the zero address.
+  error ReceiverCannotBeZeroAddress();
+
+  /// @dev Error thrown when a chain selector is already assigned.
+  /// @param chainSelector The chain selector that is already assigned.
+  error ChainSelectorAlreadyAssigned(uint64 chainSelector);
+
+  /// @dev Error thrown when the provided chain selector is not supported by ccip.
+  /// @param chainSelector The chain selector that is not supported.
+  error DestinationChainNotSupported(uint64 chainSelector);
+
+  /// @dev Thrown when attempting to use the Ethereum Mainnet chain selector as a destination.
+  /// This ensures that governance proposals are not relayed back to the originating chain.
+  error CannotUseMainnetChainSelector();
+
+  /// @dev Error thrown when the provided chain selector is not supported by ccip.
+  /// @param chainSelector The chain selector that is not supported.
+  error DestinationChainIsNotAdded(uint64 chainSelector);
+
+  /// @dev Error thrown when the lengths of input arrays do not match.
+  error ArrayLengthMismatch();
 
   /// @dev Error thrown when there are insufficient funds to cover the CCIP fee.
   error InsufficientFee(uint256 value, uint256 requiredFee);
@@ -38,25 +57,31 @@ interface IGovernanceCCIPRelay {
   /// @return The address of the timelock.
   function timelock() external view returns (address);
 
-  /// @notice Returns the address of the destination receiver contract.
+  /// @notice Returns the address of the destination receiver.
+  /// @param _chainSelector the ccip id of the the destination chain.
   /// @return The address of the destination receiver.
-  function destinationReceiver() external view returns (address);
+  function destinationReceivers(uint64 _chainSelector)
+    external
+    view
+    returns (address);
 
-  /// @notice The chain selector for the destination chain.
-  /// @return The address of the destination chain selector.
-  function destinationChainSelector() external view returns (uint64);
-
-  /// @notice Sets the address of the receiver contract on the destination chain.
-  /// @param _receiver The address of the receiver contract on the destination chain.
+  /// @notice Sets the address of the receiver contracts for the destination chains.
+  /// @param _destinationChainSelectors Array of chain selectors for the destination chains.
+  /// @param _destinationReceivers Array addresses of the receiver contracts on the destination chains.
   /// @dev Only the Timelock contract can call this function.
-  function setDestinationReceiver(address _receiver) external;
+  function addDestinationChains(
+    uint64[] memory _destinationChainSelectors,
+    address[] memory _destinationReceivers
+  ) external;
 
   /// @notice Relays a governance message to the destination chain.
+  /// @param destinationChainSelector The ccip chain selector of the destination chain for the message.
   /// @param target The target address to execute the message on.
   /// @param payload The calldata payload to execute.
   /// @return messageId The unique identifier of the sent message.
-  function relayMessage(address target, bytes calldata payload)
-    external
-    payable
-    returns (bytes32 messageId);
+  function relayMessage(
+    uint64 destinationChainSelector,
+    address target,
+    bytes calldata payload
+  ) external payable returns (bytes32 messageId);
 }

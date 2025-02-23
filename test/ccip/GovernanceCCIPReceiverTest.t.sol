@@ -19,10 +19,7 @@ contract GovernanceCCIPReceiverTest is Test {
 
   function setUp() public {
     // Deploy the GovernanceCCIPReceiver contract
-    receiver = new GovernanceCCIPReceiver(
-      ccipRouter,
-      mainnetSender
-    );
+    receiver = new GovernanceCCIPReceiver(ccipRouter, mainnetSender);
 
     // Deploy an external contract (NumberUpdater) to test execution
     numberUpdater = new NumberUpdater(0);
@@ -158,7 +155,10 @@ contract GovernanceCCIPReceiverTest is Test {
 
     vm.prank(ccipRouter);
     vm.expectEmit(true, true, true, true);
-    emit IGovernanceCCIPReceiver.MessageExecuted(address(numberUpdater), payload);
+    emit IGovernanceCCIPReceiver.MessageExecuted(
+      address(numberUpdater),
+      payload
+    );
     receiver.ccipReceive(message);
   }
 
