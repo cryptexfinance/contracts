@@ -33,6 +33,10 @@ interface IGovernanceCCIPReceiver {
   /// @dev Error thrown when a provided address is the zero address.
   error AddressCannotBeZero();
 
+  /// @dev Thrown when a CCIP message is processed more than once.
+  /// @param messageId The unique identifier of the already processed CCIP message.
+  error MessageAlreadyProcessed(bytes32 messageId);
+
   /// @dev Error thrown when an unauthorized caller tries to execute a restricted function.
   /// @param caller The address of the unauthorized caller.
   error Unauthorized(address caller);
@@ -50,4 +54,14 @@ interface IGovernanceCCIPReceiver {
   /// @notice Returns the chain selector for Ethereum Mainnet.
   /// @return The chain selector for Ethereum Mainnet.
   function MAINNET_CHAIN_SELECTOR() external view returns (uint64);
+
+  /// @notice Checks whether a CCIP message has already been processed.
+  /// @param messageId The unique identifier of the CCIP message.
+  /// @return processed A boolean indicating whether the message has been processed (true) or not (false).
+  function processedMessages(bytes32 messageId) external view returns (bool);
+
+  /// @notice Pauses the contract, preventing further execution of `_ccipReceive`.
+  /// @dev Only the contract owner can call this function. While paused, any function
+  ///      marked with `whenNotPaused` will revert.
+  function pause() external;
 }

@@ -4,25 +4,41 @@ pragma solidity ^0.8.20;
 import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
 import {CCIPReceiver} from "@chainlink/contracts-ccip/src/v0.8/ccip/applications/CCIPReceiver.sol";
 import {IGovernanceCCIPReceiver} from "./interfaces/IGovernanceCCIPReceiver.sol";
+import {Ownable} from "@openzeppelin/contracts-v5/access/Ownable.sol";
+import {Pausable} from "@openzeppelin/contracts-v5/utils/Pausable.sol";
 
 /**
  * @title GovernanceCCIPReceiver
  * @dev A contract for receiving and executing governance proposals from Ethereum Mainnet via CCIP.
  * This contract processes cross-chain messages and executes them on the destination chain.
  */
-contract GovernanceCCIPReceiver is IGovernanceCCIPReceiver, CCIPReceiver {
+contract GovernanceCCIPReceiver is
+  IGovernanceCCIPReceiver,
+  CCIPReceiver,
+  Ownable,
+  Pausable
+{
   /// @inheritdoc IGovernanceCCIPReceiver
   address public immutable MAINNET_SENDER;
 
   /// @inheritdoc IGovernanceCCIPReceiver
   uint64 public constant MAINNET_CHAIN_SELECTOR = 5009297550715157269;
+  mapping(bytes32 => bool) public processedMessages;
 
   /// @dev Constructor to initialize the GovernanceCCIPReceiver contract.
   /// @param _router The address of the CCIP router contract on the destination chain.
   /// @param _sender The address of the mainnet sender.
-  constructor(address _router, address _sender) CCIPReceiver(_router) {
+  constructor(
+    address _router,
+    address _sender,
+    address _owner
+  ) CCIPReceiver(_router) Ownable(_owner) {
     require(_sender != address(0), AddressCannotBeZero());
     MAINNET_SENDER = _sender;
+  }
+
+  function pause() external onlyOwner {
+    _pause();
   }
 
   /// @notice Handles incoming CCIP messages and executes the payload.
@@ -31,8 +47,12 @@ contract GovernanceCCIPReceiver is IGovernanceCCIPReceiver, CCIPReceiver {
   function _ccipReceive(Client.Any2EVMMessage memory message)
     internal
     override
+    whenNotPaused
   {
     bytes32 messageId = message.messageId;
+    // check if message has been processed before
+    require(!processedMessages[messageId], MessageAlreadyProcessed(messageId));
+    processedMessages[messageId] = true;
 
     // Validate chain selector
     require(

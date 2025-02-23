@@ -26,6 +26,7 @@
 		"@chainlink/local": "0.2.3",
 		"@defi-wonderland/smock": "^2.0.7",
 		"@openzeppelin/contracts": "^3.0.1",
+		"@openzeppelin/contracts-v5": "npm:@openzeppelin/contracts@5.2.0",
 		"@typechain/ethers-v5": "^5.0.0",
 		"@types/chai": "^4.2.11",
 		"hardhat-tracer": "^1.0.0-alpha.6",
