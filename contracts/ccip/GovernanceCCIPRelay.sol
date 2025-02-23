@@ -39,6 +39,8 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
     uint64[] memory _destinationChainSelectors,
     address[] memory _destinationReceivers
   ) {
+    require(_timelock != address(0), AddressCannotBeZero());
+    require(_router != address(0), AddressCannotBeZero());
     ccipRouter = IRouterClient(_router);
     timelock = _timelock;
     _addDestinationChains(_destinationChainSelectors, _destinationReceivers);
@@ -104,6 +106,9 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
     address target,
     bytes calldata payload
   ) external payable onlyTimeLock returns (bytes32 messageId) {
+    require(target != address(0), AddressCannotBeZero());
+    require(payload.length != 0, PayloadCannotBeEmpty());
+
     address destinationReceiver = destinationReceivers[
       destinationChainSelector
     ];

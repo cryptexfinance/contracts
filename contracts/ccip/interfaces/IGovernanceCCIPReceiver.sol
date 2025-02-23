@@ -13,6 +13,9 @@ interface IGovernanceCCIPReceiver {
   /// @param payload The payload of the message.
   event MessageExecuted(address indexed target, bytes payload);
 
+	/// @dev Error thrown when a provided address is the zero address.
+	error AddressCannotBeZero();
+
   /// @dev Error thrown when an unauthorized caller tries to execute a restricted function.
   /// @param caller The address of the unauthorized caller.
   error Unauthorized(address caller);

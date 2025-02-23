@@ -18,6 +18,12 @@ interface IGovernanceCCIPRelay {
   /// @param receiver The address of the receiver contract on the destination chain.
   event DestinationChainAdded(uint64 indexed chainSelector, address receiver);
 
+	/// @dev Error thrown when a provided address is the zero address.
+	error AddressCannotBeZero();
+
+	/// @dev Error thrown when payload is empty.
+	error PayloadCannotBeEmpty();
+
   /// @dev Error thrown when an unauthorized caller tries to execute a restricted function.
   error Unauthorized(address caller);
 
