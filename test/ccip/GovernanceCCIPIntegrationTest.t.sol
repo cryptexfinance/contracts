@@ -5,8 +5,8 @@ import {Test, console} from "forge-std/Test.sol";
 import {CCIPLocalSimulatorFork, Register} from "@chainlink/local/src/ccip/CCIPLocalSimulatorFork.sol";
 import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
 import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
-import {GovernanceCCIPRelay} from "contracts/ccip/GovernanceCCIPRelay.sol";
-import {GovernanceCCIPReceiver} from "contracts/ccip/GovernanceCCIPReceiver.sol";
+import {GovernanceCCIPRelay, IGovernanceCCIPRelay} from "contracts/ccip/GovernanceCCIPRelay.sol";
+import {GovernanceCCIPReceiver, IGovernanceCCIPReceiver} from "contracts/ccip/GovernanceCCIPReceiver.sol";
 import {NumberUpdater} from "contracts/mocks/NumberUpdater.sol";
 
 interface IGovernorBeta {
@@ -160,7 +160,6 @@ contract GovernanceCCIPIntegrationTest is Test {
     // Deploy GovernanceReceiver on Polygon
     governanceReceiver = new GovernanceCCIPReceiver(
       polygonMainnetCcipRouterAddress, // Router address
-      ethereumMainnetChainSelector, // Chain selector
       governanceRelayAddress
     );
     vm.makePersistent(address(governanceReceiver));
@@ -225,13 +224,13 @@ contract GovernanceCCIPIntegrationTest is Test {
     // Send the message via GovernanceRelay
     vm.deal(address(timelock), fee); // Fund the contract with enough Ether
     vm.expectEmit(true, true, true, true);
-    emit GovernanceCCIPRelay.MessageRelayed(target, payload);
+    emit IGovernanceCCIPRelay.MessageRelayed(target, payload);
     vm.prank(address(timelock));
     governanceRelay.relayMessage{value: fee}(target, payload);
 
     // Route the message to Polygon
     vm.expectEmit(true, true, true, true);
-    emit GovernanceCCIPReceiver.MessageExecuted(target, payload);
+    emit IGovernanceCCIPReceiver.MessageExecuted(target, payload);
     ccipLocalSimulatorFork.switchChainAndRouteMessage(polygonMainnetForkId);
 
     // Verify the message was received and executed on Polygon
@@ -269,12 +268,12 @@ contract GovernanceCCIPIntegrationTest is Test {
     );
     vm.deal(address(timelock), fee);
     vm.expectEmit(true, true, true, true);
-    emit GovernanceCCIPRelay.MessageRelayed(target, payload);
+    emit IGovernanceCCIPRelay.MessageRelayed(target, payload);
     vm.prank(address(timelock));
     governanceRelay.relayMessage{value: fee}(target, payload);
 
     vm.expectEmit(true, true, true, true);
-    emit GovernanceCCIPReceiver.MessageExecuted(target, payload);
+    emit IGovernanceCCIPReceiver.MessageExecuted(target, payload);
     ccipLocalSimulatorFork.switchChainAndRouteMessage(polygonMainnetForkId);
 
     vm.selectFork(polygonMainnetForkId);

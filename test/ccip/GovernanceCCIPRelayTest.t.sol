@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import {GovernanceCCIPRelay} from "contracts/ccip/GovernanceCCIPRelay.sol";
+import {GovernanceCCIPRelay, IGovernanceCCIPRelay} from "contracts/ccip/GovernanceCCIPRelay.sol";
 import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
 
 contract GovernanceCCIPRelayTest is Test {
@@ -13,9 +13,6 @@ contract GovernanceCCIPRelayTest is Test {
   uint64 public destinationChainSelector = 5009297550715157269;
   address public attacker = address(0x4); // Unauthorized user
   address public recipient = address(0x5); // Recipient for withdrawal
-
-  event DestinationReceiverUpdated(address oldReceiver, address newReceiver);
-  event MessageRelayed(address target, bytes payload);
 
   function setUp() public {
     // Deploy the GovernanceCCIPRelay contract
@@ -63,7 +60,7 @@ contract GovernanceCCIPRelayTest is Test {
     vm.prank(attacker);
     vm.expectRevert(
       abi.encodeWithSelector(
-        GovernanceCCIPRelay.Unauthorized.selector,
+        IGovernanceCCIPRelay.Unauthorized.selector,
         attacker
       )
     );
@@ -74,7 +71,7 @@ contract GovernanceCCIPRelayTest is Test {
   function testSetDestinationReceiverEmitsEvent() public {
     vm.prank(timelock);
     vm.expectEmit(true, true, true, true);
-    emit DestinationReceiverUpdated(destinationReceiver, address(0x6));
+    emit IGovernanceCCIPRelay.DestinationReceiverUpdated(destinationReceiver, address(0x6));
     relay.setDestinationReceiver(address(0x6));
   }
 
@@ -103,7 +100,7 @@ contract GovernanceCCIPRelayTest is Test {
     vm.prank(attacker);
     vm.expectRevert(
       abi.encodeWithSelector(
-        GovernanceCCIPRelay.Unauthorized.selector,
+        IGovernanceCCIPRelay.Unauthorized.selector,
         attacker
       )
     );
@@ -152,7 +149,7 @@ contract GovernanceCCIPRelayTest is Test {
 
     vm.prank(timelock);
     vm.expectEmit(true, true, true, true);
-    emit MessageRelayed(target, payload);
+    emit IGovernanceCCIPRelay.MessageRelayed(target, payload);
     relay.relayMessage{value: fee}(target, payload);
   }
 
@@ -173,7 +170,7 @@ contract GovernanceCCIPRelayTest is Test {
     vm.prank(timelock);
     vm.expectRevert(
       abi.encodeWithSelector(
-        GovernanceCCIPRelay.InsufficientFee.selector,
+        IGovernanceCCIPRelay.InsufficientFee.selector,
         fee - 0.1 ether,
         fee
       )
@@ -204,7 +201,7 @@ contract GovernanceCCIPRelayTest is Test {
     vm.deal(address(relay), 2 ether); // Fund contract
 
     vm.prank(timelock);
-    vm.expectRevert(GovernanceCCIPRelay.WithdrawFailed.selector);
+    vm.expectRevert(IGovernanceCCIPRelay.WithdrawFailed.selector);
     relay.withdraw(payable(nonPayable));
   }
 
@@ -215,7 +212,7 @@ contract GovernanceCCIPRelayTest is Test {
     vm.prank(attacker);
     vm.expectRevert(
       abi.encodeWithSelector(
-        GovernanceCCIPRelay.Unauthorized.selector,
+        IGovernanceCCIPRelay.Unauthorized.selector,
         attacker
       )
     );

@@ -18,6 +18,6 @@ contract CryptexBaseTreasury is BaseTreasury {
   /// @notice renounceOwnership has been disabled so that the contract is never left without a owner
   /// @inheritdoc Proprietor
   function renounceOwnership() public override onlyOwner {
-    revert("ArbitrumTreasury::renounceOwnership: function disabled");
+    revert("CryptexBaseTreasury::renounceOwnership: function disabled");
   }
 }

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import {GovernanceCCIPReceiver} from "contracts/ccip/GovernanceCCIPReceiver.sol";
+import {GovernanceCCIPReceiver, IGovernanceCCIPReceiver} from "contracts/ccip/GovernanceCCIPReceiver.sol";
 import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
 import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
 import {NumberUpdater} from "contracts/mocks/NumberUpdater.sol";
@@ -17,13 +17,10 @@ contract GovernanceCCIPReceiverTest is Test {
   address public target = address(0x4); // Target contract
   address public feeToken = address(0); // Fee token (native asset)
 
-  event MessageExecuted(address target, bytes payload);
-
   function setUp() public {
     // Deploy the GovernanceCCIPReceiver contract
     receiver = new GovernanceCCIPReceiver(
       ccipRouter,
-      mainnetChainSelector,
       mainnetSender
     );
 
@@ -78,7 +75,7 @@ contract GovernanceCCIPReceiverTest is Test {
     vm.prank(ccipRouter);
     vm.expectRevert(
       abi.encodeWithSelector(
-        GovernanceCCIPReceiver.Unauthorized.selector,
+        IGovernanceCCIPReceiver.Unauthorized.selector,
         attacker
       )
     );
@@ -95,7 +92,7 @@ contract GovernanceCCIPReceiverTest is Test {
     );
 
     vm.prank(ccipRouter);
-    vm.expectRevert(GovernanceCCIPReceiver.InvalidChainSelector.selector);
+    vm.expectRevert(IGovernanceCCIPReceiver.InvalidChainSelector.selector);
     receiver.ccipReceive(message);
   }
 
@@ -111,7 +108,7 @@ contract GovernanceCCIPReceiverTest is Test {
     vm.prank(ccipRouter);
     vm.expectRevert(
       abi.encodeWithSelector(
-        GovernanceCCIPReceiver.Unauthorized.selector,
+        IGovernanceCCIPReceiver.Unauthorized.selector,
         attacker
       )
     );
@@ -128,7 +125,7 @@ contract GovernanceCCIPReceiverTest is Test {
     );
 
     vm.prank(ccipRouter);
-    vm.expectRevert(GovernanceCCIPReceiver.TargetAddressCannotBeZero.selector);
+    vm.expectRevert(IGovernanceCCIPReceiver.TargetAddressCannotBeZero.selector);
     receiver.ccipReceive(message);
   }
 
@@ -144,7 +141,7 @@ contract GovernanceCCIPReceiverTest is Test {
     );
 
     vm.prank(ccipRouter);
-    vm.expectRevert(GovernanceCCIPReceiver.MessageCallFailed.selector);
+    vm.expectRevert(IGovernanceCCIPReceiver.MessageCallFailed.selector);
     receiver.ccipReceive(message);
   }
 
@@ -161,7 +158,7 @@ contract GovernanceCCIPReceiverTest is Test {
 
     vm.prank(ccipRouter);
     vm.expectEmit(true, true, true, true);
-    emit MessageExecuted(address(numberUpdater), payload);
+    emit IGovernanceCCIPReceiver.MessageExecuted(address(numberUpdater), payload);
     receiver.ccipReceive(message);
   }
 
