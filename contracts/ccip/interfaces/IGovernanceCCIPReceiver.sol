@@ -12,10 +12,22 @@ interface IGovernanceCCIPReceiver {
   /// @param messageId The ccip message id.
   /// @param target The target address on the destination chain.
   /// @param payload The payload of the message.
-  event MessageExecuted(
+  event MessageExecutedSuccessfully(
     bytes32 indexed messageId,
     address indexed target,
     bytes payload
+  );
+
+  /// @notice Emitted when a message is successfully executed.
+  /// @param messageId The ccip message id.
+  /// @param target The target address on the destination chain.
+  /// @param payload The payload of the message.
+  /// @param _error The error returned by the message call.
+  event MessageExecutionFailed(
+    bytes32 indexed messageId,
+    address indexed target,
+    bytes payload,
+    bytes _error
   );
 
   /// @dev Error thrown when a provided address is the zero address.
@@ -24,9 +36,6 @@ interface IGovernanceCCIPReceiver {
   /// @dev Error thrown when an unauthorized caller tries to execute a restricted function.
   /// @param caller The address of the unauthorized caller.
   error Unauthorized(address caller);
-
-  /// @dev Error thrown when the execution of a message fails.
-  error MessageCallFailed();
 
   /// @dev Error thrown when the target address is zero.
   error TargetAddressCannotBeZero();

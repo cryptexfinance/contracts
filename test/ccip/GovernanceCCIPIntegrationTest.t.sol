@@ -237,7 +237,11 @@ contract GovernanceCCIPIntegrationTest is Test {
 
     // Route the message to Polygon
     vm.expectEmit(true, true, true, true);
-    emit IGovernanceCCIPReceiver.MessageExecuted(messageId, target, payload);
+    emit IGovernanceCCIPReceiver.MessageExecutedSuccessfully(
+      messageId,
+      target,
+      payload
+    );
     ccipLocalSimulatorFork.switchChainAndRouteMessage(polygonMainnetForkId);
 
     // Verify the message was received and executed on Polygon
@@ -283,7 +287,11 @@ contract GovernanceCCIPIntegrationTest is Test {
     );
 
     vm.expectEmit(true, true, true, true);
-    emit IGovernanceCCIPReceiver.MessageExecuted(messageId, target, payload);
+    emit IGovernanceCCIPReceiver.MessageExecutedSuccessfully(
+      messageId,
+      target,
+      payload
+    );
     ccipLocalSimulatorFork.switchChainAndRouteMessage(polygonMainnetForkId);
 
     vm.selectFork(polygonMainnetForkId);

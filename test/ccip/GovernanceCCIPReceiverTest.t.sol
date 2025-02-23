@@ -134,16 +134,22 @@ contract GovernanceCCIPReceiverTest is Test {
   /// @notice Test ccipReceive raises MessageCallFailed when execution fails
   function testCcipReceiveMessageCallFailed() public {
     address nonContract = address(0x9); // Not a contract, will fail execution
-
+    bytes memory payload = abi.encodeWithSignature("nonexistentFunction()");
     Client.Any2EVMMessage memory message = constructMessage(
       nonContract,
-      abi.encodeWithSignature("nonexistentFunction()"),
+      payload,
       mainnetChainSelector,
       mainnetSender
     );
 
     vm.prank(ccipRouter);
-    vm.expectRevert(IGovernanceCCIPReceiver.MessageCallFailed.selector);
+    vm.expectEmit(true, true, true, true);
+    emit IGovernanceCCIPReceiver.MessageExecutionFailed(
+      bytes32(""),
+      nonContract,
+      payload,
+      bytes("")
+    );
     receiver.ccipReceive(message);
   }
 
@@ -160,7 +166,7 @@ contract GovernanceCCIPReceiverTest is Test {
 
     vm.prank(ccipRouter);
     vm.expectEmit(true, true, true, true);
-    emit IGovernanceCCIPReceiver.MessageExecuted(
+    emit IGovernanceCCIPReceiver.MessageExecutedSuccessfully(
       bytes32(""),
       address(numberUpdater),
       payload
