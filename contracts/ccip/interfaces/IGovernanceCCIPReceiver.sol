@@ -9,12 +9,17 @@ import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.s
  */
 interface IGovernanceCCIPReceiver {
   /// @notice Emitted when a message is successfully executed.
+  /// @param messageId The ccip message id.
   /// @param target The target address on the destination chain.
   /// @param payload The payload of the message.
-  event MessageExecuted(address indexed target, bytes payload);
+  event MessageExecuted(
+    bytes32 indexed messageId,
+    address indexed target,
+    bytes payload
+  );
 
-	/// @dev Error thrown when a provided address is the zero address.
-	error AddressCannotBeZero();
+  /// @dev Error thrown when a provided address is the zero address.
+  error AddressCannotBeZero();
 
   /// @dev Error thrown when an unauthorized caller tries to execute a restricted function.
   /// @param caller The address of the unauthorized caller.
