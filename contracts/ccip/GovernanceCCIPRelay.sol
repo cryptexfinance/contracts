@@ -170,6 +170,6 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
       require(success, FailedToRefundEth());
     }
 
-    emit MessageRelayed(target, payload);
+    emit MessageRelayed(messageId, target, payload);
   }
 }

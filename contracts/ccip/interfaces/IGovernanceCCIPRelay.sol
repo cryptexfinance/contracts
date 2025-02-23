@@ -9,9 +9,14 @@ import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/
  */
 interface IGovernanceCCIPRelay {
   /// @notice Emitted when a governance message is relayed.
+  /// @param messageId The ccip message id.
   /// @param target The target address of the execution.
   /// @param payload The calldata payload executed.
-  event MessageRelayed(address indexed target, bytes payload);
+  event MessageRelayed(
+    bytes32 indexed messageId,
+    address indexed target,
+    bytes payload
+  );
 
   /// @notice Emitted when a new destination chain is added.
   /// @param chainSelector The CCIP chain selector of the destination chain.
@@ -31,11 +36,11 @@ interface IGovernanceCCIPRelay {
     address indexed newReceiver
   );
 
-	/// @dev Error thrown when a provided address is the zero address.
-	error AddressCannotBeZero();
+  /// @dev Error thrown when a provided address is the zero address.
+  error AddressCannotBeZero();
 
-	/// @dev Error thrown when payload is empty.
-	error PayloadCannotBeEmpty();
+  /// @dev Error thrown when payload is empty.
+  error PayloadCannotBeEmpty();
 
   /// @dev Error thrown when an unauthorized caller tries to execute a restricted function.
   error Unauthorized(address caller);
