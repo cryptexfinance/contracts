@@ -88,13 +88,4 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
 
     emit MessageRelayed(target, payload);
   }
-
-  /// @dev Fallback function to allow the contract to receive Ether.
-  receive() external payable {}
-
-  /// @inheritdoc IGovernanceCCIPRelay
-  function withdraw(address payable recipient) external onlyTimeLock {
-    (bool success, ) = recipient.call{value: address(this).balance}("");
-    require(success, WithdrawFailed());
-  }
 }

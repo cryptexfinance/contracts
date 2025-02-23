@@ -30,9 +30,6 @@ interface IGovernanceCCIPRelay {
   /// @dev Error thrown when ETH refund to sender fails.
   error FailedToRefundEth();
 
-  /// @dev Error thrown when ETH withdrawal fails.
-  error WithdrawFailed();
-
   /// @notice Returns the address of the CCIP router contract.
   /// @return The address of the CCIP router.
   function CCIP_ROUTER() external view returns (IRouterClient);
@@ -62,8 +59,4 @@ interface IGovernanceCCIPRelay {
     external
     payable
     returns (bytes32 messageId);
-
-  /// @notice Withdraws all ETH from the contract to the specified recipient.
-  /// @param recipient The address to send the withdrawn ETH to.
-  function withdraw(address payable recipient) external;
 }
