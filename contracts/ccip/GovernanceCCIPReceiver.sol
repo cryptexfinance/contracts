@@ -21,6 +21,7 @@ contract GovernanceCCIPReceiver is IGovernanceCCIPReceiver, CCIPReceiver {
   /// @param _router The address of the CCIP router contract on the destination chain.
   /// @param _sender The address of the mainnet sender.
   constructor(address _router, address _sender) CCIPReceiver(_router) {
+    require(_sender != address(0), AddressCannotBeZero());
     mainnetSender = _sender;
   }
 
