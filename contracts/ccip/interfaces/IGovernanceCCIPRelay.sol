@@ -31,6 +31,12 @@ interface IGovernanceCCIPRelay {
     address indexed newReceiver
   );
 
+	/// @dev Error thrown when a provided address is the zero address.
+	error AddressCannotBeZero();
+
+	/// @dev Error thrown when payload is empty.
+	error PayloadCannotBeEmpty();
+
   /// @dev Error thrown when an unauthorized caller tries to execute a restricted function.
   error Unauthorized(address caller);
 

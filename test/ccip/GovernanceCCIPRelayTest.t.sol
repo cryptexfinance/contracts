@@ -74,38 +74,24 @@ contract GovernanceCCIPRelayTest is Test {
     );
   }
 
-  /// @notice Test setDestinationReceiver can update destinationReceiver
-  function testSetDestinationReceiver() public {
-    vm.prank(timelock);
-    relay.setDestinationReceiver(address(0x6));
-    assertEq(
-      relay.destinationReceiver(),
-      address(0x6),
-      "Destination receiver was not updated"
+  function testConstructor_RevertsIfTimelockIsZero() public {
+    vm.expectRevert(IGovernanceCCIPRelay.AddressCannotBeZero.selector);
+    new GovernanceCCIPRelay(
+      address(0),
+      ccipRouter,
+      new uint64[](1),
+      new address[](1)
     );
   }
 
-  /// @notice Test setDestinationReceiver reverts when called by non-timelock
-  function testSetDestinationReceiverUnauthorized() public {
-    vm.prank(attacker);
-    vm.expectRevert(
-      abi.encodeWithSelector(
-        IGovernanceCCIPRelay.Unauthorized.selector,
-        attacker
-      )
+  function testConstructor_RevertsIfRouterIsZero() public {
+    vm.expectRevert(IGovernanceCCIPRelay.AddressCannotBeZero.selector);
+    new GovernanceCCIPRelay(
+      timelock,
+      address(0),
+      new uint64[](1),
+      new address[](1)
     );
-    relay.setDestinationReceiver(address(0x6));
-  }
-
-  /// @notice Test setDestinationReceiver emits DestinationReceiverUpdated event
-  function testSetDestinationReceiverEmitsEvent() public {
-    vm.prank(timelock);
-    vm.expectEmit(true, true, true, true);
-    emit IGovernanceCCIPRelay.DestinationReceiverUpdated(
-      destinationReceiver,
-      address(0x6)
-    );
-    relay.setDestinationReceiver(address(0x6));
   }
 
   /// @notice Test relayMessage for successful execution
@@ -437,5 +423,21 @@ contract GovernanceCCIPRelayTest is Test {
       )
     );
     relay.updateDestinationReceiver(unregisteredChain, newReceiver);
+  }
+
+  function testRelayMessage_RevertsIfTargetIsZero() public {
+    vm.deal(address(timelock), 1 ether);
+    vm.startPrank(timelock);
+    vm.expectRevert(IGovernanceCCIPRelay.AddressCannotBeZero.selector);
+    relay.relayMessage{value: 1}(1, address(0), "0x1234");
+    vm.stopPrank();
+  }
+
+  function testRelayMessage_RevertsIfPayloadIsEmpty() public {
+    vm.deal(address(timelock), 1 ether);
+    vm.startPrank(timelock);
+    vm.expectRevert(IGovernanceCCIPRelay.PayloadCannotBeEmpty.selector);
+    relay.relayMessage{value: 1}(1, address(0xabc), "");
+    vm.stopPrank();
   }
 }

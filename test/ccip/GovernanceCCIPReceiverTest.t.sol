@@ -60,6 +60,11 @@ contract GovernanceCCIPReceiverTest is Test {
     );
   }
 
+  function testConstructor_RevertsIfTimelockIsZero() public {
+    vm.expectRevert(IGovernanceCCIPReceiver.AddressCannotBeZero.selector);
+    new GovernanceCCIPReceiver(ccipRouter, address(0));
+  }
+
   /// @notice Test ccipReceive reverts when called by an address other than the router
   function testCcipReceiveUnauthorizedCaller() public {
     Client.Any2EVMMessage memory message = constructMessage(
