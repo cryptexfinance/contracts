@@ -382,4 +382,54 @@ contract GovernanceCCIPRelayTest is Test {
     );
     relay.addDestinationChains(newChainSelectors, newReceivers);
   }
+
+  function testUpdateDestinationReceiverByTimelock() public {
+    address newReceiver = address(0x10);
+
+    vm.prank(timelock);
+    relay.updateDestinationReceiver(destinationChainSelector, newReceiver);
+
+    assertEq(
+      relay.destinationReceivers(destinationChainSelector),
+      newReceiver,
+      "Receiver update failed"
+    );
+  }
+
+  function testUpdateDestinationReceiverUnauthorized() public {
+    address newReceiver = address(0x10);
+
+    vm.prank(attacker);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernanceCCIPRelay.Unauthorized.selector,
+        attacker
+      )
+    );
+    relay.updateDestinationReceiver(destinationChainSelector, newReceiver);
+  }
+
+  function testUpdateDestinationReceiverRejectsZeroAddress() public {
+    vm.prank(timelock);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernanceCCIPRelay.ReceiverCannotBeZeroAddress.selector
+      )
+    );
+    relay.updateDestinationReceiver(destinationChainSelector, address(0));
+  }
+
+  function testUpdateDestinationReceiverForUnregisteredChain() public {
+    uint64 unregisteredChain = 8888888888888888888; // Not in the relay
+    address newReceiver = address(0x10);
+
+    vm.prank(timelock);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernanceCCIPRelay.DestinationChainIsNotAdded.selector,
+        unregisteredChain
+      )
+    );
+    relay.updateDestinationReceiver(unregisteredChain, newReceiver);
+  }
 }
