@@ -37,8 +37,14 @@ contract GovernanceCCIPReceiver is
     MAINNET_SENDER = _sender;
   }
 
+  /// @inheritdoc IGovernanceCCIPReceiver
   function pause() external onlyOwner {
     _pause();
+  }
+
+  /// @inheritdoc IGovernanceCCIPReceiver
+  function unpause() external onlyOwner {
+    _unpause();
   }
 
   /// @notice Handles incoming CCIP messages and executes the payload.

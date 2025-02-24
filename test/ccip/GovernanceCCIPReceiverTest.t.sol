@@ -260,4 +260,63 @@ contract GovernanceCCIPReceiverTest is Test {
     emit IGovernanceCCIPReceiver.MessageIgnoredWhilePaused(bytes32(""));
     receiver.ccipReceive(message);
   }
+
+  function test_FailsToUnpause_WhenCallerIsNotOwner() public {
+    // Pause the contract first
+    vm.prank(owner);
+    receiver.pause();
+    assertTrue(receiver.paused(), "Contract should be paused");
+
+    // Attempt to unpause with a non-owner account
+    vm.prank(nonOwner);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        Ownable.OwnableUnauthorizedAccount.selector,
+        nonOwner
+      )
+    );
+    receiver.unpause();
+  }
+
+  function test_ContractUnpaused_WhenOwnerCallsUnpause() public {
+    // Pause the contract
+    vm.prank(owner);
+    receiver.pause();
+    assertTrue(receiver.paused(), "Contract should be paused");
+
+    // Unpause the contract
+    vm.prank(owner);
+    receiver.unpause();
+    assertFalse(receiver.paused(), "Contract should be unpaused");
+  }
+
+  function test_CcipReceiveWorks_AfterUnpausing() public {
+    // Pause the contract
+    vm.prank(owner);
+    receiver.pause();
+    assertTrue(receiver.paused(), "Contract should be paused");
+
+    // Unpause the contract
+    vm.prank(owner);
+    receiver.unpause();
+    assertFalse(receiver.paused(), "Contract should be unpaused");
+
+    // Send a message and ensure execution proceeds
+    bytes memory payload = abi.encodeWithSignature("updateNumber(uint256)", 42);
+    Client.Any2EVMMessage memory message = constructMessage(
+      address(numberUpdater),
+      payload,
+      mainnetChainSelector,
+      mainnetSender
+    );
+
+    vm.prank(ccipRouter);
+    receiver.ccipReceive(message);
+
+    assertEq(
+      numberUpdater.number(),
+      42,
+      "ccipReceive should execute after unpausing"
+    );
+  }
 }
