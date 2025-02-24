@@ -256,7 +256,8 @@ contract GovernanceCCIPReceiverTest is Test {
       mainnetSender
     );
     vm.prank(ccipRouter);
-    vm.expectRevert(Pausable.EnforcedPause.selector);
+    vm.expectEmit(true, true, true, true);
+    emit IGovernanceCCIPReceiver.MessageIgnoredWhilePaused(bytes32(""));
     receiver.ccipReceive(message);
   }
 }

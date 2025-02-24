@@ -47,12 +47,16 @@ contract GovernanceCCIPReceiver is
   function _ccipReceive(Client.Any2EVMMessage memory message)
     internal
     override
-    whenNotPaused
   {
     bytes32 messageId = message.messageId;
     // check if message has been processed before
     require(!processedMessages[messageId], MessageAlreadyProcessed(messageId));
     processedMessages[messageId] = true;
+
+    if (paused()) {
+      emit MessageIgnoredWhilePaused(messageId);
+      return;
+    }
 
     // Validate chain selector
     require(
