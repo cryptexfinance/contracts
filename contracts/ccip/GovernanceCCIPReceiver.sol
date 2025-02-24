@@ -53,11 +53,11 @@ contract GovernanceCCIPReceiver is IGovernanceCCIPReceiver, CCIPReceiver {
     require(target != address(0), TargetAddressCannotBeZero());
 
     // Execute payload
-    (bool success, bytes memory _error) = target.call(payload);
+    (bool success, bytes memory failure) = target.call(payload);
     if (success) {
       emit MessageExecutedSuccessfully(messageId, target, payload);
     } else {
-      emit MessageExecutionFailed(messageId, target, payload, _error);
+      emit MessageExecutionFailed(messageId, target, payload, failure);
     }
   }
 }

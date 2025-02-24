@@ -18,16 +18,16 @@ interface IGovernanceCCIPReceiver {
     bytes payload
   );
 
-  /// @notice Emitted when a message is successfully executed.
+  /// @notice Emitted when a message fails to execute.
   /// @param messageId The ccip message id.
   /// @param target The target address on the destination chain.
   /// @param payload The payload of the message.
-  /// @param _error The error returned by the message call.
+  /// @param failure The error returned by the message call.
   event MessageExecutionFailed(
     bytes32 indexed messageId,
     address indexed target,
     bytes payload,
-    bytes _error
+    bytes failure
   );
 
   /// @dev Error thrown when a provided address is the zero address.
