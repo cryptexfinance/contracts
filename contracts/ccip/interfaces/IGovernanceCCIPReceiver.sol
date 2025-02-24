@@ -30,6 +30,10 @@ interface IGovernanceCCIPReceiver {
     bytes _error
   );
 
+  /// @dev Emitted when a CCIP message is ignored because the contract is paused.
+  /// @param messageId The unique identifier of the ignored message.
+  event MessageIgnoredWhilePaused(bytes32 indexed messageId);
+
   /// @dev Error thrown when a provided address is the zero address.
   error AddressCannotBeZero();
 
