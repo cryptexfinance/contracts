@@ -20,7 +20,7 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
   /// @inheritdoc IGovernanceCCIPRelay
   mapping(uint64 => address) public destinationReceivers;
 
-  uint64 private CCIPMainnetChainSelector = 5009297550715157269;
+  uint64 private constant CCIP_MAINNET_CHAIN_SELECTOR = 5009297550715157269;
 
   /// @dev Modifier to restrict access to the Timelock contract.
   modifier onlyTimeLock() {
@@ -72,7 +72,7 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
       );
 
       require(
-        _destinationChainSelector != CCIPMainnetChainSelector,
+        _destinationChainSelector != CCIP_MAINNET_CHAIN_SELECTOR,
         CannotUseMainnetChainSelector()
       );
 
@@ -96,6 +96,32 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
         i++;
       }
     }
+  }
+
+  /// @inheritdoc IGovernanceCCIPRelay
+  function updateDestinationReceiver(
+    uint64 _destinationChainSelector,
+    address _destinationReceiver
+  ) external onlyTimeLock {
+    address oldDestinationReceiver = destinationReceivers[
+      _destinationChainSelector
+    ];
+
+    require(
+      oldDestinationReceiver != address(0),
+      DestinationChainIsNotAdded(_destinationChainSelector)
+    );
+    require(_destinationReceiver != address(0), ReceiverCannotBeZeroAddress());
+    require(
+      oldDestinationReceiver != _destinationReceiver,
+      ReceiverUnchanged()
+    );
+
+    destinationReceivers[_destinationChainSelector] = _destinationReceiver;
+    emit DestinationReceiverUpdated(
+      oldDestinationReceiver,
+      _destinationReceiver
+    );
   }
 
   /// @inheritdoc IGovernanceCCIPRelay

@@ -16,7 +16,18 @@ interface IGovernanceCCIPRelay {
   /// @notice Emitted when a new destination chain is added.
   /// @param chainSelector The CCIP chain selector of the destination chain.
   /// @param receiver The address of the receiver contract on the destination chain.
-  event DestinationChainAdded(uint64 indexed chainSelector, address receiver);
+  event DestinationChainAdded(
+    uint64 indexed chainSelector,
+    address indexed receiver
+  );
+
+  /// @notice Emitted when the destination receiver is updated.
+  /// @param oldReceiver The previous destination receiver address.
+  /// @param newReceiver The new destination receiver address.
+  event DestinationReceiverUpdated(
+    address indexed oldReceiver,
+    address indexed newReceiver
+  );
 
   /// @dev Error thrown when an unauthorized caller tries to execute a restricted function.
   error Unauthorized(address caller);
@@ -49,6 +60,9 @@ interface IGovernanceCCIPRelay {
   /// @dev Error thrown when ETH refund to sender fails.
   error FailedToRefundEth();
 
+  /// @dev Error thrown when attempting to set the destination receiver to the same address as the current one.
+  error ReceiverUnchanged();
+
   /// @notice Returns the address of the CCIP router contract.
   /// @return The address of the CCIP router.
   function ccipRouter() external view returns (IRouterClient);
@@ -72,6 +86,14 @@ interface IGovernanceCCIPRelay {
   function addDestinationChains(
     uint64[] memory _destinationChainSelectors,
     address[] memory _destinationReceivers
+  ) external;
+
+  /// @notice Updates the destination receiver for a specific chain selector, if it has been previously added.
+  /// @param _destinationChainSelector The chain selector for which the receiver is being updated.
+  /// @param _destinationReceiver The new address of the destination receiver.
+  function updateDestinationReceiver(
+    uint64 _destinationChainSelector,
+    address _destinationReceiver
   ) external;
 
   /// @notice Relays a governance message to the destination chain.
