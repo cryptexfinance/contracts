@@ -35,7 +35,7 @@ interface IGovernanceCCIPRelay {
 
   /// @notice Returns the address of the CCIP router contract.
   /// @return The address of the CCIP router.
-  function ccipRouter() external view returns (IRouterClient);
+  function CCIP_ROUTER() external view returns (IRouterClient);
 
   /// @notice Returns the address of the timelock contract.
   /// @return The address of the timelock.

@@ -12,7 +12,7 @@ import {IGovernanceCCIPRelay} from "./interfaces/IGovernanceCCIPRelay.sol";
  */
 contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
   /// @inheritdoc IGovernanceCCIPRelay
-  IRouterClient public immutable ccipRouter;
+  IRouterClient public immutable CCIP_ROUTER;
 
   /// @inheritdoc IGovernanceCCIPRelay
   address public immutable TIMELOCK;
@@ -40,7 +40,7 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
     uint64 _destinationChainSelector,
     address _receiver
   ) {
-    ccipRouter = IRouterClient(_router);
+    CCIP_ROUTER = IRouterClient(_router);
     TIMELOCK = _timelock;
     destinationChainSelector = _destinationChainSelector;
     destinationReceiver = _receiver;
@@ -70,11 +70,11 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
 
     // Calculate the required fee
     uint256 msgValue = msg.value;
-    uint256 fee = ccipRouter.getFee(destinationChainSelector, message);
+    uint256 fee = CCIP_ROUTER.getFee(destinationChainSelector, message);
     require(msgValue >= fee, InsufficientFee(msg.value, fee));
 
     // Send the message via CCIP
-    messageId = ccipRouter.ccipSend{value: fee}(
+    messageId = CCIP_ROUTER.ccipSend{value: fee}(
       destinationChainSelector,
       message
     );

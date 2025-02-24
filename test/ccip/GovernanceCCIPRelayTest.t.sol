@@ -28,7 +28,7 @@ contract GovernanceCCIPRelayTest is Test {
   function testConstructorSetsArgumentsCorrectly() public {
     assertEq(relay.TIMELOCK(), timelock, "Timelock address mismatch");
     assertEq(
-      address(relay.ccipRouter()),
+      address(relay.CCIP_ROUTER()),
       ccipRouter,
       "Router address mismatch"
     );
