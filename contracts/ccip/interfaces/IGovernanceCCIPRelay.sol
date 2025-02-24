@@ -22,9 +22,11 @@ interface IGovernanceCCIPRelay {
   );
 
   /// @notice Emitted when the destination receiver is updated.
+  /// @param chainSelector The CCIP chain selector of the destination chain.
   /// @param oldReceiver The previous destination receiver address.
   /// @param newReceiver The new destination receiver address.
   event DestinationReceiverUpdated(
+    uint64 indexed chainSelector,
     address indexed oldReceiver,
     address indexed newReceiver
   );

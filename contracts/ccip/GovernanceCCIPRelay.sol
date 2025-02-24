@@ -120,6 +120,7 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
 
     destinationReceivers[_destinationChainSelector] = _destinationReceiver;
     emit DestinationReceiverUpdated(
+      _destinationChainSelector,
       oldDestinationReceiver,
       _destinationReceiver
     );

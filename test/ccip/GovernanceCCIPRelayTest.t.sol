@@ -387,6 +387,12 @@ contract GovernanceCCIPRelayTest is Test {
     address newReceiver = address(0x10);
 
     vm.prank(timelock);
+    vm.expectEmit(true, true, true, true);
+    emit IGovernanceCCIPRelay.DestinationReceiverUpdated(
+      destinationChainSelector,
+      destinationReceiver,
+      newReceiver
+    );
     relay.updateDestinationReceiver(destinationChainSelector, newReceiver);
 
     assertEq(
