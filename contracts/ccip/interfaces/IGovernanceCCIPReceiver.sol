@@ -28,9 +28,9 @@ interface IGovernanceCCIPReceiver {
 
   /// @notice Returns the address of the sender contract on Ethereum Mainnet.
   /// @return The address of the mainnet sender.
-  function mainnetSender() external view returns (address);
+  function MAINNET_SENDER() external view returns (address);
 
   /// @notice Returns the chain selector for Ethereum Mainnet.
   /// @return The chain selector for Ethereum Mainnet.
-  function mainnetChainSelector() external view returns (uint64);
+  function MAINNET_CHAIN_SELECTOR() external view returns (uint64);
 }

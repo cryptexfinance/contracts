@@ -19,10 +19,7 @@ contract GovernanceCCIPReceiverTest is Test {
 
   function setUp() public {
     // Deploy the GovernanceCCIPReceiver contract
-    receiver = new GovernanceCCIPReceiver(
-      ccipRouter,
-      mainnetSender
-    );
+    receiver = new GovernanceCCIPReceiver(ccipRouter, mainnetSender);
 
     // Deploy an external contract (NumberUpdater) to test execution
     numberUpdater = new NumberUpdater(0);
@@ -52,12 +49,12 @@ contract GovernanceCCIPReceiverTest is Test {
   function testConstructorSetsArgumentsCorrectly() public {
     assertEq(receiver.getRouter(), ccipRouter, "Router address mismatch");
     assertEq(
-      receiver.mainnetChainSelector(),
+      receiver.MAINNET_CHAIN_SELECTOR(),
       mainnetChainSelector,
       "Chain selector mismatch"
     );
     assertEq(
-      receiver.mainnetSender(),
+      receiver.MAINNET_SENDER(),
       mainnetSender,
       "Mainnet sender mismatch"
     );
@@ -158,7 +155,10 @@ contract GovernanceCCIPReceiverTest is Test {
 
     vm.prank(ccipRouter);
     vm.expectEmit(true, true, true, true);
-    emit IGovernanceCCIPReceiver.MessageExecuted(address(numberUpdater), payload);
+    emit IGovernanceCCIPReceiver.MessageExecuted(
+      address(numberUpdater),
+      payload
+    );
     receiver.ccipReceive(message);
   }
 

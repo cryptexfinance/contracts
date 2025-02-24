@@ -6,7 +6,7 @@ import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.s
 import {IGovernanceCCIPRelay} from "./interfaces/IGovernanceCCIPRelay.sol";
 
 /**
- * @title GovernanceRelay
+ * @title GovernanceCCIPRelay
  * @dev A contract for relaying governance proposals from Ethereum Mainnet to Destination Chain using CCIP.
  * This contract allows the Timelock contract to send cross-chain messages to a receiver contract on the destination chain..
  */
@@ -15,7 +15,7 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
   IRouterClient public immutable ccipRouter;
 
   /// @inheritdoc IGovernanceCCIPRelay
-  address public immutable timelock;
+  address public immutable TIMELOCK;
 
   /// @inheritdoc IGovernanceCCIPRelay
   address public destinationReceiver;
@@ -25,11 +25,11 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
 
   /// @dev Modifier to restrict access to the Timelock contract.
   modifier onlyTimeLock() {
-    require(msg.sender == address(timelock), Unauthorized(msg.sender));
+    require(msg.sender == TIMELOCK, Unauthorized(msg.sender));
     _;
   }
 
-  /// @dev Constructor to initialize the GovernanceRelay contract.
+  /// @dev Constructor to initialize the GovernanceCCIPRelay contract.
   /// @param _timelock The address of the Timelock contract.
   /// @param _router The address of the CCIP router contract.
   /// @param _destinationChainSelector The chain selector for the destination chain.
@@ -41,7 +41,7 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
     address _receiver
   ) {
     ccipRouter = IRouterClient(_router);
-    timelock = _timelock;
+    TIMELOCK = _timelock;
     destinationChainSelector = _destinationChainSelector;
     destinationReceiver = _receiver;
   }

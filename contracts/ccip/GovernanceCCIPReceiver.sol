@@ -6,22 +6,22 @@ import {CCIPReceiver} from "@chainlink/contracts-ccip/src/v0.8/ccip/applications
 import {IGovernanceCCIPReceiver} from "./interfaces/IGovernanceCCIPReceiver.sol";
 
 /**
- * @title GovernanceReceiver
+ * @title GovernanceCCIPReceiver
  * @dev A contract for receiving and executing governance proposals from Ethereum Mainnet via CCIP.
  * This contract processes cross-chain messages and executes them on the destination chain.
  */
 contract GovernanceCCIPReceiver is IGovernanceCCIPReceiver, CCIPReceiver {
   /// @inheritdoc IGovernanceCCIPReceiver
-  address public immutable mainnetSender;
+  address public immutable MAINNET_SENDER;
 
   /// @inheritdoc IGovernanceCCIPReceiver
-  uint64 public constant mainnetChainSelector = 5009297550715157269;
+  uint64 public constant MAINNET_CHAIN_SELECTOR = 5009297550715157269;
 
-  /// @dev Constructor to initialize the BaseGovernanceReceiver contract.
+  /// @dev Constructor to initialize the GovernanceCCIPReceiver contract.
   /// @param _router The address of the CCIP router contract on the destination chain.
   /// @param _sender The address of the mainnet sender.
   constructor(address _router, address _sender) CCIPReceiver(_router) {
-    mainnetSender = _sender;
+    MAINNET_SENDER = _sender;
   }
 
   /// @notice Handles incoming CCIP messages and executes the payload.
@@ -33,13 +33,13 @@ contract GovernanceCCIPReceiver is IGovernanceCCIPReceiver, CCIPReceiver {
   {
     // Validate chain selector
     require(
-      message.sourceChainSelector == mainnetChainSelector,
+      message.sourceChainSelector == MAINNET_CHAIN_SELECTOR,
       InvalidChainSelector()
     );
 
     // Validate sender
     address messageSender = abi.decode(message.sender, (address));
-    require(messageSender == mainnetSender, Unauthorized(messageSender));
+    require(messageSender == MAINNET_SENDER, Unauthorized(messageSender));
 
     // Decode payload
     (address target, bytes memory payload) = abi.decode(

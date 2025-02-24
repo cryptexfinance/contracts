@@ -26,7 +26,7 @@ contract GovernanceCCIPRelayTest is Test {
 
   /// @notice Test constructor arguments are set correctly
   function testConstructorSetsArgumentsCorrectly() public {
-    assertEq(relay.timelock(), timelock, "Timelock address mismatch");
+    assertEq(relay.TIMELOCK(), timelock, "Timelock address mismatch");
     assertEq(
       address(relay.ccipRouter()),
       ccipRouter,
@@ -71,7 +71,10 @@ contract GovernanceCCIPRelayTest is Test {
   function testSetDestinationReceiverEmitsEvent() public {
     vm.prank(timelock);
     vm.expectEmit(true, true, true, true);
-    emit IGovernanceCCIPRelay.DestinationReceiverUpdated(destinationReceiver, address(0x6));
+    emit IGovernanceCCIPRelay.DestinationReceiverUpdated(
+      destinationReceiver,
+      address(0x6)
+    );
     relay.setDestinationReceiver(address(0x6));
   }
 

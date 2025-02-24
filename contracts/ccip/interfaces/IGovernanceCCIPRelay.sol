@@ -39,7 +39,7 @@ interface IGovernanceCCIPRelay {
 
   /// @notice Returns the address of the timelock contract.
   /// @return The address of the timelock.
-  function timelock() external view returns (address);
+  function TIMELOCK() external view returns (address);
 
   /// @notice Returns the address of the destination receiver contract.
   /// @return The address of the destination receiver.
