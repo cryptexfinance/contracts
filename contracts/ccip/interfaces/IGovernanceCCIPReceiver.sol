@@ -68,4 +68,8 @@ interface IGovernanceCCIPReceiver {
   /// @dev Only the contract owner can call this function. While paused, any function
   ///      marked with `whenNotPaused` will revert.
   function pause() external;
+
+  /// @notice UnPauses the contract that was previously paused.
+  /// @dev Only the contract owner can call this function.
+  function unpause() external;
 }
