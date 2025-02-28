@@ -115,6 +115,7 @@ contract GovernanceCCIPIntegrationTest is Test {
   ITimelock public timelock;
 
   address public user = address(0x51);
+  address public owner = address(0x52);
   address linkTokenMainnet = 0x514910771AF9Ca656af840dff83E8264EcF986CA;
   address wethTokenMainet = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
@@ -160,7 +161,8 @@ contract GovernanceCCIPIntegrationTest is Test {
     // Deploy GovernanceReceiver on Polygon
     governanceReceiver = new GovernanceCCIPReceiver(
       polygonMainnetCcipRouterAddress, // Router address
-      governanceRelayAddress
+      governanceRelayAddress,
+      owner
     );
     vm.makePersistent(address(governanceReceiver));
 
@@ -237,7 +239,11 @@ contract GovernanceCCIPIntegrationTest is Test {
 
     // Route the message to Polygon
     vm.expectEmit(true, true, true, true);
-    emit IGovernanceCCIPReceiver.MessageExecuted(messageId, target, payload);
+    emit IGovernanceCCIPReceiver.MessageExecutedSuccessfully(
+      messageId,
+      target,
+      payload
+    );
     ccipLocalSimulatorFork.switchChainAndRouteMessage(polygonMainnetForkId);
 
     // Verify the message was received and executed on Polygon
@@ -283,7 +289,11 @@ contract GovernanceCCIPIntegrationTest is Test {
     );
 
     vm.expectEmit(true, true, true, true);
-    emit IGovernanceCCIPReceiver.MessageExecuted(messageId, target, payload);
+    emit IGovernanceCCIPReceiver.MessageExecutedSuccessfully(
+      messageId,
+      target,
+      payload
+    );
     ccipLocalSimulatorFork.switchChainAndRouteMessage(polygonMainnetForkId);
 
     vm.selectFork(polygonMainnetForkId);
