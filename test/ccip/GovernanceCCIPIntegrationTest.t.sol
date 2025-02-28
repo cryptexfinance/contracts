@@ -115,6 +115,7 @@ contract GovernanceCCIPIntegrationTest is Test {
   ITimelock public timelock;
 
   address public user = address(0x51);
+  address public owner = address(0x52);
   address linkTokenMainnet = 0x514910771AF9Ca656af840dff83E8264EcF986CA;
   address wethTokenMainet = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
 
@@ -160,7 +161,8 @@ contract GovernanceCCIPIntegrationTest is Test {
     // Deploy GovernanceReceiver on Polygon
     governanceReceiver = new GovernanceCCIPReceiver(
       polygonMainnetCcipRouterAddress, // Router address
-      governanceRelayAddress
+      governanceRelayAddress,
+      owner
     );
     vm.makePersistent(address(governanceReceiver));
 
@@ -227,18 +229,21 @@ contract GovernanceCCIPIntegrationTest is Test {
 
     // Send the message via GovernanceRelay
     vm.deal(address(timelock), fee); // Fund the contract with enough Ether
-    vm.expectEmit(true, true, true, true);
-    emit IGovernanceCCIPRelay.MessageRelayed(target, payload);
     vm.prank(address(timelock));
-    governanceRelay.relayMessage{value: fee}(
+    bytes32 messageId = governanceRelay.relayMessage{value: fee}(
       polygonMainnetChainSelector,
+      200_000,
       target,
       payload
     );
 
     // Route the message to Polygon
     vm.expectEmit(true, true, true, true);
-    emit IGovernanceCCIPReceiver.MessageExecuted(target, payload);
+    emit IGovernanceCCIPReceiver.MessageExecutedSuccessfully(
+      messageId,
+      target,
+      payload
+    );
     ccipLocalSimulatorFork.switchChainAndRouteMessage(polygonMainnetForkId);
 
     // Verify the message was received and executed on Polygon
@@ -275,17 +280,20 @@ contract GovernanceCCIPIntegrationTest is Test {
       abi.encode(fee)
     );
     vm.deal(address(timelock), fee);
-    vm.expectEmit(true, true, true, true);
-    emit IGovernanceCCIPRelay.MessageRelayed(target, payload);
     vm.prank(address(timelock));
-    governanceRelay.relayMessage{value: fee}(
+    bytes32 messageId = governanceRelay.relayMessage{value: fee}(
       polygonMainnetChainSelector,
+      200_000,
       target,
       payload
     );
 
     vm.expectEmit(true, true, true, true);
-    emit IGovernanceCCIPReceiver.MessageExecuted(target, payload);
+    emit IGovernanceCCIPReceiver.MessageExecutedSuccessfully(
+      messageId,
+      target,
+      payload
+    );
     ccipLocalSimulatorFork.switchChainAndRouteMessage(polygonMainnetForkId);
 
     vm.selectFork(polygonMainnetForkId);
@@ -307,8 +315,13 @@ contract GovernanceCCIPIntegrationTest is Test {
 
     targets[0] = address(governanceRelay);
     values[0] = 1 ether;
-    signatures[0] = "relayMessage(uint64,address,bytes)";
-    calldatas[0] = abi.encode(polygonMainnetChainSelector, target, payload);
+    signatures[0] = "relayMessage(uint64,uint256,address,bytes)";
+    calldatas[0] = abi.encode(
+      polygonMainnetChainSelector,
+      200_000,
+      target,
+      payload
+    );
     assertEq(numberUpdater.number(), 0, "Initial number should be 0");
 
     uint256 fee = 0.1 ether;

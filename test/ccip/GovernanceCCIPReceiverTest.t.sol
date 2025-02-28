@@ -6,6 +6,8 @@ import {GovernanceCCIPReceiver, IGovernanceCCIPReceiver} from "contracts/ccip/Go
 import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
 import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
 import {NumberUpdater} from "contracts/mocks/NumberUpdater.sol";
+import {Ownable} from "@openzeppelin/contracts-v5/access/Ownable.sol";
+import {Pausable} from "@openzeppelin/contracts-v5/utils/Pausable.sol";
 
 contract GovernanceCCIPReceiverTest is Test {
   GovernanceCCIPReceiver public receiver;
@@ -16,10 +18,12 @@ contract GovernanceCCIPReceiverTest is Test {
   address public attacker = address(0x3); // Unauthorized address
   address public target = address(0x4); // Target contract
   address public feeToken = address(0); // Fee token (native asset)
+  address public owner = address(0x5);
+  address public nonOwner = address(0x6);
 
   function setUp() public {
     // Deploy the GovernanceCCIPReceiver contract
-    receiver = new GovernanceCCIPReceiver(ccipRouter, mainnetSender);
+    receiver = new GovernanceCCIPReceiver(ccipRouter, mainnetSender, owner);
 
     // Deploy an external contract (NumberUpdater) to test execution
     numberUpdater = new NumberUpdater(0);
@@ -58,6 +62,11 @@ contract GovernanceCCIPReceiverTest is Test {
       mainnetSender,
       "Mainnet sender mismatch"
     );
+  }
+
+  function testConstructor_RevertsIfTimelockIsZero() public {
+    vm.expectRevert(IGovernanceCCIPReceiver.AddressCannotBeZero.selector);
+    new GovernanceCCIPReceiver(ccipRouter, address(0), owner);
   }
 
   /// @notice Test ccipReceive reverts when called by an address other than the router
@@ -129,16 +138,22 @@ contract GovernanceCCIPReceiverTest is Test {
   /// @notice Test ccipReceive raises MessageCallFailed when execution fails
   function testCcipReceiveMessageCallFailed() public {
     address nonContract = address(0x9); // Not a contract, will fail execution
-
+    bytes memory payload = abi.encodeWithSignature("nonexistentFunction()");
     Client.Any2EVMMessage memory message = constructMessage(
       nonContract,
-      abi.encodeWithSignature("nonexistentFunction()"),
+      payload,
       mainnetChainSelector,
       mainnetSender
     );
 
     vm.prank(ccipRouter);
-    vm.expectRevert(IGovernanceCCIPReceiver.MessageCallFailed.selector);
+    vm.expectEmit(true, true, true, true);
+    emit IGovernanceCCIPReceiver.MessageExecutionFailed(
+      bytes32(""),
+      nonContract,
+      payload,
+      bytes("")
+    );
     receiver.ccipReceive(message);
   }
 
@@ -155,7 +170,8 @@ contract GovernanceCCIPReceiverTest is Test {
 
     vm.prank(ccipRouter);
     vm.expectEmit(true, true, true, true);
-    emit IGovernanceCCIPReceiver.MessageExecuted(
+    emit IGovernanceCCIPReceiver.MessageExecutedSuccessfully(
+      bytes32(""),
       address(numberUpdater),
       payload
     );
@@ -182,6 +198,125 @@ contract GovernanceCCIPReceiverTest is Test {
       numberUpdater.number(),
       42,
       "NumberUpdater contract was not updated correctly"
+    );
+  }
+
+  function test_MessageAlreadyProcessed() public {
+    bytes memory payload = abi.encodeWithSignature("updateNumber(uint256)", 42);
+    Client.Any2EVMMessage memory message = constructMessage(
+      address(numberUpdater),
+      payload,
+      mainnetChainSelector,
+      mainnetSender
+    );
+    vm.prank(ccipRouter);
+    receiver.ccipReceive(message);
+
+    vm.prank(ccipRouter);
+    // Attempt to process the same message again, should revert
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernanceCCIPReceiver.MessageAlreadyProcessed.selector,
+        bytes32("")
+      )
+    );
+    receiver.ccipReceive(message);
+  }
+
+  /// @notice Test: Non-owner cannot pause the contract
+  function test_FailsToPause_WhenCallerIsNotOwner() public {
+    vm.prank(nonOwner);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        Ownable.OwnableUnauthorizedAccount.selector,
+        nonOwner
+      )
+    );
+    receiver.pause();
+  }
+
+  /// @notice Test: Contract is paused when owner calls `pause`
+  function test_ContractPaused_WhenOwnerCallsPause() public {
+    vm.prank(owner);
+    receiver.pause();
+    assertTrue(receiver.paused());
+  }
+
+  /// @notice Test: `_ccipReceive` cannot be called when contract is paused
+  function test_CcipReceiveFails_WhenPaused() public {
+    // Pause contract
+    vm.prank(owner);
+    receiver.pause();
+
+    bytes memory payload = abi.encodeWithSignature("updateNumber(uint256)", 42);
+    Client.Any2EVMMessage memory message = constructMessage(
+      address(numberUpdater),
+      payload,
+      mainnetChainSelector,
+      mainnetSender
+    );
+    vm.prank(ccipRouter);
+    vm.expectEmit(true, true, true, true);
+    emit IGovernanceCCIPReceiver.MessageIgnoredWhilePaused(bytes32(""));
+    receiver.ccipReceive(message);
+  }
+
+  function test_FailsToUnpause_WhenCallerIsNotOwner() public {
+    // Pause the contract first
+    vm.prank(owner);
+    receiver.pause();
+    assertTrue(receiver.paused(), "Contract should be paused");
+
+    // Attempt to unpause with a non-owner account
+    vm.prank(nonOwner);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        Ownable.OwnableUnauthorizedAccount.selector,
+        nonOwner
+      )
+    );
+    receiver.unpause();
+  }
+
+  function test_ContractUnpaused_WhenOwnerCallsUnpause() public {
+    // Pause the contract
+    vm.prank(owner);
+    receiver.pause();
+    assertTrue(receiver.paused(), "Contract should be paused");
+
+    // Unpause the contract
+    vm.prank(owner);
+    receiver.unpause();
+    assertFalse(receiver.paused(), "Contract should be unpaused");
+  }
+
+  function test_CcipReceiveWorks_AfterUnpausing() public {
+    // Pause the contract
+    vm.prank(owner);
+    receiver.pause();
+    assertTrue(receiver.paused(), "Contract should be paused");
+
+    // Unpause the contract
+    vm.prank(owner);
+    receiver.unpause();
+    assertFalse(receiver.paused(), "Contract should be unpaused");
+
+    // Send a message and ensure execution proceeds
+    bytes memory payload = abi.encodeWithSignature("updateNumber(uint256)", 42);
+    Client.Any2EVMMessage memory message = constructMessage(
+      address(numberUpdater),
+      payload,
+      mainnetChainSelector,
+      mainnetSender
+    );
+
+    vm.prank(ccipRouter);
+    receiver.ccipReceive(message);
+
+    assertEq(
+      numberUpdater.number(),
+      42,
+      "ccipReceive should execute after unpausing"
     );
   }
 }

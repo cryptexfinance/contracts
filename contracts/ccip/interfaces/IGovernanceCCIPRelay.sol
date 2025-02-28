@@ -9,9 +9,14 @@ import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/
  */
 interface IGovernanceCCIPRelay {
   /// @notice Emitted when a governance message is relayed.
+  /// @param messageId The ccip message id.
   /// @param target The target address of the execution.
   /// @param payload The calldata payload executed.
-  event MessageRelayed(address indexed target, bytes payload);
+  event MessageRelayed(
+    bytes32 indexed messageId,
+    address indexed target,
+    bytes payload
+  );
 
   /// @notice Emitted when a new destination chain is added.
   /// @param chainSelector The CCIP chain selector of the destination chain.
@@ -30,6 +35,22 @@ interface IGovernanceCCIPRelay {
     address indexed oldReceiver,
     address indexed newReceiver
   );
+
+  /// @dev Error thrown when a provided address is the zero address.
+  error AddressCannotBeZero();
+
+  /// @dev Thrown when the specified gas limit is too low to execute the transaction.
+  /// @param gasLimit The provided gas limit.
+  /// @param minGasLimit The minimum required gas limit.
+  error GasLimitTooLow(uint256 gasLimit, uint256 minGasLimit);
+
+  /// @dev Thrown when the specified gas limit exceeds the maximum allowed threshold.
+  /// @param gasLimit The provided gas limit.
+  /// @param maxGasLimit The maximum allowed gas limit.
+  error GasLimitTooHigh(uint256 gasLimit, uint256 maxGasLimit);
+
+  /// @dev Error thrown when payload is empty.
+  error PayloadCannotBeEmpty();
 
   /// @dev Error thrown when an unauthorized caller tries to execute a restricted function.
   error Unauthorized(address caller);
@@ -100,11 +121,13 @@ interface IGovernanceCCIPRelay {
 
   /// @notice Relays a governance message to the destination chain.
   /// @param destinationChainSelector The ccip chain selector of the destination chain for the message.
+  /// @param gasLimit the maximum amount of gas CCIP can consume to execute ccipReceive()
   /// @param target The target address to execute the message on.
   /// @param payload The calldata payload to execute.
   /// @return messageId The unique identifier of the sent message.
   function relayMessage(
     uint64 destinationChainSelector,
+    uint256 gasLimit,
     address target,
     bytes calldata payload
   ) external payable returns (bytes32 messageId);
