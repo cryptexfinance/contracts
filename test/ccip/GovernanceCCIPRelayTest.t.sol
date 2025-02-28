@@ -4,23 +4,58 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 import {GovernanceCCIPRelay, IGovernanceCCIPRelay} from "contracts/ccip/GovernanceCCIPRelay.sol";
 import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
+import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
+
+contract MockCCIPRouter {
+  uint64[] supportedChains = [
+    5009297550715157269,
+    4051577828743386545,
+    1111111111111111111,
+    9999999999999999999
+  ];
+
+  function isChainSupported(uint64 destChainSelector)
+    external
+    view
+    returns (bool)
+  {
+    for (uint256 i = 0; i < supportedChains.length; i++) {
+      if (supportedChains[i] == destChainSelector) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function ccipSend(
+    uint64, /*destinationChainSelector*/
+    Client.EVM2AnyMessage calldata /*message*/
+  ) external payable returns (bytes32) {
+    return bytes32("");
+  }
+}
 
 contract GovernanceCCIPRelayTest is Test {
   GovernanceCCIPRelay public relay;
   address public timelock = address(0x1); // Timelock address
-  address public ccipRouter = address(0x2); // Mocked Chainlink CCIP Router
+  address public ccipRouter;
   address public destinationReceiver = address(0x3);
-  uint64 public destinationChainSelector = 5009297550715157269;
+  uint64 public destinationChainSelector = 4051577828743386545;
   address public attacker = address(0x4); // Unauthorized user
   address public recipient = address(0x5); // Recipient for withdrawal
 
   function setUp() public {
     // Deploy the GovernanceCCIPRelay contract
+    uint64[] memory chainSelectors = new uint64[](1);
+    chainSelectors[0] = destinationChainSelector;
+    address[] memory receivers = new address[](1);
+    receivers[0] = destinationReceiver;
+    ccipRouter = address(new MockCCIPRouter());
     relay = new GovernanceCCIPRelay(
       timelock,
       ccipRouter,
-      destinationChainSelector,
-      destinationReceiver
+      chainSelectors,
+      receivers
     );
   }
 
@@ -33,49 +68,30 @@ contract GovernanceCCIPRelayTest is Test {
       "Router address mismatch"
     );
     assertEq(
-      relay.destinationChainSelector(),
-      destinationChainSelector,
-      "Chain selector mismatch"
-    );
-    assertEq(
-      relay.destinationReceiver(),
+      relay.destinationReceivers(destinationChainSelector),
       destinationReceiver,
-      "Destination receiver mismatch"
+      "destinationReceivers mismatch"
     );
   }
 
-  /// @notice Test setDestinationReceiver can update destinationReceiver
-  function testSetDestinationReceiver() public {
-    vm.prank(timelock);
-    relay.setDestinationReceiver(address(0x6));
-    assertEq(
-      relay.destinationReceiver(),
-      address(0x6),
-      "Destination receiver was not updated"
+  function testConstructor_RevertsIfTimelockIsZero() public {
+    vm.expectRevert(IGovernanceCCIPRelay.AddressCannotBeZero.selector);
+    new GovernanceCCIPRelay(
+      address(0),
+      ccipRouter,
+      new uint64[](1),
+      new address[](1)
     );
   }
 
-  /// @notice Test setDestinationReceiver reverts when called by non-timelock
-  function testSetDestinationReceiverUnauthorized() public {
-    vm.prank(attacker);
-    vm.expectRevert(
-      abi.encodeWithSelector(
-        IGovernanceCCIPRelay.Unauthorized.selector,
-        attacker
-      )
+  function testConstructor_RevertsIfRouterIsZero() public {
+    vm.expectRevert(IGovernanceCCIPRelay.AddressCannotBeZero.selector);
+    new GovernanceCCIPRelay(
+      timelock,
+      address(0),
+      new uint64[](1),
+      new address[](1)
     );
-    relay.setDestinationReceiver(address(0x6));
-  }
-
-  /// @notice Test setDestinationReceiver emits DestinationReceiverUpdated event
-  function testSetDestinationReceiverEmitsEvent() public {
-    vm.prank(timelock);
-    vm.expectEmit(true, true, true, true);
-    emit IGovernanceCCIPRelay.DestinationReceiverUpdated(
-      destinationReceiver,
-      address(0x6)
-    );
-    relay.setDestinationReceiver(address(0x6));
   }
 
   /// @notice Test relayMessage for successful execution
@@ -92,7 +108,12 @@ contract GovernanceCCIPRelayTest is Test {
 
     vm.deal(address(timelock), fee); // Fund this contract
     vm.prank(timelock);
-    relay.relayMessage{value: fee}(target, payload);
+    relay.relayMessage{value: fee}(
+      destinationChainSelector,
+      200_000,
+      target,
+      payload
+    );
   }
 
   /// @notice Test relayMessage reverts when called by non-timelock
@@ -107,7 +128,7 @@ contract GovernanceCCIPRelayTest is Test {
         attacker
       )
     );
-    relay.relayMessage(target, payload);
+    relay.relayMessage(destinationChainSelector, 200_000, target, payload);
   }
 
   /// @notice Test relayMessage returns excess ether
@@ -126,7 +147,12 @@ contract GovernanceCCIPRelayTest is Test {
     vm.deal(address(timelock), fee + excess); // Fund with extra ether
     uint256 balanceBefore = address(timelock).balance;
     vm.prank(timelock);
-    relay.relayMessage{value: fee + excess}(target, payload);
+    relay.relayMessage{value: fee + excess}(
+      destinationChainSelector,
+      200_000,
+      target,
+      payload
+    );
 
     uint256 balanceAfter = address(timelock).balance;
     assertEq(
@@ -152,8 +178,13 @@ contract GovernanceCCIPRelayTest is Test {
 
     vm.prank(timelock);
     vm.expectEmit(true, true, true, true);
-    emit IGovernanceCCIPRelay.MessageRelayed(target, payload);
-    relay.relayMessage{value: fee}(target, payload);
+    emit IGovernanceCCIPRelay.MessageRelayed(bytes32(""), target, payload);
+    relay.relayMessage{value: fee}(
+      destinationChainSelector,
+      200_000,
+      target,
+      payload
+    );
   }
 
   /// @notice Test relayMessage raises InsufficientFee error when value is less than fee
@@ -178,39 +209,74 @@ contract GovernanceCCIPRelayTest is Test {
         fee
       )
     );
-    relay.relayMessage{value: fee - 0.1 ether}(target, payload);
-  }
-
-  /// @notice Test withdraw transfers ETH to recipient
-  function testWithdrawTransfersETH() public {
-    vm.deal(address(relay), 2 ether); // Fund contract
-
-    uint256 recipientBalanceBefore = recipient.balance;
-    vm.prank(timelock);
-    relay.withdraw(payable(recipient));
-
-    assertEq(
-      recipient.balance,
-      recipientBalanceBefore + 2 ether,
-      "ETH was not transferred correctly"
+    relay.relayMessage{value: fee - 0.1 ether}(
+      destinationChainSelector,
+      200_000,
+      target,
+      payload
     );
   }
 
-  /// @notice Test withdraw reverts when transfer fails
-  function testWithdrawFailsWhenTransferFails() public {
-    // Create a contract that always rejects ETH
-    address nonPayable = address(new NonPayable());
+  function testRelayMessageDestinationChainIsNotAdded() public {
+    address target = address(0x7);
+    bytes memory payload = abi.encodeWithSignature("doSomething()");
 
-    vm.deal(address(relay), 2 ether); // Fund contract
+    uint64 unsupportedChainSelector = 9999999999999999999; // Chain not added to the relay
+
+    uint256 fee = 1 ether;
+    vm.mockCall(
+      ccipRouter,
+      abi.encodeWithSelector(IRouterClient.getFee.selector),
+      abi.encode(fee)
+    );
+
+    vm.deal(address(timelock), fee); // Fund this contract
 
     vm.prank(timelock);
-    vm.expectRevert(IGovernanceCCIPRelay.WithdrawFailed.selector);
-    relay.withdraw(payable(nonPayable));
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernanceCCIPRelay.DestinationChainIsNotAdded.selector,
+        unsupportedChainSelector
+      )
+    );
+    relay.relayMessage{value: fee}(
+      unsupportedChainSelector,
+      200_000,
+      target,
+      payload
+    );
   }
 
-  /// @notice Test withdraw raises error when non-timelock calls it
-  function testWithdrawUnauthorized() public {
-    vm.deal(address(relay), 2 ether); // Fund contract
+  function testAddDestinationChainsByTimelock() public {
+    uint64[] memory newChainSelectors = new uint64[](2);
+    newChainSelectors[0] = 9999999999999999999;
+    newChainSelectors[1] = 1111111111111111111;
+
+    address[] memory newReceivers = new address[](2);
+    newReceivers[0] = address(0x8);
+    newReceivers[1] = address(0x9);
+
+    vm.prank(timelock);
+    relay.addDestinationChains(newChainSelectors, newReceivers);
+
+    assertEq(
+      relay.destinationReceivers(9999999999999999999),
+      address(0x8),
+      "Receiver mismatch for chain 12345"
+    );
+    assertEq(
+      relay.destinationReceivers(1111111111111111111),
+      address(0x9),
+      "Receiver mismatch for chain 67890"
+    );
+  }
+
+  function testAddDestinationChainsUnauthorized() public {
+    uint64[] memory newChainSelectors = new uint64[](1);
+    newChainSelectors[0] = 9999999999999999999;
+
+    address[] memory newReceivers = new address[](1);
+    newReceivers[0] = address(0x8);
 
     vm.prank(attacker);
     vm.expectRevert(
@@ -219,13 +285,206 @@ contract GovernanceCCIPRelayTest is Test {
         attacker
       )
     );
-    relay.withdraw(payable(recipient));
+    relay.addDestinationChains(newChainSelectors, newReceivers);
   }
-}
 
-/// @dev Helper contract that rejects ETH transfers
-contract NonPayable {
-  receive() external payable {
-    revert("Rejecting ETH");
+  function testAddDestinationChainsRejectsZeroAddressReceiver() public {
+    uint64[] memory newChainSelectors = new uint64[](1);
+    newChainSelectors[0] = 9999999999999999999;
+
+    address[] memory newReceivers = new address[](1);
+    newReceivers[0] = address(0); // Invalid receiver
+
+    vm.prank(timelock);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernanceCCIPRelay.ReceiverCannotBeZeroAddress.selector
+      )
+    );
+    relay.addDestinationChains(newChainSelectors, newReceivers);
+  }
+
+  function testAddExistingDestinationChain() public {
+    uint64[] memory existingChain = new uint64[](1);
+    existingChain[0] = destinationChainSelector;
+
+    address[] memory receivers = new address[](1);
+    receivers[0] = destinationReceiver;
+
+    vm.prank(timelock);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernanceCCIPRelay.ChainSelectorAlreadyAssigned.selector,
+        destinationChainSelector
+      )
+    );
+    relay.addDestinationChains(existingChain, receivers);
+  }
+
+  function testAddDestinationChainsArrayLengthMismatch() public {
+    uint64[] memory newChainSelectors = new uint64[](2);
+    newChainSelectors[0] = 9999999999999999999;
+    newChainSelectors[1] = 1111111111111111111;
+
+    address[] memory newReceivers = new address[](1);
+    newReceivers[0] = address(0x14);
+
+    vm.prank(timelock);
+    vm.expectRevert(
+      abi.encodeWithSelector(IGovernanceCCIPRelay.ArrayLengthMismatch.selector)
+    );
+    relay.addDestinationChains(newChainSelectors, newReceivers);
+  }
+
+  function testAddDestinationChainsEmitsEvent() public {
+    uint64[] memory newChainSelectors = new uint64[](1);
+    newChainSelectors[0] = 9999999999999999999;
+
+    address[] memory newReceivers = new address[](1);
+    newReceivers[0] = address(0x15);
+
+    vm.prank(timelock);
+    vm.expectEmit(true, true, true, true);
+    emit IGovernanceCCIPRelay.DestinationChainAdded(
+      9999999999999999999,
+      address(0x15)
+    );
+
+    relay.addDestinationChains(newChainSelectors, newReceivers);
+  }
+
+  function test_AddDestinationChain_RevertsWhenChainNotSupported() public {
+    uint64[] memory newChainSelectors = new uint64[](1);
+    newChainSelectors[0] = 2222;
+
+    address[] memory newReceivers = new address[](1);
+    newReceivers[0] = address(0x15);
+
+    vm.prank(timelock);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernanceCCIPRelay.DestinationChainNotSupported.selector,
+        newChainSelectors[0]
+      )
+    );
+    relay.addDestinationChains(newChainSelectors, newReceivers);
+  }
+
+  function test_AddDestinationChain_RevertsWhenUsingMainnetSelector() public {
+    uint64[] memory newChainSelectors = new uint64[](1);
+    newChainSelectors[0] = 5009297550715157269;
+
+    address[] memory newReceivers = new address[](1);
+    newReceivers[0] = address(0x15);
+
+    vm.prank(timelock);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernanceCCIPRelay.CannotUseMainnetChainSelector.selector
+      )
+    );
+    relay.addDestinationChains(newChainSelectors, newReceivers);
+  }
+
+  function testUpdateDestinationReceiverByTimelock() public {
+    address newReceiver = address(0x10);
+
+    vm.prank(timelock);
+    vm.expectEmit(true, true, true, true);
+    emit IGovernanceCCIPRelay.DestinationReceiverUpdated(
+      destinationChainSelector,
+      destinationReceiver,
+      newReceiver
+    );
+    relay.updateDestinationReceiver(destinationChainSelector, newReceiver);
+
+    assertEq(
+      relay.destinationReceivers(destinationChainSelector),
+      newReceiver,
+      "Receiver update failed"
+    );
+  }
+
+  function testUpdateDestinationReceiverUnauthorized() public {
+    address newReceiver = address(0x10);
+
+    vm.prank(attacker);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernanceCCIPRelay.Unauthorized.selector,
+        attacker
+      )
+    );
+    relay.updateDestinationReceiver(destinationChainSelector, newReceiver);
+  }
+
+  function testUpdateDestinationReceiverRejectsZeroAddress() public {
+    vm.prank(timelock);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernanceCCIPRelay.ReceiverCannotBeZeroAddress.selector
+      )
+    );
+    relay.updateDestinationReceiver(destinationChainSelector, address(0));
+  }
+
+  function testUpdateDestinationReceiverForUnregisteredChain() public {
+    uint64 unregisteredChain = 8888888888888888888; // Not in the relay
+    address newReceiver = address(0x10);
+
+    vm.prank(timelock);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernanceCCIPRelay.DestinationChainIsNotAdded.selector,
+        unregisteredChain
+      )
+    );
+    relay.updateDestinationReceiver(unregisteredChain, newReceiver);
+  }
+
+  function testRelayMessage_RevertsIfTargetIsZero() public {
+    vm.deal(address(timelock), 1 ether);
+    vm.startPrank(timelock);
+    vm.expectRevert(IGovernanceCCIPRelay.AddressCannotBeZero.selector);
+    relay.relayMessage{value: 1}(1, 200_000, address(0), "0x1234");
+    vm.stopPrank();
+  }
+
+  function testRelayMessage_RevertsIfPayloadIsEmpty() public {
+    vm.deal(address(timelock), 1 ether);
+    vm.startPrank(timelock);
+    vm.expectRevert(IGovernanceCCIPRelay.PayloadCannotBeEmpty.selector);
+    relay.relayMessage{value: 1}(1, 200_000, address(0xabc), "");
+    vm.stopPrank();
+  }
+
+  function testRelayMessage_GasLimitTooLow() public {
+    vm.deal(address(timelock), 1 ether);
+    vm.prank(timelock);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernanceCCIPRelay.GasLimitTooLow.selector,
+        1,
+        50_000
+      )
+    );
+    relay.relayMessage(destinationChainSelector, 1, address(0x4), "payload");
+  }
+
+  function testRelayMessage_GasLimitTooHigh() public {
+    vm.prank(timelock); // Simulate timelock calling
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernanceCCIPRelay.GasLimitTooHigh.selector,
+        10_000_000 + 1,
+        10_000_000
+      )
+    );
+    relay.relayMessage(
+      destinationChainSelector,
+      10_000_000 + 1,
+      address(0x4),
+      "payload"
+    );
   }
 }

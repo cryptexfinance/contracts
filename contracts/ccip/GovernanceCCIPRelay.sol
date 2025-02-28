@@ -18,10 +18,11 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
   address public immutable TIMELOCK;
 
   /// @inheritdoc IGovernanceCCIPRelay
-  address public destinationReceiver;
+  mapping(uint64 => address) public destinationReceivers;
 
-  /// @inheritdoc IGovernanceCCIPRelay
-  uint64 public destinationChainSelector;
+  uint64 private constant CCIP_MAINNET_CHAIN_SELECTOR = 5009297550715157269;
+  uint256 constant MIN_GAS_LIMIT = 50_000;
+  uint256 constant MAX_GAS_LIMIT = 10_000_000;
 
   /// @dev Modifier to restrict access to the Timelock contract.
   modifier onlyTimeLock() {
@@ -32,39 +33,135 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
   /// @dev Constructor to initialize the GovernanceCCIPRelay contract.
   /// @param _timelock The address of the Timelock contract.
   /// @param _router The address of the CCIP router contract.
-  /// @param _destinationChainSelector The chain selector for the destination chain.
-  /// @param _receiver The address of the receiver contract on the destination chain.
+  /// @param _destinationChainSelectors Array of chain selectors for the destination chains.
+  /// @param _destinationReceivers Array addresses of the receiver contracts on the destination chains.
   constructor(
     address _timelock,
     address _router,
-    uint64 _destinationChainSelector,
-    address _receiver
+    uint64[] memory _destinationChainSelectors,
+    address[] memory _destinationReceivers
   ) {
+    require(_timelock != address(0), AddressCannotBeZero());
+    require(_router != address(0), AddressCannotBeZero());
     CCIP_ROUTER = IRouterClient(_router);
     TIMELOCK = _timelock;
-    destinationChainSelector = _destinationChainSelector;
-    destinationReceiver = _receiver;
+    _addDestinationChains(_destinationChainSelectors, _destinationReceivers);
   }
 
   /// @inheritdoc IGovernanceCCIPRelay
-  function setDestinationReceiver(address _receiver) external onlyTimeLock {
-    emit DestinationReceiverUpdated(destinationReceiver, _receiver);
-    destinationReceiver = _receiver;
+  function addDestinationChains(
+    uint64[] memory _destinationChainSelectors,
+    address[] memory _destinationReceivers
+  ) external onlyTimeLock {
+    _addDestinationChains(_destinationChainSelectors, _destinationReceivers);
+  }
+
+  function _addDestinationChains(
+    uint64[] memory _destinationChainSelectors,
+    address[] memory _destinationReceivers
+  ) private {
+    uint256 receiversLength = _destinationReceivers.length;
+    require(
+      _destinationChainSelectors.length == receiversLength,
+      ArrayLengthMismatch()
+    );
+
+    for (uint256 i = 0; i < receiversLength; ) {
+      uint64 _destinationChainSelector = _destinationChainSelectors[i];
+      address _destinationReceiver = _destinationReceivers[i];
+
+      require(
+        CCIP_ROUTER.isChainSupported(_destinationChainSelector),
+        DestinationChainNotSupported(_destinationChainSelector)
+      );
+
+      require(
+        _destinationChainSelector != CCIP_MAINNET_CHAIN_SELECTOR,
+        CannotUseMainnetChainSelector()
+      );
+
+      require(
+        _destinationReceiver != address(0),
+        ReceiverCannotBeZeroAddress()
+      );
+
+      require(
+        destinationReceivers[_destinationChainSelector] == address(0),
+        ChainSelectorAlreadyAssigned(_destinationChainSelector)
+      );
+
+      destinationReceivers[_destinationChainSelector] = _destinationReceiver;
+      emit DestinationChainAdded(
+        _destinationChainSelector,
+        _destinationReceiver
+      );
+
+      unchecked {
+        i++;
+      }
+    }
   }
 
   /// @inheritdoc IGovernanceCCIPRelay
-  function relayMessage(address target, bytes calldata payload)
-    external
-    payable
-    onlyTimeLock
-    returns (bytes32 messageId)
-  {
+  function updateDestinationReceiver(
+    uint64 _destinationChainSelector,
+    address _destinationReceiver
+  ) external onlyTimeLock {
+    address oldDestinationReceiver = destinationReceivers[
+      _destinationChainSelector
+    ];
+
+    require(
+      oldDestinationReceiver != address(0),
+      DestinationChainIsNotAdded(_destinationChainSelector)
+    );
+    require(_destinationReceiver != address(0), ReceiverCannotBeZeroAddress());
+    require(
+      oldDestinationReceiver != _destinationReceiver,
+      ReceiverUnchanged()
+    );
+
+    destinationReceivers[_destinationChainSelector] = _destinationReceiver;
+    emit DestinationReceiverUpdated(
+      _destinationChainSelector,
+      oldDestinationReceiver,
+      _destinationReceiver
+    );
+  }
+
+  /// @inheritdoc IGovernanceCCIPRelay
+  function relayMessage(
+    uint64 destinationChainSelector,
+    uint256 gasLimit,
+    address target,
+    bytes calldata payload
+  ) external payable onlyTimeLock returns (bytes32 messageId) {
+    require(target != address(0), AddressCannotBeZero());
+    require(payload.length != 0, PayloadCannotBeEmpty());
+    require(gasLimit >= MIN_GAS_LIMIT, GasLimitTooLow(gasLimit, MIN_GAS_LIMIT));
+    require(
+      gasLimit <= MAX_GAS_LIMIT,
+      GasLimitTooHigh(gasLimit, MAX_GAS_LIMIT)
+    );
+
+    address destinationReceiver = destinationReceivers[
+      destinationChainSelector
+    ];
+    require(
+      destinationReceiver != address(0),
+      DestinationChainIsNotAdded(destinationChainSelector)
+    );
     // Create the CCIP message
     Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
       receiver: abi.encode(destinationReceiver),
       data: abi.encode(target, payload),
       tokenAmounts: new Client.EVMTokenAmount[](0),
-      extraArgs: "",
+      extraArgs: Client._argsToBytes(
+        Client.EVMExtraArgsV2({
+          gasLimit: gasLimit,
+          allowOutOfOrderExecution: true
+        })
+      ),
       feeToken: address(0)
     });
 
@@ -86,15 +183,6 @@ contract GovernanceCCIPRelay is IGovernanceCCIPRelay {
       require(success, FailedToRefundEth());
     }
 
-    emit MessageRelayed(target, payload);
-  }
-
-  /// @dev Fallback function to allow the contract to receive Ether.
-  receive() external payable {}
-
-  /// @inheritdoc IGovernanceCCIPRelay
-  function withdraw(address payable recipient) external onlyTimeLock {
-    (bool success, ) = recipient.call{value: address(this).balance}("");
-    require(success, WithdrawFailed());
+    emit MessageRelayed(messageId, target, payload);
   }
 }
