@@ -108,7 +108,12 @@ contract GovernanceCCIPRelayTest is Test {
 
     vm.deal(address(timelock), fee); // Fund this contract
     vm.prank(timelock);
-    relay.relayMessage{value: fee}(destinationChainSelector, target, payload);
+    relay.relayMessage{value: fee}(
+      destinationChainSelector,
+      200_000,
+      target,
+      payload
+    );
   }
 
   /// @notice Test relayMessage reverts when called by non-timelock
@@ -123,7 +128,7 @@ contract GovernanceCCIPRelayTest is Test {
         attacker
       )
     );
-    relay.relayMessage(destinationChainSelector, target, payload);
+    relay.relayMessage(destinationChainSelector, 200_000, target, payload);
   }
 
   /// @notice Test relayMessage returns excess ether
@@ -144,6 +149,7 @@ contract GovernanceCCIPRelayTest is Test {
     vm.prank(timelock);
     relay.relayMessage{value: fee + excess}(
       destinationChainSelector,
+      200_000,
       target,
       payload
     );
@@ -173,7 +179,12 @@ contract GovernanceCCIPRelayTest is Test {
     vm.prank(timelock);
     vm.expectEmit(true, true, true, true);
     emit IGovernanceCCIPRelay.MessageRelayed(bytes32(""), target, payload);
-    relay.relayMessage{value: fee}(destinationChainSelector, target, payload);
+    relay.relayMessage{value: fee}(
+      destinationChainSelector,
+      200_000,
+      target,
+      payload
+    );
   }
 
   /// @notice Test relayMessage raises InsufficientFee error when value is less than fee
@@ -200,6 +211,7 @@ contract GovernanceCCIPRelayTest is Test {
     );
     relay.relayMessage{value: fee - 0.1 ether}(
       destinationChainSelector,
+      200_000,
       target,
       payload
     );
@@ -227,7 +239,12 @@ contract GovernanceCCIPRelayTest is Test {
         unsupportedChainSelector
       )
     );
-    relay.relayMessage{value: fee}(unsupportedChainSelector, target, payload);
+    relay.relayMessage{value: fee}(
+      unsupportedChainSelector,
+      200_000,
+      target,
+      payload
+    );
   }
 
   function testAddDestinationChainsByTimelock() public {
@@ -373,7 +390,7 @@ contract GovernanceCCIPRelayTest is Test {
     vm.deal(address(timelock), 1 ether);
     vm.startPrank(timelock);
     vm.expectRevert(IGovernanceCCIPRelay.AddressCannotBeZero.selector);
-    relay.relayMessage{value: 1}(1, address(0), "0x1234");
+    relay.relayMessage{value: 1}(1, 200_000, address(0), "0x1234");
     vm.stopPrank();
   }
 
@@ -381,7 +398,37 @@ contract GovernanceCCIPRelayTest is Test {
     vm.deal(address(timelock), 1 ether);
     vm.startPrank(timelock);
     vm.expectRevert(IGovernanceCCIPRelay.PayloadCannotBeEmpty.selector);
-    relay.relayMessage{value: 1}(1, address(0xabc), "");
+    relay.relayMessage{value: 1}(1, 200_000, address(0xabc), "");
     vm.stopPrank();
+  }
+
+  function testRelayMessage_GasLimitTooLow() public {
+    vm.deal(address(timelock), 1 ether);
+    vm.prank(timelock);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernanceCCIPRelay.GasLimitTooLow.selector,
+        1,
+        50_000
+      )
+    );
+    relay.relayMessage(destinationChainSelector, 1, address(0x4), "payload");
+  }
+
+  function testRelayMessage_GasLimitTooHigh() public {
+    vm.prank(timelock); // Simulate timelock calling
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernanceCCIPRelay.GasLimitTooHigh.selector,
+        10_000_000 + 1,
+        10_000_000
+      )
+    );
+    relay.relayMessage(
+      destinationChainSelector,
+      10_000_000 + 1,
+      address(0x4),
+      "payload"
+    );
   }
 }
