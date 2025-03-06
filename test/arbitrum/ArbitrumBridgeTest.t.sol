@@ -9,11 +9,11 @@ import {ICtx} from "../interfaces/ICtx.sol";
 import {IArbitrumInboxErrors} from "../interfaces/IArbitrumInboxErrors.sol";
 
 interface IPerennialCollateral {
-	function claimFee() external;
+  function claimFee() external;
 }
 
 interface IL1MessageRelayer {
-	function relayMessage(
+  function relayMessage(
     address target,
     bytes memory payLoad,
     uint256 maxSubmissionCost,
@@ -23,11 +23,11 @@ interface IL1MessageRelayer {
 }
 
 interface IL2MessageExecutor {
-	function executeMessage(bytes calldata payLoad) external;
+  function executeMessage(bytes calldata payLoad) external;
 }
 
-interface IArbitrumTreasury{
-	function executeTransaction(
+interface IArbitrumTreasury {
+  function executeTransaction(
     address target,
     uint256 value,
     string memory signature,
@@ -63,43 +63,52 @@ library AddressAliasHelper {
   }
 }
 
+interface IERC20 {
+  function balanceOf(address account) external returns (uint256);
+}
 
 contract AbritrumBridgeTest is Test {
-	ICtx ctx = ICtx(0x321C2fE4446C7c963dc41Dd58879AF648838f98D);
-  IGovernorBeta public governorBeta = IGovernorBeta(0x874C5D592AfC6803c3DD60d6442357879F196d5b);
-  ITimelock public timelock = ITimelock(0xa54074b2cc0e96a43048d4a68472F7F046aC0DA8);
-	IL1MessageRelayer l1MessageRelayer = IL1MessageRelayer(0x209c23DB16298504354112fa4210d368e1d564dA);
-	// 0x3769b6aA269995297a539BEd7a463105466733A5 --> L2MessageExecutorProxy.so
-	IL2MessageExecutor l2MessageExecutor = IL2MessageExecutor(0x3769b6aA269995297a539BEd7a463105466733A5);
-	IArbitrumTreasury arbitrumTreasury = IArbitrumTreasury(0x9474B771Fb46E538cfED114Ca816A3e25Bb346CF);
-	IPerennialCollateral perennialCollateral = IPerennialCollateral(0xAF8CeD28FcE00ABD30463D55dA81156AA5aEEEc2);
+  ICtx ctx = ICtx(0x321C2fE4446C7c963dc41Dd58879AF648838f98D);
+  IGovernorBeta public governorBeta =
+    IGovernorBeta(0x874C5D592AfC6803c3DD60d6442357879F196d5b);
+  ITimelock public timelock =
+    ITimelock(0xa54074b2cc0e96a43048d4a68472F7F046aC0DA8);
+  IL1MessageRelayer l1MessageRelayer =
+    IL1MessageRelayer(0x209c23DB16298504354112fa4210d368e1d564dA);
+  // 0x3769b6aA269995297a539BEd7a463105466733A5 --> L2MessageExecutorProxy.so
+  IL2MessageExecutor l2MessageExecutor =
+    IL2MessageExecutor(0x3769b6aA269995297a539BEd7a463105466733A5);
+  IArbitrumTreasury arbitrumTreasury =
+    IArbitrumTreasury(0x9474B771Fb46E538cfED114Ca816A3e25Bb346CF);
+  IPerennialCollateral perennialCollateral =
+    IPerennialCollateral(0xAF8CeD28FcE00ABD30463D55dA81156AA5aEEEc2);
 
-	uint256 public ethereumMainnetForkId;
+  IERC20 dsu = IERC20(0x52C64b8998eB7C80b6F526E99E29ABdcC86B841b);
+
+  uint256 public ethereumMainnetForkId;
   uint256 public arbitrumMainnetForkId;
-	address user = address(0x51);
+  address user = address(0x51);
 
-	function setUp() public {
-		string memory ETHEREUM_MAINNET_RPC_URL = vm.envString(
+  function setUp() public {
+    string memory ETHEREUM_MAINNET_RPC_URL = vm.envString(
       "ETHEREUM_MAINNET_RPC_URL"
     );
-    string memory ARBITRUM_MAINNET_RPC_URL = vm.envString(
-      "ARBITRUM_API_URL"
-    );
-		ethereumMainnetForkId = vm.createFork(ETHEREUM_MAINNET_RPC_URL);
+    string memory ARBITRUM_MAINNET_RPC_URL = vm.envString("ARBITRUM_API_URL");
+    ethereumMainnetForkId = vm.createFork(ETHEREUM_MAINNET_RPC_URL);
     arbitrumMainnetForkId = vm.createFork(ARBITRUM_MAINNET_RPC_URL);
 
-		vm.selectFork(ethereumMainnetForkId);
-		deal(address(ctx), user, 900_000 ether);
-		vm.prank(user);
-		ctx.delegate(user);
-	}
+    vm.selectFork(ethereumMainnetForkId);
+    deal(address(ctx), user, 900_000 ether);
+    vm.prank(user);
+    ctx.delegate(user);
+  }
 
-	function createAndExecuteGovernanceProposal(
+  function createAndExecuteGovernanceProposal(
     address[] memory targets,
     uint256[] memory values,
     string[] memory signatures,
     bytes[] memory calldatas,
-		string memory description
+    string memory description
   ) internal {
     vm.startPrank(user);
     vm.roll(block.number + 100);
@@ -118,50 +127,88 @@ contract AbritrumBridgeTest is Test {
     vm.stopPrank();
   }
 
-	function test() external {
-		vm.selectFork(ethereumMainnetForkId);
-		address target = address(l2MessageExecutor);
-    bytes memory payload = abi.encode(
-				address(arbitrumTreasury),
-				abi.encodeWithSelector(
-					IArbitrumTreasury.executeTransaction.selector,
-					address(perennialCollateral), // target
-					0, // value
-					"claimFee()", // signature
-					bytes("") // data
-			)
-		);
+  function test() external {
+    vm.selectFork(ethereumMainnetForkId);
+    address l2Target = address(l2MessageExecutor);
+    bytes memory executorPayload = abi.encode(
+      address(arbitrumTreasury),
+      abi.encodeWithSelector(
+        IArbitrumTreasury.executeTransaction.selector,
+        address(perennialCollateral), // target
+        0, // value
+        "claimFee()", // signature
+        bytes("") // data
+      )
+    );
+    console2.log(
+      "=================================================================================="
+    );
+    console2.log("payload to feed the script for calculating gas related data");
+    console2.logBytes(executorPayload);
+    console2.log(
+      "=================================================================================="
+    );
 
     address[] memory targets = new address[](1);
     uint256[] memory values = new uint256[](1);
     string[] memory signatures = new string[](1);
     bytes[] memory calldatas = new bytes[](1);
 
+    bytes memory l2CallData = abi.encodeWithSelector(
+      IL2MessageExecutor.executeMessage.selector,
+      executorPayload
+    );
+
     targets[0] = address(l1MessageRelayer);
-    values[0] = 0.03 ether;
+    values[0] = 349782448131600;
     signatures[0] = "relayMessage(address,bytes,uint256,uint256,uint256)";
     calldatas[0] = abi.encode(
-      target,
-      payload,
-			3815530707376,
-			82096,
-			100000000
+      l2Target,
+      l2CallData,
+      344212668313600,
+      111311,
+      50038000
     );
-		string memory description = "Claim TCAP Perp Fees";
-		console.log("targets[0]", targets[0]);
-		console.log("==================================================================================");
-		console2.log("values[0]", values[0]);
-		console.log("==================================================================================");
-		console.log("signatures[0]", signatures[0]);
-		console.log("==================================================================================");
-		console.log("calldatas[0]");
-		console.logBytes(calldatas[0]);
-		console.log("==================================================================================");
-		console.log("description", description);
-		console.log("==================================================================================");
-		createAndExecuteGovernanceProposal(targets, values, signatures, calldatas, description);
-		vm.selectFork(arbitrumMainnetForkId);
-		vm.startPrank(AddressAliasHelper.applyL1ToL2Alias(address(l1MessageRelayer)));
-		l2MessageExecutor.executeMessage(payload);
-	}
+    string memory description = "Claim TCAP Perp Fees";
+    console2.log(
+      "=================================================================================="
+    );
+    console2.log("targets[0]", targets[0]);
+    console2.log(
+      "=================================================================================="
+    );
+    console2.log("values[0]", values[0]);
+    console2.log(
+      "=================================================================================="
+    );
+    console2.log("signatures[0]", signatures[0]);
+    console2.log(
+      "=================================================================================="
+    );
+    console2.log("calldatas[0]");
+    console2.logBytes(calldatas[0]);
+    console2.log(
+      "=================================================================================="
+    );
+    console2.log("description", description);
+    console2.log(
+      "=================================================================================="
+    );
+    createAndExecuteGovernanceProposal(
+      targets,
+      values,
+      signatures,
+      calldatas,
+      description
+    );
+    vm.selectFork(arbitrumMainnetForkId);
+    vm.startPrank(
+      AddressAliasHelper.applyL1ToL2Alias(address(l1MessageRelayer))
+    );
+    uint256 oldBalance = dsu.balanceOf(address(arbitrumTreasury));
+    (bool success, ) = l2Target.call(l2CallData);
+    require(success, "Message call failed");
+    uint256 newBalance = dsu.balanceOf(address(arbitrumTreasury));
+    assertTrue((newBalance - oldBalance) > 15887 ether);
+  }
 }
