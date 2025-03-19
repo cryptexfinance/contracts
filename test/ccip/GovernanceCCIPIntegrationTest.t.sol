@@ -8,69 +8,9 @@ import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.s
 import {GovernanceCCIPRelay, IGovernanceCCIPRelay} from "contracts/ccip/GovernanceCCIPRelay.sol";
 import {GovernanceCCIPReceiver, IGovernanceCCIPReceiver} from "contracts/ccip/GovernanceCCIPReceiver.sol";
 import {NumberUpdater} from "contracts/mocks/NumberUpdater.sol";
-
-interface IGovernorBeta {
-  enum ProposalState {
-    Pending,
-    Active,
-    Canceled,
-    Defeated,
-    Succeeded,
-    Queued,
-    Expired,
-    Executed
-  }
-
-  function votingDelay() external pure returns (uint256);
-
-  function votingPeriod() external pure returns (uint256);
-
-  function state(uint256 proposalId) external view returns (ProposalState);
-
-  function propose(
-    address[] memory targets,
-    uint256[] memory values,
-    string[] memory signatures,
-    bytes[] memory calldatas,
-    string memory description
-  ) external returns (uint256);
-
-  function queue(uint256 proposalId) external;
-
-  function execute(uint256 proposalId) external payable;
-
-  function castVote(uint256 proposalId, bool support) external;
-
-  function latestProposalIds(address) external returns (uint256);
-}
-
-interface ITimelock {
-  function delay() external returns (uint256);
-
-  function queueTransaction(
-    address target,
-    uint256 value,
-    string memory signature,
-    bytes memory data,
-    uint256 eta
-  ) external returns (bytes32);
-
-  function executeTransaction(
-    address target,
-    uint256 value,
-    string memory signature,
-    bytes memory data,
-    uint256 eta
-  ) external payable returns (bytes memory);
-
-  function admin() external returns (address);
-
-  function acceptAdmin() external;
-}
-
-interface ICtx {
-  function delegate(address delegatee) external;
-}
+import {IGovernorBeta} from "../interfaces/IGovernorBeta.sol";
+import {ITimelock} from "../interfaces/ITimelock.sol";
+import {ICtx} from "../interfaces/ICtx.sol";
 
 interface IPriceRegistry {
   error StaleGasPrice(
