@@ -63,6 +63,35 @@ contract GovernanceCCIPIntegrationTest is Test {
     assertEq(newBalance - oldBalance, 125_000 ether);
   }
 
+	function testCIP37() external {
+		vm.selectFork(ethereumMainnetForkId);
+    address[] memory targets = new address[](1);
+    uint256[] memory values = new uint256[](1);
+    string[] memory signatures = new string[](1);
+    bytes[] memory calldatas = new bytes[](1);
+    string memory description;
+
+    address teamMultisig = 0xa70b638B70154EdfCbb8DbbBd04900F328F32c35;
+
+    targets[0] = 0x321C2fE4446C7c963dc41Dd58879AF648838f98D;
+    values[0] = 0;
+    signatures[0] = "transfer(address,uint256)";
+    calldatas[
+      0
+    ] = hex"000000000000000000000000a70b638b70154edfcbb8dbbbd04900f328f32c35000000000000000000000000000000000000000000001969368974c05b000000";
+    description = "CIP-37: Supplemental Treasury Transfer to Sustain Q2 2025 Operations";
+    uint256 oldBalance = ctx.balanceOf(teamMultisig);
+    createAndExecuteGovernanceProposal(
+      targets,
+      values,
+      signatures,
+      calldatas,
+      description
+    );
+    uint256 newBalance = ctx.balanceOf(teamMultisig);
+    assertEq(newBalance - oldBalance, 120_000 ether);
+	}
+
   function createAndExecuteGovernanceProposal(
     address[] memory targets,
     uint256[] memory values,
