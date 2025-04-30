@@ -3814,9 +3814,9 @@ balanced-match@^1.0.0:
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
 
 base-x@^3.0.2, base-x@^3.0.8:
-  version "3.0.9"
-  resolved "https://registry.yarnpkg.com/base-x/-/base-x-3.0.9.tgz#6349aaabb58526332de9f60995e548a53fe21320"
-  integrity sha512-H7JU6iBHTal1gp56aKoaa//YUxEaAOUiydvrV/pILqIHXTtqxSkATOnDA2u+jZ/61sD+L/412+7kzXRtWukhpQ==
+  version "3.0.11"
+  resolved "https://registry.yarnpkg.com/base-x/-/base-x-3.0.11.tgz#40d80e2a1aeacba29792ccc6c5354806421287ff"
+  integrity sha512-xz7wQ8xDhdyP7tQxwdteLYeFfS68tSMNCZ/Y37WJ4bhGfKPpqEIlmIyueQHqOyoPhE6xNUqjzRr8ra0eF9VRvA==
   dependencies:
     safe-buffer "^5.0.1"
 
@@ -11052,7 +11052,7 @@ snapdragon@^0.8.1:
     semver "^5.5.0"
     tmp "0.0.33"
 
-"solc-0.7@npm:solc@0.7.5", solc@0.7.5:
+"solc-0.7@npm:solc@0.7.5":
   version "0.7.5"
   resolved "https://registry.yarnpkg.com/solc/-/solc-0.7.5.tgz#8dad9536075a113adcbcb2ace80d486b389f273c"
   integrity sha512-RdcYGj2qjg+maWYRZPW65QvOOYbwexDT9xaOEQJtRI0TIYfzTJmslJ4f9S56VNjJsIR1zHdUIiPyuhF7wGIylw==
@@ -11071,6 +11071,21 @@ solc@0.7.3:
   version "0.7.3"
   resolved "https://registry.yarnpkg.com/solc/-/solc-0.7.3.tgz#04646961bd867a744f63d2b4e3c0701ffdc7d78a"
   integrity sha512-GAsWNAjGzIDg7VxzP6mPjdurby3IkGCjQcM8GFYZT6RyaoUZKmMU6Y7YwG+tFGhv7dwZ8rmR4iwFDrrD99JwqA==
+  dependencies:
+    command-exists "^1.2.8"
+    commander "3.0.2"
+    follow-redirects "^1.12.1"
+    fs-extra "^0.30.0"
+    js-sha3 "0.8.0"
+    memorystream "^0.3.1"
+    require-from-string "^2.0.0"
+    semver "^5.5.0"
+    tmp "0.0.33"
+
+solc@0.7.5:
+  version "0.7.5"
+  resolved "https://registry.yarnpkg.com/solc/-/solc-0.7.5.tgz#8dad9536075a113adcbcb2ace80d486b389f273c"
+  integrity sha512-RdcYGj2qjg+maWYRZPW65QvOOYbwexDT9xaOEQJtRI0TIYfzTJmslJ4f9S56VNjJsIR1zHdUIiPyuhF7wGIylw==
   dependencies:
     command-exists "^1.2.8"
     commander "3.0.2"
